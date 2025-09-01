@@ -5,6 +5,8 @@ import PostCard from '../components/PostCard';
 import ApplyModal from '../components/ApplyModal';
 import CVViewerModal from '../components/CVViewerModal';
 import EditPostModal from '../components/EditPostModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import notify from '../utils/notify';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -16,6 +18,7 @@ const Home = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [cvUrl, setCvUrl] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -49,7 +52,7 @@ const Home = () => {
       setShowCVModal(true);
     } catch (error) {
       console.error('Error viewing CV:', error);
-      alert('Không thể xem CV');
+      notify.error('Không thể xem CV');
     }
   };
 
@@ -57,10 +60,10 @@ const Home = () => {
     try {
       await applicationsAPI.apply(applicationData);
       setShowApplyModal(false);
-      alert('Nộp CV thành công!');
+      notify.success('Nộp CV thành công!');
     } catch (error) {
       console.error('Error applying:', error);
-      alert(error.response?.data?.message || 'Lỗi khi nộp CV');
+      notify.error(error, 'Lỗi khi nộp CV');
     }
   };
 
@@ -73,7 +76,7 @@ const Home = () => {
     try {
       await postsAPI.updatePost(postId, postData);
       fetchPosts(); // Refresh posts
-      alert('Cập nhật bài đăng thành công!');
+      notify.success('Cập nhật bài đăng thành công!');
     } catch (error) {
       console.error('Error updating post:', error);
       throw error;
@@ -81,15 +84,20 @@ const Home = () => {
   };
 
   const handleDeletePost = async (postId) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa bài đăng này?')) return;
+    setConfirmDeleteId(postId);
+  };
 
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
     try {
-      await postsAPI.deletePost(postId);
-      fetchPosts(); // Refresh posts
-      alert('Xóa bài đăng thành công!');
+      await postsAPI.deletePost(confirmDeleteId);
+      fetchPosts();
+      notify.success('Xóa bài đăng thành công!');
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Lỗi khi xóa bài đăng');
+      notify.error('Lỗi khi xóa bài đăng');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -108,36 +116,33 @@ const Home = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
           Trang chủ
         </h1>
-        
+
         {/* Filter buttons */}
         <div className="flex space-x-4 mb-6">
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              filter === 'all'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${filter === 'all'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Tất cả
           </button>
           <button
             onClick={() => setFilter('find_job')}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              filter === 'find_job'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${filter === 'find_job'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Tìm việc làm
           </button>
           <button
             onClick={() => setFilter('find_candidate')}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              filter === 'find_candidate'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${filter === 'find_candidate'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Tuyển dụng
           </button>
@@ -196,6 +201,17 @@ const Home = () => {
           onSave={handleSavePost}
         />
       )}
+
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Xóa bài đăng"
+        message="Bạn có chắc chắn muốn xóa bài đăng này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="danger"
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { applicationsAPI, cvsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import notify from '../utils/notify';
 import CVViewerModal from '../components/CVViewerModal';
 
 const Applications = () => {
@@ -39,7 +40,7 @@ const Applications = () => {
       fetchApplications();
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Lỗi khi cập nhật trạng thái');
+      notify.error('Lỗi khi cập nhật trạng thái');
     }
   };
 
@@ -52,7 +53,7 @@ const Applications = () => {
       setShowCVModal(true);
     } catch (error) {
       console.error('Error viewing CV:', error);
-      alert('Không thể xem CV');
+      notify.error('Không thể xem CV');
     }
   };
 
@@ -156,20 +157,20 @@ const Applications = () => {
                                 {getStatusText(application.status)}
                               </span>
                             </div>
-                            
+
                             <p className="text-gray-600 mb-2">
                               Công ty: {application.company_name}
                             </p>
-                            
+
                             <p className="text-gray-700 text-sm mb-3">
                               {application.post_description}
                             </p>
-                            
+
                             <div className="text-sm text-gray-500">
                               Nộp vào: {formatDate(application.created_at)}
                             </div>
                           </div>
-                          
+
                           <div className="ml-4">
                             <button
                               onClick={() => handleViewCV(application.cv_id)}
@@ -213,26 +214,26 @@ const Applications = () => {
                                 {getStatusText(application.status)}
                               </span>
                             </div>
-                            
+
                             <p className="text-gray-600 mb-2">
                               Email: {application.applicant_email}
                             </p>
-                            
+
                             <p className="text-gray-700 text-sm mb-2">
                               Ứng tuyển vào: {application.post_title}
                             </p>
-                            
+
                             {application.applicant_bio && (
                               <p className="text-gray-600 text-sm mb-3">
                                 Giới thiệu: {application.applicant_bio}
                               </p>
                             )}
-                            
+
                             <div className="text-sm text-gray-500">
                               Nộp vào: {formatDate(application.created_at)}
                             </div>
                           </div>
-                          
+
                           <div className="ml-4 space-y-2">
                             <button
                               onClick={() => handleViewCV(application.cv_id)}
@@ -240,7 +241,7 @@ const Applications = () => {
                             >
                               Xem CV
                             </button>
-                            
+
                             {application.status === 'pending' && (
                               <div className="flex space-x-2">
                                 <button
@@ -257,7 +258,7 @@ const Applications = () => {
                                 </button>
                               </div>
                             )}
-                            
+
                             {application.status !== 'pending' && application.status !== 'reviewed' && (
                               <button
                                 onClick={() => handleStatusUpdate(application.id, 'reviewed')}

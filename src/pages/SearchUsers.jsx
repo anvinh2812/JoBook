@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usersAPI, followsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import notify from '../utils/notify';
 
 const SearchUsers = () => {
   const [users, setUsers] = useState([]);
@@ -29,11 +30,11 @@ const SearchUsers = () => {
     try {
       setLoading(true);
       const params = {};
-      
+
       if (searchQuery.trim()) {
         params.search = searchQuery;
       }
-      
+
       if (accountTypeFilter !== 'all') {
         params.type = accountTypeFilter;
       }
@@ -44,7 +45,7 @@ const SearchUsers = () => {
 
       // Check follow status for all users
       const followStatuses = await Promise.all(
-        filteredUsers.map(user => 
+        filteredUsers.map(user =>
           followsAPI.getFollowStatus(user.id).catch(() => ({ data: { isFollowing: false } }))
         )
       );
@@ -70,7 +71,7 @@ const SearchUsers = () => {
       setFollowingUsers(prev => new Set([...prev, userId]));
     } catch (error) {
       console.error('Error following user:', error);
-      alert('Lỗi khi theo dõi người dùng');
+      notify.error(error, 'Lỗi khi theo dõi người dùng');
     }
   };
 
@@ -84,7 +85,7 @@ const SearchUsers = () => {
       });
     } catch (error) {
       console.error('Error unfollowing user:', error);
-      alert('Lỗi khi bỏ theo dõi người dùng');
+      notify.error(error, 'Lỗi khi bỏ theo dõi người dùng');
     }
   };
 
@@ -93,8 +94,8 @@ const SearchUsers = () => {
   };
 
   const getAccountTypeBadgeColor = (accountType) => {
-    return accountType === 'candidate' 
-      ? 'bg-green-100 text-green-800' 
+    return accountType === 'candidate'
+      ? 'bg-green-100 text-green-800'
       : 'bg-blue-100 text-blue-800';
   };
 
@@ -105,7 +106,7 @@ const SearchUsers = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Tìm kiếm người dùng
         </h1>
-        
+
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search Input */}
@@ -172,7 +173,7 @@ const SearchUsers = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       {user.full_name}
@@ -198,7 +199,7 @@ const SearchUsers = () => {
                   >
                     Xem hồ sơ
                   </Link>
-                  
+
                   {followingUsers.has(user.id) ? (
                     <button
                       onClick={() => handleUnfollow(user.id)}

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const API_BASE_URL = '/api';
 
@@ -20,6 +21,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+  toast.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cvsAPI } from '../services/api';
+import notify from '../utils/notify';
 
 const ApplyModal = ({ post, onClose, onSubmit }) => {
   const [cvs, setCvs] = useState([]);
@@ -28,7 +29,7 @@ const ApplyModal = ({ post, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedCvId) {
-      alert('Vui lòng chọn CV');
+      notify.error('Vui lòng chọn CV');
       return;
     }
 
