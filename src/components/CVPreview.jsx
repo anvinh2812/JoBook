@@ -151,6 +151,1022 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             </div>
         );
     }
+    // Mẫu mới: Hiện đại (theo ảnh: header tên viền đỏ nét đứt, ô liên hệ viền đứt, tiêu đề đỏ + gạch xám, mục 2 cột)
+    if (templateStyle === 'hienDai') {
+        const accent = '#d66a6a';
+        const listChange = (listName, idx, field) => (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onListChange(listName, idx, field, e.target.value);
+        };
+        const safeChange = (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onChange?.(e);
+        };
+        const CornerFrame = ({ children }) => (
+            <div className="relative w-[180px] h-[180px] border border-gray-300 rounded bg-white">
+                {/* corner marks */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute left-0 top-0 w-4 h-4 border-l-2 border-t-2 border-gray-400" />
+                    <div className="absolute right-0 top-0 w-4 h-4 border-r-2 border-t-2 border-gray-400" />
+                    <div className="absolute left-0 bottom-0 w-4 h-4 border-l-2 border-b-2 border-gray-400" />
+                    <div className="absolute right-0 bottom-0 w-4 h-4 border-r-2 border-b-2 border-gray-400" />
+                </div>
+                {children}
+            </div>
+        );
+        const Avatar = () => (
+            <div className="relative w-[200px]">
+                <CornerFrame>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-36 h-36 rounded-full overflow-hidden bg-gray-200 border border-gray-300">
+                            {data.avatar ? (
+                                <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-3xl">👤</div>
+                            )}
+                        </div>
+                    </div>
+                </CornerFrame>
+                {!isExporting && (
+                    <label className="absolute left-4 bottom-2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                    </label>
+                )}
+            </div>
+        );
+        const SectionTitle = ({ children }) => (
+            <div className="mt-4">
+                <div className="text-[18px] font-semibold" style={{ color: accent }}>{children}</div>
+                <div className="border-t border-gray-300 mt-1" />
+            </div>
+        );
+        const LabeledTwoCol = ({ leftTop, leftBottom, rightTop, rightBottom }) => (
+            <div className="grid grid-cols-2 gap-10 text-sm mt-3">
+                <div>
+                    <div className="italic text-rose-400">{leftTop}</div>
+                    <div className="text-gray-600">{leftBottom}</div>
+                </div>
+                <div>
+                    <div className="font-medium text-gray-800">{rightTop}</div>
+                    <div className="text-gray-600">{rightBottom}</div>
+                </div>
+            </div>
+        );
+        const ContactCard = ({ icon, name, placeholder, type = 'text', value }) => (
+            <div className="flex items-center gap-2">
+                <div className="w-6 h-6 flex items-center justify-center text-black text-[14px]">{icon}</div>
+                {isExporting ? (
+                    <div className="flex-1 border border-rose-300 border-dashed rounded px-3 py-1 italic break-all">{value || placeholder}</div>
+                ) : (
+                    <input type={type} name={name} value={value} onChange={safeChange} placeholder={placeholder} className="flex-1 bg-transparent outline-none border border-rose-300 border-dashed focus:border-rose-500 rounded px-3 py-1 italic" />
+                )}
+            </div>
+        );
+        return (
+            <div className="bg-white w-full max-w-[980px] mx-auto p-6" style={{ fontFamily: 'Inter, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
+                {/* Header */}
+                <div className="grid grid-cols-[220px_1fr] gap-4 items-start">
+                    <Avatar />
+                    <div className="min-w-0">
+                        <div className="flex items-baseline justify-between gap-4">
+                            <div className="border border-rose-400 border-dashed rounded px-3 py-1">
+                                {isExporting ? (
+                                    <div className="italic text-2xl font-semibold text-rose-400">{data.fullName || 'Họ Tên'}</div>
+                                ) : (
+                                    <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="bg-transparent outline-none italic text-2xl font-semibold text-rose-500" />
+                                )}
+                            </div>
+                            <div className="italic text-gray-500">
+                                {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
+                                    <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="bg-transparent outline-none italic" />
+                                )}
+                            </div>
+                        </div>
+                        <div className="mt-2 border-t border-gray-300" />
+
+                        {/* Contacts 2 columns */}
+                        <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+                            <ContactCard icon="🗓️" name="dob" value={data.dob} placeholder="DD/MM/YY" />
+                            <ContactCard icon="👤" name="gender" value={data.gender} placeholder="Nam/Nữ" />
+                            <ContactCard icon="📞" name="phone" value={data.phone} placeholder="0123 456 789" />
+                            <ContactCard icon="✉️" type="email" name="email" value={data.email} placeholder="tencuaban@example.com" />
+                            <ContactCard icon="📍" name="address" value={data.address} placeholder="Quận A, thành phố Hà Nội" />
+                            <ContactCard icon="🔗" name="website" value={data.website} placeholder="facebook.com/TopCV.vn" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Body sections */}
+                <SectionTitle>Mục tiêu nghề nghiệp</SectionTitle>
+                <div className="text-sm text-gray-700 mt-2">
+                    {isExporting ? (
+                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                    ) : (
+                        <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                    )}
+                </div>
+
+                <SectionTitle>Học vấn</SectionTitle>
+                <div>
+                    {(data.educationList || []).map((edu, idx) => (
+                        <LabeledTwoCol
+                            key={idx}
+                            leftTop={isExporting ? (edu.major || 'Ngành học / Môn học') : (
+                                <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
+                            )}
+                            leftBottom={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
+                                <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                            )}
+                            rightTop={isExporting ? (edu.school || 'Tên trường học') : (
+                                <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                            )}
+                            rightBottom={isExporting ? (edu.result || edu.note || 'Mô tả quá trình học tập hoặc thành tích của bạn') : (
+                                <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            )}
+                        />
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline mt-2" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>
+                    )}
+                </div>
+
+                <SectionTitle>Kinh nghiệm làm việc</SectionTitle>
+                <div>
+                    {(data.experienceList || []).map((exp, idx) => (
+                        <LabeledTwoCol
+                            key={idx}
+                            leftTop={isExporting ? (exp.position || 'Vị trí công việc') : (
+                                <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
+                            )}
+                            leftBottom={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
+                                <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                            )}
+                            rightTop={isExporting ? (exp.company || 'Tên công ty') : (
+                                <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                            )}
+                            rightBottom={isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
+                                <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            )}
+                        />
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline mt-2" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                    )}
+                </div>
+
+                <SectionTitle>Hoạt động</SectionTitle>
+                <div>
+                    {(data.activityList || []).map((act, idx) => (
+                        <LabeledTwoCol
+                            key={idx}
+                            leftTop={isExporting ? (act.role || 'Vị trí của bạn') : (
+                                <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
+                            )}
+                            leftBottom={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
+                                <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                            )}
+                            rightTop={isExporting ? (act.org || 'Tên tổ chức') : (
+                                <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                            )}
+                            rightBottom={isExporting ? (act.details || 'Mô tả hoạt động') : (
+                                <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            )}
+                        />
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline mt-2" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>
+                    )}
+                </div>
+
+                {/* Bottom two columns: Skills & Certificates */}
+                <div className="grid grid-cols-2 gap-10">
+                    <div>
+                        <SectionTitle>Kỹ năng</SectionTitle>
+                        <div className="mt-2 space-y-3">
+                            {(data.skillsList || []).map((s, idx) => (
+                                <div key={idx}>
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-800">{s.name || 'Tên kỹ năng'}</div>
+                                    ) : (
+                                        <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    )}
+                                    <div className="mt-1 h-2 bg-gray-200 rounded" />
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline" onClick={() => onAddList('skillsList', { name: '', description: '' })}>+ Thêm kỹ năng</button>
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <SectionTitle>Chứng chỉ</SectionTitle>
+                        <div className="mt-2 space-y-3 text-sm">
+                            {(data.certificatesList || []).map((c, idx) => (
+                                <div key={idx}>
+                                    {isExporting ? (
+                                        <div className="font-medium text-gray-800">{c.name || 'Tên chứng chỉ'}</div>
+                                    ) : (
+                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                                    )}
+                                    <div className="text-gray-600 italic mt-0.5">
+                                        {isExporting ? (c.time || 'Thời gian') : (
+                                            <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline" onClick={() => onAddList('certificatesList', { time: '', name: '' })}>+ Thêm chứng chỉ</button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    // Mẫu mới: Cao cấp (theo ảnh với header tối và rail trái có icon/điểm)
+    if (templateStyle === 'caoCap') {
+        const listChange = (listName, idx, field) => (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onListChange(listName, idx, field, e.target.value);
+        };
+        const safeChange = (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onChange?.(e);
+        };
+        const Header = () => (
+            <div className="bg-gray-900 text-white rounded-t border-b border-gray-800">
+                <div className="grid grid-cols-[150px_1fr] gap-4 items-center p-4">
+                    {/* Avatar + Sửa ảnh */}
+                    <div className="relative flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white/20 bg-gray-700">
+                            {data.avatar ? (
+                                <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-3xl">👤</div>
+                            )}
+                        </div>
+                        {!isExporting && (
+                            <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                                Sửa ảnh
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                            </label>
+                        )}
+                    </div>
+                    {/* Name + contacts */}
+                    <div className="min-w-0">
+                        <div className="italic text-2xl font-semibold">
+                            {isExporting ? (data.fullName || 'Họ Tên') : (
+                                <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-2xl font-semibold" />
+                            )}
+                        </div>
+                        <div className="italic text-white/80">
+                            {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
+                                <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/20 focus:border-white italic" />
+                            )}
+                        </div>
+                        <div className="mt-2 text-sm flex flex-wrap gap-x-3 gap-y-1 items-center text-white/90">
+                            {isExporting ? (
+                                <>
+                                    <span>{data.phone || '0123 456 789'}</span>
+                                    <span className="opacity-70">•</span>
+                                    <span className="break-all">{data.email || 'tencuaban@example.com'}</span>
+                                    <span className="opacity-70">•</span>
+                                    <span className="break-all">{data.website || 'facebook.com/TopCV.vn'}</span>
+                                    <span className="opacity-70">•</span>
+                                    <span>{data.address || 'Quận A, thành phố Hà Nội'}</span>
+                                    <span className="opacity-70">•</span>
+                                    <span>{data.dob || 'DD/MM/YY'}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <span className="opacity-70">•</span>
+                                    <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <span className="opacity-70">•</span>
+                                    <input type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <span className="opacity-70">•</span>
+                                    <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <span className="opacity-70">•</span>
+                                    <input type="text" name="dob" value={data.dob} onChange={safeChange} placeholder="DD/MM/YY" className="bg-transparent outline-none border-b border-white/20 focus:border-white w-20" />
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+        const SectionRail = ({ icon, title, children }) => (
+            <section className="relative pl-12">
+                {/* vertical line (global) handled by container; here: node/dot */}
+                <div className="absolute left-4 top-2 w-3 h-3 rounded-full bg-white border-2 border-gray-900" />
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="w-6 h-6 rounded bg-white border border-gray-900 flex items-center justify-center text-[12px] text-gray-900">
+                        {icon}
+                    </div>
+                    <div className="font-semibold text-gray-900">{title}</div>
+                </div>
+                <div className="mb-3">{children}</div>
+            </section>
+        );
+        const Row = ({ left, right }) => (
+            <div className="flex items-baseline justify-between gap-4">
+                <div className="flex-1 text-gray-800">{left}</div>
+                <div className="w-40 text-right italic text-gray-600">{right}</div>
+            </div>
+        );
+        return (
+            <div className="bg-white w-full max-w-[980px] mx-auto border border-gray-300 rounded overflow-hidden" style={{ fontFamily: 'Inter, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
+                <Header />
+                {/* Content with left rail */}
+                <div className="relative p-6">
+                    <div className="absolute left-6 top-0 bottom-0 border-l-2 border-gray-900" />
+
+                    <SectionRail icon="📝" title="Mục tiêu nghề nghiệp">
+                        {isExporting ? (
+                            <div className="text-gray-700 italic">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                        ) : (
+                            <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                        )}
+                        <div className="mt-2 border-t border-gray-300" />
+                    </SectionRail>
+
+                    <SectionRail icon="🎓" title="Học vấn">
+                        <div className="space-y-3">
+                            {(data.educationList || []).map((edu, idx) => (
+                                <div key={idx} className="pb-2 border-b border-gray-200">
+                                    <Row
+                                        left={isExporting ? (edu.school || 'Tên trường học') : (
+                                            <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        )}
+                                        right={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
+                                            <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                        )}
+                                    />
+                                    <div className="mt-1 text-gray-700 italic">
+                                        {isExporting ? (edu.major || 'Ngành học / Môn học') : (
+                                            <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                        )}
+                                    </div>
+                                    <div className="mt-1 text-gray-500">
+                                        {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học hoặc thành tích của bạn') : (
+                                            <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>
+                            )}
+                        </div>
+                    </SectionRail>
+
+                    <SectionRail icon="💼" title="Kinh nghiệm làm việc">
+                        <div className="space-y-3">
+                            {(data.experienceList || []).map((exp, idx) => (
+                                <div key={idx} className="pb-2 border-b border-gray-200">
+                                    <Row
+                                        left={isExporting ? (exp.company || 'Tên công ty') : (
+                                            <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        )}
+                                        right={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
+                                            <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                        )}
+                                    />
+                                    <div className="mt-1 text-gray-700 italic">
+                                        {isExporting ? (exp.position || 'Vị trí công việc') : (
+                                            <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                        )}
+                                    </div>
+                                    <div className="mt-1 text-gray-500">
+                                        {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
+                                            <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                            )}
+                        </div>
+                    </SectionRail>
+
+                    <SectionRail icon="🛠️" title="Kỹ năng">
+                        <div className="space-y-2">
+                            {(data.skillsList || []).map((s, idx) => (
+                                <div key={idx} className="pb-2 border-b border-gray-200">
+                                    {isExporting ? (s.name || 'Tên kỹ năng') : (
+                                        <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    )}
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('skillsList', { name: '', description: '' })}>+ Thêm kỹ năng</button>
+                            )}
+                        </div>
+                    </SectionRail>
+
+                    <SectionRail icon="🏛️" title="Hoạt động">
+                        <div className="space-y-3">
+                            {(data.activityList || []).map((act, idx) => (
+                                <div key={idx} className="pb-2 border-b border-gray-200">
+                                    <Row
+                                        left={isExporting ? (act.org || 'Tên tổ chức') : (
+                                            <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        )}
+                                        right={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
+                                            <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                        )}
+                                    />
+                                    <div className="mt-1 text-gray-700 italic">
+                                        {isExporting ? (act.role || 'Vị trí của bạn') : (
+                                            <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                        )}
+                                    </div>
+                                    <div className="mt-1 text-gray-500">
+                                        {isExporting ? (act.details || 'Mô tả hoạt động') : (
+                                            <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>
+                            )}
+                        </div>
+                    </SectionRail>
+
+                    <SectionRail icon="🏅" title="Danh hiệu và giải thưởng">
+                        <div className="space-y-2">
+                            {(data.awardsList || []).map((a, idx) => (
+                                <div key={idx} className="pb-2 border-b border-gray-200">
+                                    <Row
+                                        left={isExporting ? (a.title || 'Tên giải thưởng') : (
+                                            <input value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        )}
+                                        right={isExporting ? (a.time || 'Thời gian') : (
+                                            <input value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                        )}
+                                    />
+                                </div>
+                            ))}
+                            {!isExporting && (
+                                <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('awardsList', { time: '', title: '' })}>+ Thêm giải thưởng</button>
+                            )}
+                        </div>
+                    </SectionRail>
+                </div>
+            </div>
+        );
+    }
+    // Mẫu mới: Chuyên nghiệp (avatar trái, 2 cột nội dung như ảnh)
+    if (templateStyle === 'chuyenNghiep') {
+        const listChange = (listName, idx, field) => (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onListChange(listName, idx, field, e.target.value);
+        };
+        const safeChange = (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onChange?.(e);
+        };
+        const Header = () => (
+            <div className="relative overflow-hidden grid grid-cols-[130px_1fr_280px] gap-4 items-start">
+                {/* soft peach background shape like screenshot */}
+                <div className="absolute -top-16 right-[-120px] w-[520px] h-[520px] rounded-full bg-[#fdebe8] opacity-90 pointer-events-none z-0" />
+                {/* Avatar card */}
+                <div className="relative z-10">
+                    <div className="w-28 h-28 rounded-full overflow-hidden bg-gray-200 border border-gray-300 mx-auto">
+                        {data.avatar ? (
+                            <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-500">👤</div>
+                        )}
+                    </div>
+                    {!isExporting && (
+                        <label className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                            Sửa ảnh
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                        </label>
+                    )}
+                </div>
+                {/* Name + position with dashed red borders */}
+                <div className="min-w-0 relative z-10">
+                    <div className="border border-red-400 border-dashed rounded px-3 py-2">
+                        {isExporting ? (
+                            <div className="italic text-[22px] font-semibold text-gray-800">{data.fullName || 'Họ Tên'}</div>
+                        ) : (
+                            <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none italic text-[22px] font-semibold" />
+                        )}
+                    </div>
+                    <div className="mt-2 border border-red-300 border-dashed rounded px-3 py-1">
+                        {isExporting ? (
+                            <div className="italic text-gray-600">{data.appliedPosition || 'Vị trí ứng tuyển'}</div>
+                        ) : (
+                            <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none italic text-gray-700" />
+                        )}
+                    </div>
+                </div>
+                {/* Contacts stack */}
+                <div className="grid grid-cols-1 gap-2 text-sm relative z-10">
+                    {isExporting ? (
+                        <>
+                            <div className="border border-red-300 border-dashed rounded px-3 py-1 italic break-all">{data.address || 'Quận A, thành phố Hà Nội'}</div>
+                            <div className="border border-red-300 border-dashed rounded px-3 py-1 italic break-all">{data.email || 'tencuaban@example.com'}</div>
+                            <div className="border border-red-300 border-dashed rounded px-3 py-1 italic">{data.phone || '789 456 0123'}</div>
+                        </>
+                    ) : (
+                        <>
+                            <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                            <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                            <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="789 456 0123" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+        const Title = ({ children }) => (
+            <div className="font-semibold text-gray-900 border-b-2 border-gray-900 pb-1">{children}</div>
+        );
+        const TwoColRow = ({ children }) => (
+            <div className="grid grid-cols-[100px_1fr] gap-4">
+                <div className="text-xs text-gray-500">
+                    <div>Bắt đầu</div>
+                    <div className="leading-4">↓</div>
+                    <div>Kết thúc</div>
+                </div>
+                <div className="pl-4 border-l border-gray-900">{children}</div>
+            </div>
+        );
+        const RightPanel = () => (
+            <div className="space-y-6">
+                <div>
+                    <Title icon="🧭">Mục tiêu nghề nghiệp</Title>
+                    <div className="mt-2 text-sm text-gray-700">
+                        {isExporting ? (
+                            <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                        ) : (
+                            <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                        )}
+                    </div>
+                </div>
+
+                <div>
+                    <Title icon="🛠️">Kỹ năng</Title>
+                    <div className="mt-2 space-y-2">
+                        {(data.skillsList || []).map((s, idx) => (
+                            <div key={idx}>
+                                {isExporting ? (
+                                    <div className="text-sm text-gray-800">{s.name || 'Tên kỹ năng'}</div>
+                                ) : (
+                                    <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                )}
+                                <div className="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
+                                    <div className="h-2 bg-gray-400/70" style={{ width: `${Math.min(100, Math.max(0, Number(s.level ?? 70)))}%` }} />
+                                </div>
+                                {!isExporting && (
+                                    <input type="range" min={0} max={100} value={s.level ?? 70} onChange={(e) => onListChange('skillsList', idx, 'level', e.target.value)} className="w-full" />
+                                )}
+                            </div>
+                        ))}
+                        {!isExporting && (
+                            <button type="button" className="text-xs underline" onClick={() => onAddList('skillsList', { name: '', description: '', level: 70 })}>+ Thêm kỹ năng</button>
+                        )}
+                    </div>
+                </div>
+
+                <div>
+                    <Title icon="🎖️">Chứng chỉ</Title>
+                    <div className="mt-2 space-y-3 text-sm">
+                        {(data.certificatesList || []).map((c, idx) => (
+                            <div key={idx} className="grid grid-cols-[120px_1fr] gap-3">
+                                {isExporting ? (
+                                    <>
+                                        <div className="text-gray-600 italic">{c.time || 'Thời gian'}</div>
+                                        <div className="text-gray-800">{c.name || 'Tên chứng chỉ'}</div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                        {!isExporting && (
+                            <button type="button" className="text-xs underline" onClick={() => onAddList('certificatesList', { time: '', name: '' })}>+ Thêm chứng chỉ</button>
+                        )}
+                    </div>
+                </div>
+
+                <div>
+                    <Title icon="💬">Thông tin thêm</Title>
+                    <div className="mt-2 text-sm text-gray-700">
+                        {isExporting ? (
+                            <div className="whitespace-pre-wrap">{data.moreInfo || 'Diễn thông tin thêm nếu có'}</div>
+                        ) : (
+                            <input type="text" name="moreInfo" value={data.moreInfo || ''} onChange={safeChange} placeholder="Diễn thông tin thêm nếu có" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+        return (
+            <div className="bg-white w-full max-w-[1000px] mx-auto border border-gray-300 rounded p-4" style={{ fontFamily: 'Inter, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
+                <Header />
+                <div className="border-b-2 border-gray-900 my-3" />
+                <div className="grid grid-cols-2 gap-8">
+                    {/* Left column */}
+                    <div className="space-y-6">
+                        <div>
+                            <Title icon="🎓">Học vấn</Title>
+                            <div className="mt-2 space-y-4">
+                                {(data.educationList || []).map((edu, idx) => (
+                                    <TwoColRow key={idx}>
+                                        <div className="space-y-1 text-sm">
+                                            <div className="flex items-baseline justify-between">
+                                                {isExporting ? (
+                                                    <div className="font-semibold text-gray-800">{edu.school || 'Tên trường học'}</div>
+                                                ) : (
+                                                    <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                )}
+                                                {isExporting ? (
+                                                    <div className="ml-4 italic text-gray-600">{edu.time || 'Bắt đầu  -  Kết thúc'}</div>
+                                                ) : (
+                                                    <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                )}
+                                            </div>
+                                            <div className="italic text-gray-600">
+                                                {isExporting ? (edu.major || 'Ngành học / Môn học') : (
+                                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                )}
+                                            </div>
+                                            <div className="text-gray-500">
+                                                {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học tập hoặc thành tích của bạn') : (
+                                                    <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </TwoColRow>
+                                ))}
+                                {!isExporting && (
+                                    <button type="button" className="text-xs underline" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <Title icon="💼">Kinh nghiệm làm việc</Title>
+                            <div className="mt-2 space-y-4">
+                                {(data.experienceList || []).map((exp, idx) => (
+                                    <TwoColRow key={idx}>
+                                        <div className="space-y-1 text-sm">
+                                            <div className="flex items-baseline justify-between">
+                                                {isExporting ? (
+                                                    <div className="font-semibold text-gray-800">{exp.company || 'Tên công ty'}</div>
+                                                ) : (
+                                                    <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                )}
+                                                {isExporting ? (
+                                                    <div className="ml-4 italic text-gray-600">{exp.time || 'Bắt đầu  -  Kết thúc'}</div>
+                                                ) : (
+                                                    <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                )}
+                                            </div>
+                                            <div className="italic text-gray-600">
+                                                {isExporting ? (exp.position || 'Vị trí công việc') : (
+                                                    <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                )}
+                                            </div>
+                                            <div className="text-gray-500">
+                                                {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
+                                                    <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </TwoColRow>
+                                ))}
+                                {!isExporting && (
+                                    <button type="button" className="text-xs underline" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <Title icon="🏛️">Hoạt động</Title>
+                            <div className="mt-2 space-y-4">
+                                {(data.activityList || []).map((act, idx) => (
+                                    <TwoColRow key={idx}>
+                                        <div className="space-y-1 text-sm">
+                                            <div className="flex items-baseline justify-between">
+                                                {isExporting ? (
+                                                    <div className="font-semibold text-gray-800">{act.org || 'Tên tổ chức'}</div>
+                                                ) : (
+                                                    <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                )}
+                                                {isExporting ? (
+                                                    <div className="ml-4 italic text-gray-600">{act.time || 'Bắt đầu  -  Kết thúc'}</div>
+                                                ) : (
+                                                    <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                )}
+                                            </div>
+                                            <div className="italic text-gray-600">
+                                                {isExporting ? (act.role || 'Vị trí của bạn') : (
+                                                    <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                )}
+                                            </div>
+                                            <div className="text-gray-500">
+                                                {isExporting ? (act.details || 'Mô tả hoạt động') : (
+                                                    <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </TwoColRow>
+                                ))}
+                                {!isExporting && (
+                                    <button type="button" className="text-xs underline" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right column */}
+                    <RightPanel />
+                </div>
+            </div>
+        );
+    }
+    // Mẫu mới: Sidebar Pastel theo ảnh, hành vi giống cv2 (2 dòng cho Học vấn/Chứng chỉ, Kinh nghiệm gộp details + thời gian)
+    if (templateStyle === 'sidebarPastel') {
+        const listChange = (listName, idx, field) => (e) => {
+            if (e.nativeEvent?.isComposing) return;
+            onListChange(listName, idx, field, e.target.value);
+        };
+        const safeChange = (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onChange?.(e);
+        };
+        const HeaderShapes = () => (
+            <div className="relative h-40 mb-8 pointer-events-none z-0">
+                <div className="absolute inset-0 bg-white" />
+                {/* Vệt cong góc trái */}
+                <div className="absolute -left-10 -top-10 w-72 h-72 rounded-full" style={{ background: '#eebabb' }} />
+                <div className="absolute left-6 -top-10 w-[360px] h-[260px] rounded-br-[180px] rounded-tr-[0] rounded-tl-[260px]" style={{ background: '#64748b' }} />
+                {/* nền chấm */}
+                <div className="absolute left-6 -top-10 w-[360px] h-[260px] rounded-br-[180px] rounded-tl-[260px] opacity-30" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+                {/* viền tròn quanh avatar */}
+            </div>
+        );
+        const Avatar = () => (
+            <div className="mx-10 -mt-28 flex flex-col items-center relative z-10">
+                <div className="w-40 h-40 rounded-full border-[10px] border-white shadow overflow-hidden bg-gray-200">
+                    {data.avatar ? (
+                        <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
+                    )}
+                </div>
+                {!isExporting && (
+                    <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                    </label>
+                )}
+            </div>
+        );
+        const Pill = ({ children }) => (
+            <div className="flex items-center gap-3">
+                <div className="h-[2px] bg-gray-300 flex-1" />
+                <div className="px-3 py-1 rounded-full bg-[#f1ddc8] text-gray-800 text-[14px] font-semibold whitespace-nowrap">{children}</div>
+            </div>
+        );
+        const CardRow = ({ children }) => (
+            <div className="border border-gray-300 rounded px-3 py-2 text-sm">{children}</div>
+        );
+        return (
+            <div className="bg-white w-full max-w-[980px] mx-auto border border-gray-200 rounded overflow-hidden shadow" style={{ fontFamily: 'Inter, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
+                <div className="relative">
+                    <HeaderShapes />
+                    <div className="px-10 relative z-10">
+                        <Avatar />
+                        <div className="grid grid-cols-3 gap-8 mt-6">
+                            <div className="col-span-2">
+                                <div className="text-3xl font-extrabold text-gray-800">
+                                    {isExporting ? (data.fullName || 'An Đăng Vinh') : (
+                                        <input name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-3xl font-extrabold" />
+                                    )}
+                                </div>
+                                <div className="mt-1 text-[#d19c68] italic text-xl">
+                                    {isExporting ? (data.appliedPosition || 'Vị Trí Ứng Tuyển') : (
+                                        <input name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị Trí Ứng Tuyển" className="w-full bg-transparent outline-none border-b border-[#e8c9a5] focus:border-[#c08b5a] italic text-xl" />
+                                    )}
+                                </div>
+                                <div className="mt-4 text-sm text-gray-600">
+                                    {isExporting ? (
+                                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                                    ) : (
+                                        <input name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
+                                    )}
+                                </div>
+                            </div>
+                            <div className="col-span-1 self-start">
+                                <div className="space-y-3">
+                                    <CardRow>{isExporting ? (data.phone || '0123 456 789') : (<input name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.email || 'anvinh54@gmail.com') : (<input type="email" name="email" value={data.email} onChange={safeChange} placeholder="anvinh54@gmail.com" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.website || 'facebook.com/TopCV.vn') : (<input name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.address || 'Quận A, thành phố Hà Nội') : (<input name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Nội dung chính */}
+                        <div className="grid grid-cols-3 gap-8 mt-8">
+                            {/* Cột trái */}
+                            <aside className="col-span-1 space-y-6">
+                                <div>
+                                    <Pill>Thông tin cá nhân</Pill>
+                                    <div className="mt-3 space-y-2 text-sm text-gray-700">
+                                        {/* Phone / DOB / Email / Website / Address hiển thị ở trên đã đủ; giữ trống hoặc thêm DOB */}
+                                        <CardRow>{isExporting ? (data.dob || 'Ngày sinh') : (<input name="dob" value={data.dob} onChange={safeChange} placeholder="Ngày sinh" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Pill>Học vấn</Pill>
+                                    <div className="mt-3 space-y-3 text-sm">
+                                        {(data.educationList || []).map((edu, idx) => (
+                                            <div key={idx}>
+                                                {/* Dòng 1: Chuyên ngành */}
+                                                {isExporting ? (
+                                                    <div className="font-semibold text-gray-800">{edu.major || 'Ngành học / Môn học'}</div>
+                                                ) : (
+                                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                )}
+                                                {/* Dòng 2: Trường trái + Thời gian phải */}
+                                                <div className="flex items-baseline justify-between gap-3 mt-0.5 text-gray-700">
+                                                    {isExporting ? (
+                                                        <>
+                                                            <span className="truncate">{edu.school || 'Tên trường học'}</span>
+                                                            <span className="italic text-gray-600">{edu.time || 'Bắt đầu  -  Kết thúc'}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                            <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <Pill>Kỹ năng</Pill>
+                                    <div className="mt-3 space-y-2 text-sm">
+                                        {(data.skillsList || []).map((s, idx) => (
+                                            <div key={idx}>
+                                                {isExporting ? (s.name || 'Tên kỹ năng') : (
+                                                    <input value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                )}
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('skillsList', { name: '', description: '' })}>+ Thêm kỹ năng</button>
+                                        )}
+                                    </div>
+                                </div>
+                            </aside>
+
+                            {/* Cột phải 2/3 */}
+                            <main className="col-span-2 space-y-6">
+                                <div>
+                                    <Pill>Kinh nghiệm làm việc</Pill>
+                                    <div className="mt-3 space-y-4 text-sm">
+                                        {(data.experienceList || []).map((exp, idx) => (
+                                            <div key={idx}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="font-semibold text-gray-800">
+                                                        {isExporting ? (exp.details || 'Tên công ty, Vị trí công việc') : (
+                                                            <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Tên công ty, Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                        )}
+                                                    </div>
+                                                    <div className="italic text-gray-600 ml-4">
+                                                        {isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
+                                                            <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Pill>Hoạt động</Pill>
+                                    <div className="mt-3 space-y-4 text-sm">
+                                        {(data.activityList || []).map((act, idx) => (
+                                            <div key={idx}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="font-semibold text-gray-800">
+                                                        {isExporting ? (act.role || 'Vị trí của bạn') : (
+                                                            <input value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                        )}
+                                                    </div>
+                                                    <div className="italic text-gray-600 ml-4">
+                                                        {isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
+                                                            <input value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-gray-700">
+                                                    {isExporting ? (act.org || 'Tên tổ chức') : (
+                                                        <input value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    )}
+                                                </div>
+                                                <div className="mt-1 text-gray-600">
+                                                    {isExporting ? (act.details || 'Mô tả hoạt động') : (
+                                                        <input value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Pill>Dự án</Pill>
+                                    <div className="mt-3 space-y-4 text-sm">
+                                        {(data.projectsList || []).map((pj, idx) => (
+                                            <div key={idx}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="font-semibold text-gray-800">
+                                                        {isExporting ? (pj.name || 'Tên dự án') : (
+                                                            <input value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                        )}
+                                                    </div>
+                                                    <div className="italic text-gray-600 ml-4">
+                                                        {isExporting ? (pj.time || 'Bắt đầu  -  Kết thúc') : (
+                                                            <input value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-gray-700">
+                                                    {isExporting ? (pj.role || 'Vị trí của bạn trong dự án') : (
+                                                        <input value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    )}
+                                                </div>
+                                                <div className="mt-1 text-gray-600">
+                                                    {isExporting ? (pj.details || 'Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu') : (
+                                                        <input value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('projectsList', { time: '', name: '', role: '', details: '' })}>+ Thêm dự án</button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Pill>Chứng chỉ</Pill>
+                                    <div className="mt-3 space-y-3 text-sm">
+                                        {(data.certificatesList || []).map((c, idx) => (
+                                            <div key={idx}>
+                                                {/* Dòng 1: Tên chứng chỉ */}
+                                                <div className="font-semibold text-gray-800">
+                                                    {isExporting ? (c.name || 'Tên chứng chỉ') : (
+                                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    )}
+                                                </div>
+                                                {/* Dòng 2: Thời gian */}
+                                                <div className="italic text-gray-600 mt-0.5">
+                                                    {isExporting ? (c.time || 'Thời gian') : (
+                                                        <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {!isExporting && (
+                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('certificatesList', { time: '', name: '' })}>+ Thêm chứng chỉ</button>
+                                        )}
+                                    </div>
+                                </div>
+                            </main>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     // Mẫu thứ 2: Sidebar 2 cột theo ảnh (trái nền đậm, tiêu đề dạng pill)
     if (templateStyle === 'sidebarV2') {
         const listChange = (listName, idx, field) => (e) => {
@@ -175,7 +1191,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             </div>
         );
         const Avatar = () => (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full flex flex-col items-center relative">
                 <div className="w-44 h-44 rounded-full overflow-hidden bg-gray-300 border-4 border-[#6a7569]">
                     {data.avatar ? (
                         <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
@@ -184,8 +1200,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     )}
                 </div>
                 {!isExporting && (
-                    <label className="mt-3 text-xs underline cursor-pointer text-white/90">
-                        Tải ảnh
+                    <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
                         <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
@@ -468,7 +1484,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="text-[18px] font-semibold text-white mb-2">{children}</div>
         );
         const Avatar = () => (
-            <div className="w-full flex flex-col items-center">
+            <div className="w-full flex flex-col items-center relative">
                 <div className="w-52 h-52 rounded-full overflow-hidden bg-gray-300 border-4 border-[#6a7569]">
                     {data.avatar ? (
                         <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
@@ -477,8 +1493,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     )}
                 </div>
                 {!isExporting && (
-                    <label className="mt-3 text-xs underline cursor-pointer text-white/90">
-                        Tải ảnh
+                    <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
                         <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
@@ -787,7 +1803,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             </div>
         );
         const Avatar = () => (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative">
                 <div className="w-[260px] h-[220px] bg-gray-200 flex items-center justify-center overflow-hidden">
                     {data.avatar ? (
                         <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
@@ -796,8 +1812,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     )}
                 </div>
                 {!isExporting && (
-                    <label className="mt-2 text-xs underline cursor-pointer text-gray-700">
-                        Tải ảnh
+                    <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
                         <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
@@ -1016,8 +2032,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             onListChange(listName, idx, field, e.target.value);
         };
         const Avatar = () => (
-            <div className="flex items-center gap-4 mb-4">
-                <div className="w-32 h-40 overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-300">
+            <div className="flex items-center gap-4 mb-4 relative">
+                <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-300">
                     {data.avatar ? (
                         <img src={data.avatar} alt="avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -1025,8 +2041,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     )}
                 </div>
                 {!isExporting && (
-                    <label className="text-xs text-primary-700 underline cursor-pointer">
-                        Tải ảnh
+                    <label className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
+                        Sửa ảnh
                         <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
@@ -3072,6 +4088,250 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             <button type="button" className="text-xs text-pink-600 underline" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
                         </Section>
                     </div>
+                </div>
+            </div>
+        );
+    }
+    // Mẫu mới: Senior (1 cột tối giản theo ảnh, tiêu đề in hoa + đường kẻ)
+    if (templateStyle === 'senior') {
+        const listChange = (listName, idx, field) => (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onListChange(listName, idx, field, e.target.value);
+        };
+        const safeChange = (e) => {
+            if (e?.nativeEvent?.isComposing) return;
+            onChange?.(e);
+        };
+        const SectionHeader = ({ children }) => (
+            <div className="flex items-center gap-3 mt-6 mb-2">
+                <div className="uppercase font-extrabold tracking-wide text-[13px] text-gray-800">{children}</div>
+                <div className="flex-1 border-t border-gray-800" />
+            </div>
+        );
+        const Row = ({ left, right, className = '' }) => (
+            <div className={`flex items-baseline justify-between gap-4 ${className}`}>
+                <div className="flex-1 text-gray-800">{left}</div>
+                <div className="w-40 text-right italic text-gray-600">{right}</div>
+            </div>
+        );
+        return (
+            <div className="bg-white w-full max-w-[900px] mx-auto border border-gray-300 rounded p-8" style={{ fontFamily: 'Georgia, Times, serif', fontSize: '15px' }}>
+                {/* Header */}
+                <div className="text-center mb-6">
+                    <div className="italic text-2xl font-semibold text-gray-700">
+                        {isExporting ? (data.fullName || 'Họ Tên') : (
+                            <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full max-w-[520px] mx-auto text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-2xl font-semibold" />
+                        )}
+                    </div>
+                    <div className="italic text-gray-600 mt-1">
+                        {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
+                            <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full max-w-[360px] mx-auto text-center bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                        )}
+                    </div>
+                    {/* Liên hệ dạng 1 dòng có dấu chấm ngăn cách */}
+                    <div className="mt-3 text-sm text-gray-700 flex flex-wrap gap-x-4 gap-y-1 justify-center">
+                        {isExporting ? (
+                            <>
+                                <span>{data.phone || '0123 456 789'}</span>
+                                <span>•</span>
+                                <span className="break-all">{data.email || 'email@example.com'}</span>
+                                <span>•</span>
+                                <span className="break-all">{data.website || 'facebook.com/TopCV.vn'}</span>
+                                <span>•</span>
+                                <span>{data.address || 'Quận A, thành phố Hà Nội'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <span>•</span>
+                                <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="email@example.com" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <span>•</span>
+                                <input type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <span>•</span>
+                                <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Mục tiêu nghề nghiệp */}
+                <SectionHeader>Mục tiêu nghề nghiệp</SectionHeader>
+                <div className="text-gray-700 mb-3">
+                    {isExporting ? (
+                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                    ) : (
+                        <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                    )}
+                </div>
+
+                {/* Học vấn */}
+                <SectionHeader>Học vấn</SectionHeader>
+                <div className="space-y-3">
+                    {(data.educationList || []).map((edu, idx) => (
+                        <div key={idx} className="pb-2 border-b border-gray-200">
+                            <Row
+                                left={isExporting ? (edu.school || 'Tên trường học') : (
+                                    <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                                right={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
+                                    <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                )}
+                            />
+                            <div className="mt-1 text-gray-700">
+                                {isExporting ? (edu.major || 'Ngành học / Môn học') : (
+                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                            </div>
+                            <div className="mt-1 text-gray-600">
+                                {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học hoặc thành tích của bạn') : (
+                                    <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                )}
+                            </div>
+                            {!isExporting && data.educationList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>
+                    )}
+                </div>
+
+                {/* Kinh nghiệm */}
+                <SectionHeader>Kinh nghiệm làm việc</SectionHeader>
+                <div className="space-y-3">
+                    {(data.experienceList || []).map((exp, idx) => (
+                        <div key={idx} className="pb-2 border-b border-gray-200">
+                            <Row
+                                left={isExporting ? (exp.company || 'Tên công ty') : (
+                                    <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                                right={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
+                                    <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                )}
+                            />
+                            <div className="mt-1 text-gray-800 font-semibold">
+                                {isExporting ? (exp.position || 'Vị trí công việc') : (
+                                    <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
+                                )}
+                            </div>
+                            <div className="mt-1 text-gray-600">
+                                {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
+                                    <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                )}
+                            </div>
+                            {!isExporting && data.experienceList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('experienceList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                    )}
+                </div>
+
+                {/* Kỹ năng */}
+                <SectionHeader>Kỹ năng</SectionHeader>
+                <div className="space-y-2">
+                    {(data.skillsList || []).map((s, idx) => (
+                        <div key={idx} className="flex items-baseline gap-4 pb-2 border-b border-gray-200">
+                            <div className="w-1/3 text-gray-800">
+                                {isExporting ? (s.name || 'Tên kỹ năng') : (
+                                    <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                            </div>
+                            <div className="flex-1 text-gray-600">
+                                {isExporting ? (s.description || 'Mô tả kỹ năng') : (
+                                    <input value={s.description || ''} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                )}
+                            </div>
+                            {!isExporting && data.skillsList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline ml-2" onClick={() => onRemoveList('skillsList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('skillsList', { name: '', description: '' })}>+ Thêm kỹ năng</button>
+                    )}
+                </div>
+
+                {/* Hoạt động */}
+                <SectionHeader>Hoạt động</SectionHeader>
+                <div className="space-y-3">
+                    {(data.activityList || []).map((act, idx) => (
+                        <div key={idx} className="pb-2 border-b border-gray-200">
+                            <Row
+                                left={isExporting ? (act.org || 'Tên tổ chức') : (
+                                    <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                                right={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
+                                    <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                )}
+                            />
+                            <div className="mt-1 text-gray-800 font-semibold">
+                                {isExporting ? (act.role || 'Vị trí của bạn') : (
+                                    <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
+                                )}
+                            </div>
+                            <div className="mt-1 text-gray-600">
+                                {isExporting ? (act.details || 'Mô tả hoạt động') : (
+                                    <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                )}
+                            </div>
+                            {!isExporting && data.activityList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('activityList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>
+                    )}
+                </div>
+
+                {/* Chứng chỉ */}
+                <SectionHeader>Chứng chỉ</SectionHeader>
+                <div className="space-y-2">
+                    {(data.certificatesList || []).map((c, idx) => (
+                        <div key={idx} className="pb-2 border-b border-gray-200">
+                            <Row
+                                left={isExporting ? (c.name || 'Tên chứng chỉ') : (
+                                    <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                                right={isExporting ? (c.time || 'Thời gian') : (
+                                    <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                )}
+                            />
+                            {!isExporting && data.certificatesList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('certificatesList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('certificatesList', { time: '', name: '' })}>+ Thêm chứng chỉ</button>
+                    )}
+                </div>
+
+                {/* Danh hiệu & Giải thưởng */}
+                <SectionHeader>Danh hiệu và giải thưởng</SectionHeader>
+                <div className="space-y-2">
+                    {(data.awardsList || []).map((a, idx) => (
+                        <div key={idx} className="pb-2 border-b border-gray-200">
+                            <Row
+                                left={isExporting ? (a.title || 'Tên giải thưởng') : (
+                                    <input value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                )}
+                                right={isExporting ? (a.time || 'Thời gian') : (
+                                    <input value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                )}
+                            />
+                            {!isExporting && data.awardsList?.length > 1 && (
+                                <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('awardsList', idx)}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    {!isExporting && (
+                        <button type="button" className="text-xs underline text-gray-800" onClick={() => onAddList('awardsList', { time: '', title: '' })}>+ Thêm giải thưởng</button>
+                    )}
                 </div>
             </div>
         );

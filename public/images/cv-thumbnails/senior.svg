@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180" viewBox="0 0 300 180">
+  <rect width="300" height="180" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="150" y="28" font-family="Georgia, serif" font-size="16" text-anchor="middle" fill="#4b5563" font-style="italic">Họ Tên</text>
+  <text x="150" y="46" font-family="Georgia, serif" font-size="12" text-anchor="middle" fill="#6b7280" font-style="italic">Vị trí ứng tuyển</text>
+  <g transform="translate(12,70)">
+    <text x="0" y="0" font-family="Georgia, serif" font-size="9" fill="#1f2937" font-weight="800">MỤC TIÊU NGHỀ NGHIỆP</text>
+    <line x1="150" y1="-3" x2="276" y2="-3" stroke="#1f2937" stroke-width="1"/>
+  </g>
+  <g transform="translate(12,98)">
+    <text x="0" y="0" font-family="Georgia, serif" font-size="9" fill="#1f2937" font-weight="800">HỌC VẤN</text>
+    <line x1="70" y1="-3" x2="276" y2="-3" stroke="#1f2937" stroke-width="1"/>
+  </g>
+  <g transform="translate(12,126)">
+    <text x="0" y="0" font-family="Georgia, serif" font-size="9" fill="#1f2937" font-weight="800">KINH NGHIỆM LÀM VIỆC</text>
+    <line x1="170" y1="-3" x2="276" y2="-3" stroke="#1f2937" stroke-width="1"/>
+  </g>
+  <g transform="translate(12,154)">
+    <text x="0" y="0" font-family="Georgia, serif" font-size="9" fill="#1f2937" font-weight="800">KỸ NĂNG</text>
+    <line x1="55" y1="-3" x2="276" y2="-3" stroke="#1f2937" stroke-width="1"/>
+  </g>
+</svg>
