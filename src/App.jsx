@@ -13,6 +13,7 @@ import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
 import MyCVs from './pages/MyCVs';
 import Applications from './pages/Applications';
+import CreateCV from './pages/CreateCV';
 
 // Component to handle routing based on auth status
 const AppRoutes = () => {
@@ -86,10 +87,19 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
+
       <Route path="/my-cvs" element={
         <ProtectedRoute>
           <Layout>
             <MyCVs />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/create-cv" element={
+        <ProtectedRoute>
+          <Layout>
+            <CreateCV />
           </Layout>
         </ProtectedRoute>
       } />
