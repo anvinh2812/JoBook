@@ -5,6 +5,7 @@ import cvTemplates from '../components/cvTemplates';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { cvsAPI } from '../services/api';
+import notify from '../utils/notify';
 
 const defaultFormData = {
     fullName: '',
@@ -108,7 +109,7 @@ const CreateCV = () => {
             await cvsAPI.uploadCV(formData);
             // Có thể thông báo thành công hoặc reload danh sách CV
         } catch (err) {
-            alert('Lưu CV lên hệ thống thất bại!');
+            notify.error('Lưu CV lên hệ thống thất bại!');
         }
         cvNode.style.width = prevWidth;
         setIsExporting(false);

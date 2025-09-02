@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { usersAPI, postsAPI, followsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FollowModal from '../components/FollowModal';
+import notify from '../utils/notify';
 
 const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  
+
   const [user, setUser] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
@@ -34,7 +35,7 @@ const UserProfile = () => {
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      
+
       // Redirect if trying to view own profile
       if (parseInt(userId) === currentUser.id) {
         navigate('/profile');
@@ -72,7 +73,7 @@ const UserProfile = () => {
 
   const handleFollow = async () => {
     if (followLoading) return;
-    
+
     try {
       setFollowLoading(true);
       if (isFollowing) {
@@ -86,7 +87,7 @@ const UserProfile = () => {
       }
     } catch (error) {
       console.error('Error following/unfollowing user:', error);
-      alert('Lỗi khi thực hiện thao tác');
+      notify.error('Lỗi khi thực hiện thao tác');
     } finally {
       setFollowLoading(false);
     }
@@ -160,23 +161,22 @@ const UserProfile = () => {
                   <span className="text-gray-600">{user.email}</span>
                 </div>
               </div>
-              
+
               {/* Follow Button */}
               <button
                 onClick={handleFollow}
                 disabled={followLoading}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
-                  isFollowing
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${isFollowing
                     ? 'bg-gray-600 text-white hover:bg-gray-700'
                     : 'bg-primary-600 text-white hover:bg-primary-700'
-                }`}
+                  }`}
               >
                 {followLoading ? 'Đang xử lý...' : (isFollowing ? 'Bỏ theo dõi' : 'Theo dõi')}
               </button>
             </div>
-            
+
             <p className="text-gray-700 mt-3">{user.bio || 'Chưa có giới thiệu'}</p>
-            
+
             {/* Follow stats */}
             <div className="flex space-x-6 mt-4">
               <button
@@ -215,27 +215,25 @@ const UserProfile = () => {
           <h2 className="text-xl font-bold text-gray-900">
             Bài đăng của {user.full_name}
           </h2>
-          
+
           {/* Filter buttons */}
           <div className="flex space-x-2">
             <button
               onClick={() => setPostFilter('all')}
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                postFilter === 'all'
+              className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'all'
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+                }`}
             >
               Tất cả
             </button>
             {user?.account_type === 'candidate' && (
               <button
                 onClick={() => setPostFilter('find_job')}
-                className={`px-3 py-1 rounded-md text-sm font-medium ${
-                  postFilter === 'find_job'
+                className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'find_job'
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                  }`}
               >
                 Tìm việc
               </button>
@@ -243,11 +241,10 @@ const UserProfile = () => {
             {user?.account_type === 'company' && (
               <button
                 onClick={() => setPostFilter('find_candidate')}
-                className={`px-3 py-1 rounded-md text-sm font-medium ${
-                  postFilter === 'find_candidate'
+                className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'find_candidate'
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                  }`}
               >
                 Tuyển dụng
               </button>
@@ -267,11 +264,10 @@ const UserProfile = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        post.post_type === 'find_job'
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${post.post_type === 'find_job'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-blue-100 text-blue-800'
-                      }`}>
+                        }`}>
                         {post.post_type === 'find_job' ? 'Tìm việc' : 'Tuyển dụng'}
                       </span>
                       <span className="text-sm text-gray-500">

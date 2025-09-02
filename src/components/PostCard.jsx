@@ -13,10 +13,22 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
     });
   };
 
+  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && new Date(post.created_at) < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000));
+
+  const daysLeft = (() => {
+    if (post.post_type !== 'find_candidate') return null;
+    const created = new Date(post.created_at).getTime();
+    const deadline = created + 10 * 24 * 60 * 60 * 1000;
+    const msLeft = deadline - Date.now();
+    if (msLeft <= 0) return 0;
+    return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+  })();
+
   const canApply = () => {
-    return post.post_type === 'find_candidate' && 
-           currentUser.account_type === 'candidate' &&
-           post.user_id !== currentUser.id;
+    return post.post_type === 'find_candidate' &&
+      !isExpired &&
+      currentUser.account_type === 'candidate' &&
+      post.user_id !== currentUser.id;
   };
 
   const canViewCV = () => {
@@ -71,13 +83,15 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
 
       {/* Post type badge */}
       <div className="mb-3">
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-          post.post_type === 'find_job'
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${post.post_type === 'find_job'
             ? 'bg-green-100 text-green-800'
-            : 'bg-blue-100 text-blue-800'
-        }`}>
-          {post.post_type === 'find_job' ? '🔍 Tìm việc làm' : '👥 Tuyển dụng'}
+            : (isExpired ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800')
+          }`}>
+          {post.post_type === 'find_job' ? '🔍 Tìm việc làm' : (isExpired ? '⏳ Tuyển dụng (Hết hạn)' : '👥 Tuyển dụng')}
         </span>
+        {post.post_type === 'find_candidate' && !isExpired && typeof daysLeft === 'number' && (
+          <span className="ml-2 text-xs text-gray-500">Còn {daysLeft} ngày</span>
+        )}
       </div>
 
       {/* Content */}
@@ -101,13 +115,14 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
               Xem CV
             </button>
           )}
-          
-          {canApply() && (
+
+          {post.post_type === 'find_candidate' && (
             <button
-              onClick={() => onApply(post)}
-              className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+              onClick={() => !isExpired && onApply(post)}
+              disabled={isExpired || !canApply()}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${isExpired || !canApply() ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
             >
-              Nộp CV
+              {isExpired ? 'Đã hết hạn' : 'Nộp CV'}
             </button>
           )}
         </div>

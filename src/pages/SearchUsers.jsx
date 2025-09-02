@@ -2,18 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usersAPI, followsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import notify from '../utils/notify';
 
 const SearchUsers = () => {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  // Pagination (10 per page)
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
+  const [hasMore, setHasMore] = useState(false);
+  const [pageInput, setPageInput] = useState('1');
+  const [total, setTotal] = useState(0);
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
-    fetchUsers();
+    setPage(1);
   }, [accountTypeFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [accountTypeFilter, page]);
 
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
@@ -28,12 +39,12 @@ const SearchUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const params = {};
-      
+      const params = { page, limit: LIMIT };
+
       if (searchQuery.trim()) {
         params.search = searchQuery;
       }
-      
+
       if (accountTypeFilter !== 'all') {
         params.type = accountTypeFilter;
       }
@@ -41,10 +52,13 @@ const SearchUsers = () => {
       const response = await usersAPI.searchUsers(params);
       const filteredUsers = response.data.users.filter(user => user.id !== currentUser.id);
       setUsers(filteredUsers);
+      setHasMore((response.data.users || []).length === LIMIT);
+      setTotal(response.data.total ?? 0);
+      setPageInput(String(page));
 
       // Check follow status for all users
       const followStatuses = await Promise.all(
-        filteredUsers.map(user => 
+        filteredUsers.map(user =>
           followsAPI.getFollowStatus(user.id).catch(() => ({ data: { isFollowing: false } }))
         )
       );
@@ -64,13 +78,23 @@ const SearchUsers = () => {
     }
   };
 
+  const commitPageInput = () => {
+    const raw = parseInt(pageInput, 10);
+    if (Number.isNaN(raw) || raw < 1) {
+      setPage(1);
+      return;
+    }
+    const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+    setPage(Math.min(raw, totalPages));
+  };
+
   const handleFollow = async (userId) => {
     try {
       await followsAPI.follow(userId);
       setFollowingUsers(prev => new Set([...prev, userId]));
     } catch (error) {
       console.error('Error following user:', error);
-      alert('Lỗi khi theo dõi người dùng');
+      notify.error(error, 'Lỗi khi theo dõi người dùng');
     }
   };
 
@@ -84,7 +108,7 @@ const SearchUsers = () => {
       });
     } catch (error) {
       console.error('Error unfollowing user:', error);
-      alert('Lỗi khi bỏ theo dõi người dùng');
+      notify.error(error, 'Lỗi khi bỏ theo dõi người dùng');
     }
   };
 
@@ -93,8 +117,8 @@ const SearchUsers = () => {
   };
 
   const getAccountTypeBadgeColor = (accountType) => {
-    return accountType === 'candidate' 
-      ? 'bg-green-100 text-green-800' 
+    return accountType === 'candidate'
+      ? 'bg-green-100 text-green-800'
       : 'bg-blue-100 text-blue-800';
   };
 
@@ -105,7 +129,7 @@ const SearchUsers = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Tìm kiếm người dùng
         </h1>
-        
+
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search Input */}
@@ -172,7 +196,7 @@ const SearchUsers = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       {user.full_name}
@@ -198,7 +222,7 @@ const SearchUsers = () => {
                   >
                     Xem hồ sơ
                   </Link>
-                  
+
                   {followingUsers.has(user.id) ? (
                     <button
                       onClick={() => handleUnfollow(user.id)}
@@ -219,6 +243,40 @@ const SearchUsers = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-gray-600">
+          <span>Trang {page} / {Math.max(1, Math.ceil(total / LIMIT))}</span>
+        </div>
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang trước
+          </button>
+          <input
+            type="number"
+            min={1}
+            max={Math.max(1, Math.ceil(total / LIMIT))}
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') commitPageInput(); }}
+            onBlur={commitPageInput}
+            className="w-20 px-3 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="Trang"
+          />
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!hasMore}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${!hasMore ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang sau
+          </button>
+        </div>
       </div>
     </div>
   );

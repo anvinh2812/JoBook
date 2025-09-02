@@ -30,13 +30,13 @@ const Register = () => {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Mật khẩu không khớp');
       return;
     }
 
     // Validate password length
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
 
@@ -44,13 +44,13 @@ const Register = () => {
 
     const { confirmPassword, ...registerData } = formData;
     const result = await register(registerData);
-    
+
     if (result.success) {
       navigate('/');
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -70,7 +70,7 @@ const Register = () => {
               to="/"
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
-              Back to Home
+              Về trang chủ
             </Link>
           </div>
         </div>
@@ -85,10 +85,10 @@ const Register = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Create Your Account
+              Tạo tài khoản của bạn
             </h2>
             <p className="text-gray-600">
-              Join thousands of professionals finding their dream jobs
+              Tham gia cùng hàng nghìn chuyên gia tìm kiếm công việc mơ ước
             </p>
           </div>
 
@@ -102,7 +102,7 @@ const Register = () => {
             {/* Full Name */}
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
+                Họ và tên
               </label>
               <input
                 id="full_name"
@@ -110,7 +110,7 @@ const Register = () => {
                 type="text"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your full name"
+                placeholder="Nhập họ và tên"
                 value={formData.full_name}
                 onChange={handleChange}
               />
@@ -127,7 +127,7 @@ const Register = () => {
                 type="email"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="your.email@example.com"
+                placeholder="email@vi.du"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -136,7 +136,7 @@ const Register = () => {
             {/* Account Type */}
             <div>
               <label htmlFor="account_type" className="block text-sm font-medium text-gray-700 mb-2">
-                Account Type
+                Loại tài khoản
               </label>
               <select
                 id="account_type"
@@ -145,22 +145,22 @@ const Register = () => {
                 value={formData.account_type}
                 onChange={handleChange}
               >
-                <option value="candidate">Job Seeker</option>
-                <option value="company">Employer</option>
+                <option value="candidate">Ứng viên</option>
+                <option value="company">Nhà tuyển dụng</option>
               </select>
             </div>
 
             {/* Bio */}
             <div>
               <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-                Bio (Optional)
+                Giới thiệu (tuỳ chọn)
               </label>
               <textarea
                 id="bio"
                 name="bio"
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Tell us about yourself or your company..."
+                placeholder="Giới thiệu về bạn hoặc công ty của bạn..."
                 value={formData.bio}
                 onChange={handleChange}
               />
@@ -169,7 +169,7 @@ const Register = () => {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Mật khẩu
               </label>
               <input
                 id="password"
@@ -177,7 +177,7 @@ const Register = () => {
                 type="password"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Create a password (min 6 characters)"
+                placeholder="Tạo mật khẩu (tối thiểu 6 ký tự)"
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -186,7 +186,7 @@ const Register = () => {
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
+                Xác nhận mật khẩu
               </label>
               <input
                 id="confirmPassword"
@@ -194,7 +194,7 @@ const Register = () => {
                 type="password"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Confirm your password"
+                placeholder="Nhập lại mật khẩu"
                 value={formData.confirmPassword}
                 onChange={handleChange}
               />
@@ -209,18 +209,18 @@ const Register = () => {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
             </button>
           </form>
 
           {/* Sign In Link */}
           <div className="text-center mt-6">
-            <span className="text-gray-600">Already have an account? </span>
+            <span className="text-gray-600">Đã có tài khoản? </span>
             <Link
               to="/"
               className="text-blue-600 font-semibold hover:text-blue-500"
             >
-              Sign in now
+              Đăng nhập ngay
             </Link>
           </div>
         </div>
