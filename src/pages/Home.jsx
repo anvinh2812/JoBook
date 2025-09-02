@@ -98,6 +98,23 @@ const Home = () => {
         return true;
       });
 
+      // Sort: active first, then following priority, then newest
+      const toIsExpired = (p) => {
+        if (typeof p.is_expired === 'boolean') return p.is_expired;
+        return p.post_type === 'find_candidate' && new Date(p.created_at) < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+      };
+      filtered.sort((a, b) => {
+        const aExpired = toIsExpired(a) ? 1 : 0;
+        const bExpired = toIsExpired(b) ? 1 : 0;
+        if (aExpired !== bExpired) return aExpired - bExpired; // non-expired (0) first
+
+        const aFollow = a.is_following_author ? 0 : 1;
+        const bFollow = b.is_following_author ? 0 : 1;
+        if (aFollow !== bFollow) return aFollow - bFollow; // following first
+
+        return new Date(b.created_at) - new Date(a.created_at); // newest first
+      });
+
       const tp = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
       setTotalPages(tp);
 

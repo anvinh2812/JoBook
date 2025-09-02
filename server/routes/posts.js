@@ -17,7 +17,11 @@ router.get('/', authenticateToken, async (req, res) => {
         u.account_type as author_type,
         u.avatar_url as author_avatar,
         c.file_url as cv_file_url,
-        CASE WHEN f.follower_id IS NOT NULL THEN true ELSE false END as is_following_author
+        CASE WHEN f.follower_id IS NOT NULL THEN true ELSE false END as is_following_author,
+        CASE 
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
+          ELSE false
+        END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
@@ -32,7 +36,14 @@ router.get('/', authenticateToken, async (req, res) => {
     }
     
     query += ` ORDER BY 
+      -- Non-expired posts first
+      CASE 
+        WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN 1
+        ELSE 0
+      END ASC,
+      -- Then priority for following authors
       CASE WHEN f.follower_id IS NOT NULL THEN 0 ELSE 1 END,
+      -- Newest first within the same group
       p.created_at DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
@@ -59,7 +70,11 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
         u.full_name as author_name,
         u.account_type as author_type,
         u.avatar_url as author_avatar,
-        c.file_url as cv_file_url
+        c.file_url as cv_file_url,
+        CASE 
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
+          ELSE false
+        END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
@@ -73,7 +88,12 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
       params.push(type);
     }
     
-    query += ` ORDER BY p.created_at DESC`;
+    query += ` ORDER BY 
+      CASE 
+        WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN 1
+        ELSE 0
+      END ASC,
+      p.created_at DESC`;
     
     const result = await pool.query(query, params);
     res.json({ posts: result.rows });
@@ -158,7 +178,11 @@ router.get('/:id', authenticateToken, async (req, res) => {
         u.full_name as author_name,
         u.account_type as author_type,
         u.avatar_url as author_avatar,
-        c.file_url as cv_file_url
+        c.file_url as cv_file_url,
+        CASE 
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
+          ELSE false
+        END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
