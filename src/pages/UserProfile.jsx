@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, postsAPI, followsAPI } from '../services/api';
+import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FollowModal from '../components/FollowModal';
+import PostCard from '../components/PostCard';
+import ApplyModal from '../components/ApplyModal';
+import CVViewerModal from '../components/CVViewerModal';
 import notify from '../utils/notify';
 
 const UserProfile = () => {
@@ -19,6 +22,10 @@ const UserProfile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [followModalType, setFollowModalType] = useState('');
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showCVModal, setShowCVModal] = useState(false);
+  const [cvUrl, setCvUrl] = useState('');
 
   useEffect(() => {
     if (userId) {
@@ -68,6 +75,36 @@ const UserProfile = () => {
       setUserPosts(response.data.posts);
     } catch (error) {
       console.error('Error fetching user posts:', error);
+    }
+  };
+
+  // Apply/View CV handlers (same behavior as Home)
+  const handleApply = (post) => {
+    setSelectedPost(post);
+    setShowApplyModal(true);
+  };
+
+  const handleViewCV = async (cvId) => {
+    try {
+      const response = await cvsAPI.getCVFile(cvId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setCvUrl(url);
+      setShowCVModal(true);
+    } catch (error) {
+      console.error('Error viewing CV:', error);
+      notify.error('Không thể xem CV');
+    }
+  };
+
+  const handleApplicationSubmit = async (applicationData) => {
+    try {
+      await applicationsAPI.apply(applicationData);
+      setShowApplyModal(false);
+      notify.success('Nộp CV thành công!');
+    } catch (error) {
+      console.error('Error applying:', error);
+      notify.error(error, 'Lỗi khi nộp CV');
     }
   };
 
@@ -269,25 +306,14 @@ const UserProfile = () => {
             </div>
           ) : (
             userPosts.map((post) => (
-              <div key={post.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${post.post_type === 'find_job'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                        }`}>
-                        {post.post_type === 'find_job' ? 'Tìm việc' : 'Tuyển dụng'}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatDate(post.created_at)}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
-                    <p className="text-gray-700 text-sm">{post.description}</p>
-                  </div>
-                </div>
-              </div>
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUser={currentUser}
+                onApply={handleApply}
+                onViewCV={handleViewCV}
+              // no onEdit/onDelete here for viewing others' posts
+              />
             ))
           )}
         </div>
@@ -299,6 +325,26 @@ const UserProfile = () => {
           userId={userId}
           type={followModalType}
           onClose={() => setShowFollowModal(false)}
+        />
+      )}
+
+      {/* Apply Modal */}
+      {showApplyModal && (
+        <ApplyModal
+          post={selectedPost}
+          onClose={() => setShowApplyModal(false)}
+          onSubmit={handleApplicationSubmit}
+        />
+      )}
+
+      {/* CV Viewer Modal */}
+      {showCVModal && (
+        <CVViewerModal
+          cvUrl={cvUrl}
+          onClose={() => {
+            setShowCVModal(false);
+            setCvUrl('');
+          }}
         />
       )}
     </div>
