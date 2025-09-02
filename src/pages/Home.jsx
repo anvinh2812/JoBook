@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { postsAPI, cvsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PostCard from '../components/PostCard';
@@ -12,6 +12,22 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  // Pagination
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1); // used when date filter active
+  // Date filter
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const isDateFilterActive = useMemo(() => !!startDate || !!endDate, [startDate, endDate]);
+  // Page input state (for manual page jump)
+  const [pageInput, setPageInput] = useState('1');
+
+  // Keep input in sync with current page
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
@@ -22,19 +38,98 @@ const Home = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchPosts();
+    // reset to first page when filter type changes
+    setPage(1);
   }, [filter]);
+
+  useEffect(() => {
+    fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, page, startDate, endDate]);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const params = filter !== 'all' ? { type: filter } : {};
-      const response = await postsAPI.getPosts(params);
-      setPosts(response.data.posts);
+      // If no date filter -> use server-side pagination
+      if (!isDateFilterActive) {
+        const params = {
+          ...(filter !== 'all' ? { type: filter } : {}),
+          page,
+          limit: PAGE_SIZE,
+        };
+        const response = await postsAPI.getPosts(params);
+        const data = response.data.posts || [];
+        setPosts(data);
+        setHasMore(data.length === PAGE_SIZE);
+        setTotalPages(1);
+        return;
+      }
+
+      // With date filter -> fetch all pages, filter locally, then paginate client-side
+      const all = [];
+      let curPage = 1;
+      // To avoid excessive loops, cap pages
+      const MAX_PAGES = 100; // adjust if needed
+      // Fetch until less than server default page size (we pass PAGE_SIZE)
+      // or until cap reached
+      // Always include type filter if selected
+      while (curPage <= MAX_PAGES) {
+        const params = {
+          ...(filter !== 'all' ? { type: filter } : {}),
+          page: curPage,
+          limit: PAGE_SIZE,
+        };
+        const res = await postsAPI.getPosts(params);
+        const chunk = res.data.posts || [];
+        all.push(...chunk);
+        if (chunk.length < PAGE_SIZE) break;
+        curPage += 1;
+      }
+
+      // Apply date filtering locally
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      // Normalize end to end-of-day
+      const endNormalized = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999) : null;
+      const filtered = all.filter((p) => {
+        const d = new Date(p.created_at);
+        if (start && d < start) return false;
+        if (endNormalized && d > endNormalized) return false;
+        return true;
+      });
+
+      const tp = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      setTotalPages(tp);
+
+      // Clamp page if it exceeds totalPages
+      const effectivePage = Math.min(page, tp);
+      if (effectivePage !== page) {
+        setPage(effectivePage);
+      }
+
+      const startIdx = (effectivePage - 1) * PAGE_SIZE;
+      const pageSlice = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+      setPosts(pageSlice);
+      setHasMore(effectivePage < tp);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const commitPageInput = () => {
+    const raw = parseInt(pageInput, 10);
+    if (Number.isNaN(raw) || raw < 1) {
+      setPage(1);
+      return;
+    }
+    if (isDateFilterActive) {
+      // clamp to known totalPages under date filter
+      setPage(Math.min(raw, Math.max(1, totalPages)));
+    } else {
+      // server-side pages can be open-ended; just ensure >= 1
+      setPage(raw);
     }
   };
 
@@ -118,7 +213,7 @@ const Home = () => {
         </h1>
 
         {/* Filter buttons */}
-        <div className="flex space-x-4 mb-6">
+        <div className="flex flex-wrap gap-3 items-center mb-6">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-md text-sm font-medium ${filter === 'all'
@@ -146,6 +241,32 @@ const Home = () => {
           >
             Tuyển dụng
           </button>
+
+          {/* Date range filter */}
+          <div className="flex items-center gap-2 ml-auto">
+            <label className="text-sm text-gray-600">Từ ngày</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-md bg-gray-100 text-sm"
+            />
+            <label className="text-sm text-gray-600">Đến ngày</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-md bg-gray-100 text-sm"
+            />
+            {isDateFilterActive ? (
+              <button
+                onClick={() => { setStartDate(''); setEndDate(''); setPage(1); }}
+                className="px-3 py-2 rounded-md text-sm bg-red-100 text-red-700 hover:bg-red-200"
+              >
+                Xóa lọc thời gian
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -168,6 +289,45 @@ const Home = () => {
             />
           ))
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-8">
+        <div className="text-sm text-gray-600">
+          {isDateFilterActive ? (
+            <span>Trang {page} / {totalPages}</span>
+          ) : (
+            <span>Trang {page}</span>
+          )}
+        </div>
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang trước
+          </button>
+          {/* Manual page input */}
+          <input
+            type="number"
+            min={1}
+            max={isDateFilterActive ? totalPages : undefined}
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') commitPageInput(); }}
+            onBlur={commitPageInput}
+            className="w-20 px-3 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="Trang"
+          />
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={isDateFilterActive ? page >= totalPages : !hasMore}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${(isDateFilterActive ? page >= totalPages : !hasMore) ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang sau
+          </button>
+        </div>
       </div>
 
       {/* Apply Modal */}
