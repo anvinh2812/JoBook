@@ -91,4 +91,9 @@ export const usersAPI = {
   searchUsers: (params) => api.get('/users', { params }),
 };
 
+// Smart Search API
+export const smartAPI = {
+  search: (query) => api.post('/smart/search', { query }),
+};
+
 export default api;

@@ -96,6 +96,27 @@ const Layout = ({ children }) => {
               >
                 {user?.account_type === 'candidate' ? 'CV đã nộp' : 'CV nhận được'}
               </Link>
+              {user?.account_type === 'candidate' ? (
+                <Link
+                  to="/smart-job-search"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/smart-job-search')
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Tìm việc thông minh
+                </Link>
+              ) : (
+                <Link
+                  to="/smart-candidate-search"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/smart-candidate-search')
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Tìm ứng viên phù hợp
+                </Link>
+              )}
             </nav>
 
             {/* User menu */}

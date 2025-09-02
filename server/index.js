@@ -24,6 +24,7 @@ app.use('/api/posts', require('./routes/posts'));
 app.use('/api/cvs', require('./routes/cvs'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/follows', require('./routes/follows'));
+app.use('/api/smart', require('./routes/smart'));
 
 // Test route
 app.get('/api/test', (req, res) => {

@@ -14,6 +14,8 @@ import Profile from './pages/Profile';
 import MyCVs from './pages/MyCVs';
 import Applications from './pages/Applications';
 import CreateCV from './pages/CreateCV';
+import SmartJobSearch from './pages/SmartJobSearch';
+import SmartCandidateSearch from './pages/SmartCandidateSearch';
 
 // Component to handle routing based on auth status
 const AppRoutes = () => {
@@ -108,6 +110,22 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Applications />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/smart-job-search" element={
+        <ProtectedRoute>
+          <Layout>
+            <SmartJobSearch />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/smart-candidate-search" element={
+        <ProtectedRoute>
+          <Layout>
+            <SmartCandidateSearch />
           </Layout>
         </ProtectedRoute>
       } />
