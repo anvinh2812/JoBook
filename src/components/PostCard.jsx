@@ -84,8 +84,8 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
       {/* Post type badge */}
       <div className="mb-3">
         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${post.post_type === 'find_job'
-            ? 'bg-green-100 text-green-800'
-            : (isExpired ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800')
+          ? 'bg-green-100 text-green-800'
+          : (isExpired ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800')
           }`}>
           {post.post_type === 'find_job' ? '🔍 Tìm việc làm' : (isExpired ? '⏳ Tuyển dụng (Hết hạn)' : '👥 Tuyển dụng')}
         </span>
