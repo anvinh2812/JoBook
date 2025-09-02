@@ -12,6 +12,8 @@ const MyCVs = () => {
   const [showCVModal, setShowCVModal] = useState(false);
   const [cvUrl, setCvUrl] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [editingNameId, setEditingNameId] = useState(null);
+  const [nameDraft, setNameDraft] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -86,6 +88,38 @@ const MyCVs = () => {
       notify.error('Lỗi khi xóa CV');
     } finally {
       setConfirmDeleteId(null);
+    }
+  };
+
+  const startEditName = (cv) => {
+    setEditingNameId(cv.id);
+    setNameDraft(cv.name || '');
+  };
+
+  const cancelEditName = () => {
+    setEditingNameId(null);
+    setNameDraft('');
+  };
+
+  const saveName = async (cvId) => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      notify.error('Tên CV không được để trống');
+      return;
+    }
+    if (trimmed.length > 150) {
+      notify.error('Tên CV quá dài (tối đa 150 ký tự)');
+      return;
+    }
+    try {
+      await cvsAPI.renameCV(cvId, trimmed);
+      await fetchCVs();
+      setEditingNameId(null);
+      setNameDraft('');
+      notify.success('Đã đổi tên CV');
+    } catch (error) {
+      console.error('Error renaming CV:', error);
+      notify.error('Lỗi khi đổi tên CV');
     }
   };
 
@@ -191,8 +225,42 @@ const MyCVs = () => {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        CV #{cv.id}
+                      <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                        {editingNameId === cv.id ? (
+                          <>
+                            <input
+                              type="text"
+                              value={nameDraft}
+                              onChange={(e) => setNameDraft(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') saveName(cv.id); if (e.key === 'Escape') cancelEditName(); }}
+                              className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                              placeholder="Nhập tên CV"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveName(cv.id)}
+                              className="bg-green-600 text-white px-2 py-1 rounded-md text-xs hover:bg-green-700"
+                            >
+                              Lưu
+                            </button>
+                            <button
+                              onClick={cancelEditName}
+                              className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-xs hover:bg-gray-300"
+                            >
+                              Hủy
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{cv.name || `CV #${cv.id}`}</span>
+                            <button
+                              onClick={() => startEditName(cv)}
+                              className="text-sm text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Sửa tên
+                            </button>
+                          </>
+                        )}
                       </h3>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className="text-sm text-gray-500">

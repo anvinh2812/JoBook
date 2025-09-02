@@ -126,6 +126,47 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Rename CV (update name)
+router.patch('/:id/name', authenticateToken, async (req, res) => {
+  try {
+    // Only candidates can rename their CVs (ownership enforced below)
+    if (req.user.account_type !== 'candidate') {
+      return res.status(403).json({ message: 'Only candidates can rename CVs' });
+    }
+
+    const { name } = req.body;
+    const trimmed = (name || '').trim();
+    if (!trimmed) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+    if (trimmed.length > 150) {
+      return res.status(400).json({ message: 'Name is too long (max 150 characters)' });
+    }
+
+    // Ensure the CV belongs to the user and update its name
+    const result = await pool.query(
+      'UPDATE cvs SET name = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
+      [trimmed, req.params.id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'CV not found' });
+    }
+
+    res.json({ 
+      message: 'CV renamed successfully',
+      cv: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Rename CV error:', error);
+    // Likely the column does not exist on DB
+    if (error?.message && /column\s+"?name"?\s+does not exist/i.test(error.message)) {
+      return res.status(500).json({ message: 'Database is missing column "name" on table cvs. Please run migration to add it.' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get CV file (for viewing)
 router.get('/:id/file', authenticateToken, async (req, res) => {
   try {

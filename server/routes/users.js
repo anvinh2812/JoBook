@@ -119,26 +119,32 @@ router.post('/avatar', authenticateToken, upload.single('avatar'), async (req, r
 router.get('/', async (req, res) => {
   try {
     const { search, type, page = 1, limit = 10 } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNum = Number(page) || 1;
+    const limitNum = Math.min(50, Number(limit) || 10);
+    const offset = (pageNum - 1) * limitNum;
     
-    let query = 'SELECT id, full_name, email, account_type, bio, avatar_url FROM users WHERE 1=1';
-    const params = [];
+    let baseWhere = 'WHERE 1=1';
+    const whereParams = [];
     
     if (search) {
-      query += ` AND (full_name ILIKE $${params.length + 1} OR email ILIKE $${params.length + 1})`;
-      params.push(`%${search}%`);
+      baseWhere += ` AND (full_name ILIKE $${whereParams.length + 1} OR email ILIKE $${whereParams.length + 1})`;
+      whereParams.push(`%${search}%`);
     }
     
     if (type) {
-      query += ` AND account_type = $${params.length + 1}`;
-      params.push(type);
+      baseWhere += ` AND account_type = $${whereParams.length + 1}`;
+      whereParams.push(type);
     }
-    
-    query += ` ORDER BY full_name LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
-    
-    const result = await pool.query(query, params);
-    res.json({ users: result.rows });
+
+    // total count
+    const countResult = await pool.query(`SELECT COUNT(*)::int AS total FROM users ${baseWhere}`, whereParams);
+    const total = countResult.rows[0]?.total || 0;
+
+    // page data
+    const dataQuery = `SELECT id, full_name, email, account_type, bio, avatar_url FROM users ${baseWhere} ORDER BY full_name LIMIT $${whereParams.length + 1} OFFSET $${whereParams.length + 2}`;
+    const dataParams = [...whereParams, limitNum, offset];
+    const result = await pool.query(dataQuery, dataParams);
+    res.json({ users: result.rows, total });
   } catch (error) {
     console.error('Search users error:', error);
     res.status(500).json({ message: 'Server error' });

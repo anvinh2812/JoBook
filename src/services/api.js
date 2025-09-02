@@ -56,6 +56,7 @@ export const cvsAPI = {
   toggleCV: (id) => api.patch(`/cvs/${id}/toggle`),
   deleteCV: (id) => api.delete(`/cvs/${id}`),
   getCVFile: (id) => api.get(`/cvs/${id}/file`, { responseType: 'blob' }),
+  renameCV: (id, name) => api.patch(`/cvs/${id}/name`, { name }),
 };
 
 // Applications API

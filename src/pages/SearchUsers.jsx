@@ -9,12 +9,22 @@ const SearchUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  // Pagination (10 per page)
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
+  const [hasMore, setHasMore] = useState(false);
+  const [pageInput, setPageInput] = useState('1');
+  const [total, setTotal] = useState(0);
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
-    fetchUsers();
+    setPage(1);
   }, [accountTypeFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [accountTypeFilter, page]);
 
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
@@ -29,7 +39,7 @@ const SearchUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = { page, limit: LIMIT };
 
       if (searchQuery.trim()) {
         params.search = searchQuery;
@@ -42,6 +52,9 @@ const SearchUsers = () => {
       const response = await usersAPI.searchUsers(params);
       const filteredUsers = response.data.users.filter(user => user.id !== currentUser.id);
       setUsers(filteredUsers);
+      setHasMore((response.data.users || []).length === LIMIT);
+      setTotal(response.data.total ?? 0);
+      setPageInput(String(page));
 
       // Check follow status for all users
       const followStatuses = await Promise.all(
@@ -63,6 +76,16 @@ const SearchUsers = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const commitPageInput = () => {
+    const raw = parseInt(pageInput, 10);
+    if (Number.isNaN(raw) || raw < 1) {
+      setPage(1);
+      return;
+    }
+    const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+    setPage(Math.min(raw, totalPages));
   };
 
   const handleFollow = async (userId) => {
@@ -220,6 +243,40 @@ const SearchUsers = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-gray-600">
+          <span>Trang {page} / {Math.max(1, Math.ceil(total / LIMIT))}</span>
+        </div>
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang trước
+          </button>
+          <input
+            type="number"
+            min={1}
+            max={Math.max(1, Math.ceil(total / LIMIT))}
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') commitPageInput(); }}
+            onBlur={commitPageInput}
+            className="w-20 px-3 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            placeholder="Trang"
+          />
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!hasMore}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${!hasMore ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            Trang sau
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -17,10 +17,16 @@ const Home = () => {
   const PAGE_SIZE = 20;
   const [hasMore, setHasMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1); // used when date filter active
-  // Date filter
+  // Date filter (effective values used for fetching)
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  // Pending inputs (do not trigger fetch until user clicks Apply)
+  const [pendingStartDate, setPendingStartDate] = useState('');
+  const [pendingEndDate, setPendingEndDate] = useState('');
   const isDateFilterActive = useMemo(() => !!startDate || !!endDate, [startDate, endDate]);
+  const isPendingInvalid = useMemo(() => (
+    pendingStartDate && pendingEndDate && pendingStartDate > pendingEndDate
+  ), [pendingStartDate, pendingEndDate]);
   // Page input state (for manual page jump)
   const [pageInput, setPageInput] = useState('1');
 
@@ -41,6 +47,12 @@ const Home = () => {
     // reset to first page when filter type changes
     setPage(1);
   }, [filter]);
+
+  // Keep pending inputs in sync with effective values
+  useEffect(() => {
+    setPendingStartDate(startDate || '');
+    setPendingEndDate(endDate || '');
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchPosts();
@@ -213,6 +225,21 @@ const Home = () => {
     }
   };
 
+  const applyDateFilter = () => {
+    if (isPendingInvalid) return;
+    setStartDate(pendingStartDate);
+    setEndDate(pendingEndDate);
+    setPage(1);
+  };
+
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    setPendingStartDate('');
+    setPendingEndDate('');
+    setPage(1);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -264,20 +291,32 @@ const Home = () => {
             <label className="text-sm text-gray-600">Từ ngày</label>
             <input
               type="date"
-              value={startDate}
-              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              value={pendingStartDate}
+              onChange={(e) => setPendingStartDate(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') applyDateFilter(); }}
               className="px-3 py-2 rounded-md bg-gray-100 text-sm"
             />
             <label className="text-sm text-gray-600">Đến ngày</label>
             <input
               type="date"
-              value={endDate}
-              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              value={pendingEndDate}
+              onChange={(e) => setPendingEndDate(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') applyDateFilter(); }}
               className="px-3 py-2 rounded-md bg-gray-100 text-sm"
             />
+            {isPendingInvalid && (
+              <span className="text-xs text-red-600">Khoảng thời gian không hợp lệ</span>
+            )}
+            <button
+              onClick={applyDateFilter}
+              disabled={isPendingInvalid}
+              className={`px-3 py-2 rounded-md text-sm ${isPendingInvalid ? 'bg-gray-100 text-gray-400' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
+            >
+              Áp dụng
+            </button>
             {isDateFilterActive ? (
               <button
-                onClick={() => { setStartDate(''); setEndDate(''); setPage(1); }}
+                onClick={clearDateFilter}
                 className="px-3 py-2 rounded-md text-sm bg-red-100 text-red-700 hover:bg-red-200"
               >
                 Xóa lọc thời gian
