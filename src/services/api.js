@@ -76,6 +76,9 @@ export const followsAPI = {
   getFollowing: () => api.get('/follows/following'),
   getFollowStatus: (userId) => api.get(`/follows/status/${userId}`),
   getFollowCounts: (userId) => api.get(`/follows/counts/${userId}`),
+  // By specific userId (for viewing other profiles)
+  getFollowersByUser: (userId) => api.get(`/follows/${userId}/followers`),
+  getFollowingByUser: (userId) => api.get(`/follows/${userId}/following`),
 };
 
 // Users API

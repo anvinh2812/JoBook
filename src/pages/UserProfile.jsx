@@ -78,12 +78,21 @@ const UserProfile = () => {
       setFollowLoading(true);
       if (isFollowing) {
         await followsAPI.unfollow(userId);
-        setIsFollowing(false);
-        setFollowCounts(prev => ({ ...prev, followers: prev.followers - 1 }));
+        // Refresh from server for accuracy
+        const [countsRes, statusRes] = await Promise.all([
+          followsAPI.getFollowCounts(userId),
+          followsAPI.getFollowStatus(userId),
+        ]);
+        setFollowCounts(countsRes.data);
+        setIsFollowing(!!statusRes.data?.isFollowing);
       } else {
         await followsAPI.follow(userId);
-        setIsFollowing(true);
-        setFollowCounts(prev => ({ ...prev, followers: prev.followers + 1 }));
+        const [countsRes, statusRes] = await Promise.all([
+          followsAPI.getFollowCounts(userId),
+          followsAPI.getFollowStatus(userId),
+        ]);
+        setFollowCounts(countsRes.data);
+        setIsFollowing(!!statusRes.data?.isFollowing);
       }
     } catch (error) {
       console.error('Error following/unfollowing user:', error);
@@ -167,8 +176,8 @@ const UserProfile = () => {
                 onClick={handleFollow}
                 disabled={followLoading}
                 className={`px-6 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${isFollowing
-                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                    : 'bg-primary-600 text-white hover:bg-primary-700'
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : 'bg-primary-600 text-white hover:bg-primary-700'
                   }`}
               >
                 {followLoading ? 'Đang xử lý...' : (isFollowing ? 'Bỏ theo dõi' : 'Theo dõi')}
@@ -221,8 +230,8 @@ const UserProfile = () => {
             <button
               onClick={() => setPostFilter('all')}
               className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'all'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
             >
               Tất cả
@@ -231,8 +240,8 @@ const UserProfile = () => {
               <button
                 onClick={() => setPostFilter('find_job')}
                 className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'find_job'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
               >
                 Tìm việc
@@ -242,8 +251,8 @@ const UserProfile = () => {
               <button
                 onClick={() => setPostFilter('find_candidate')}
                 className={`px-3 py-1 rounded-md text-sm font-medium ${postFilter === 'find_candidate'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
               >
                 Tuyển dụng
@@ -265,8 +274,8 @@ const UserProfile = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${post.post_type === 'find_job'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-blue-100 text-blue-800'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-blue-100 text-blue-800'
                         }`}>
                         {post.post_type === 'find_job' ? 'Tìm việc' : 'Tuyển dụng'}
                       </span>
