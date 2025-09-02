@@ -13,10 +13,12 @@ const FollowModal = ({ userId, type, onClose }) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = type === 'followers' 
-        ? await followsAPI.getFollowers()
-        : await followsAPI.getFollowing();
-      setUsers(response.data[type] || []);
+      const response = type === 'followers'
+        ? await followsAPI.getFollowersByUser(userId)
+        : await followsAPI.getFollowingByUser(userId);
+      // Backend returns array directly for these endpoints; fallback to keyed response
+      const data = Array.isArray(response.data) ? response.data : (response.data[type] || []);
+      setUsers(data);
     } catch (error) {
       console.error(`Error fetching ${type}:`, error);
     } finally {
@@ -29,8 +31,8 @@ const FollowModal = ({ userId, type, onClose }) => {
   };
 
   const getAccountTypeBadgeColor = (accountType) => {
-    return accountType === 'candidate' 
-      ? 'bg-green-100 text-green-800' 
+    return accountType === 'candidate'
+      ? 'bg-green-100 text-green-800'
       : 'bg-blue-100 text-blue-800';
   };
 
@@ -86,7 +88,7 @@ const FollowModal = ({ userId, type, onClose }) => {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{user.full_name}</h4>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAccountTypeBadgeColor(user.account_type)}`}>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { usersAPI, postsAPI, followsAPI } from '../services/api';
+import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI } from '../services/api';
 import FollowModal from '../components/FollowModal';
 import EditPostModal from '../components/EditPostModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PostCard from '../components/PostCard';
+import ApplyModal from '../components/ApplyModal';
+import CVViewerModal from '../components/CVViewerModal';
 import notify from '../utils/notify';
 
 const Profile = () => {
@@ -22,6 +25,10 @@ const Profile = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showCVModal, setShowCVModal] = useState(false);
+  const [cvUrl, setCvUrl] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -127,6 +134,36 @@ const Profile = () => {
       notify.error('Lỗi khi xóa bài đăng');
     } finally {
       setConfirmDeleteId(null);
+    }
+  };
+
+  // Apply/View CV handlers
+  const handleApply = (post) => {
+    setSelectedPost(post);
+    setShowApplyModal(true);
+  };
+
+  const handleViewCV = async (cvId) => {
+    try {
+      const response = await cvsAPI.getCVFile(cvId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setCvUrl(url);
+      setShowCVModal(true);
+    } catch (error) {
+      console.error('Error viewing CV:', error);
+      notify.error('Không thể xem CV');
+    }
+  };
+
+  const handleApplicationSubmit = async (applicationData) => {
+    try {
+      await applicationsAPI.apply(applicationData);
+      setShowApplyModal(false);
+      notify.success('Nộp CV thành công!');
+    } catch (error) {
+      console.error('Error applying:', error);
+      notify.error(error, 'Lỗi khi nộp CV');
     }
   };
 
@@ -302,47 +339,15 @@ const Profile = () => {
             </div>
           ) : (
             userPosts.map((post) => (
-              <div key={post.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${post.post_type === 'find_job'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                        }`}>
-                        {post.post_type === 'find_job' ? 'Tìm việc' : 'Tuyển dụng'}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatDate(post.created_at)}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
-                    <p className="text-gray-700 text-sm">{post.description}</p>
-                  </div>
-
-                  {/* Edit/Delete buttons */}
-                  <div className="flex space-x-2 ml-4">
-                    <button
-                      onClick={() => handleEditPost(post)}
-                      className="text-gray-500 hover:text-blue-600 p-1 rounded"
-                      title="Sửa bài đăng"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="text-gray-500 hover:text-red-600 p-1 rounded"
-                      title="Xóa bài đăng"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUser={user}
+                onApply={handleApply}
+                onViewCV={handleViewCV}
+                onEdit={handleEditPost}
+                onDelete={handleDeletePost}
+              />
             ))
           )}
         </div>
@@ -366,6 +371,26 @@ const Profile = () => {
             setEditingPost(null);
           }}
           onSave={handleSavePost}
+        />
+      )}
+
+      {/* Apply Modal */}
+      {showApplyModal && (
+        <ApplyModal
+          post={selectedPost}
+          onClose={() => setShowApplyModal(false)}
+          onSubmit={handleApplicationSubmit}
+        />
+      )}
+
+      {/* CV Viewer Modal */}
+      {showCVModal && (
+        <CVViewerModal
+          cvUrl={cvUrl}
+          onClose={() => {
+            setShowCVModal(false);
+            setCvUrl('');
+          }}
         />
       )}
 

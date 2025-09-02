@@ -150,3 +150,56 @@ router.get('/counts/:userId', async (req, res) => {
 });
 
 module.exports = router;
+// Get followers of a specific userId
+router.get('/:userId/followers', authenticateToken, async (req, res) => {
+  try {
+    const targetUserId = parseInt(req.params.userId, 10);
+    if (Number.isNaN(targetUserId)) {
+      return res.status(400).json({ message: 'Invalid userId' });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+        u.id, u.full_name, u.email, u.account_type, u.bio, u.avatar_url,
+        f.created_at as followed_at
+      FROM follows f
+      JOIN users u ON f.follower_id = u.id
+      WHERE f.following_id = $1
+      ORDER BY f.created_at DESC`,
+      [targetUserId]
+    );
+
+    // Return array for ease of use on client
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get followers by user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get following list of a specific userId
+router.get('/:userId/following', authenticateToken, async (req, res) => {
+  try {
+    const targetUserId = parseInt(req.params.userId, 10);
+    if (Number.isNaN(targetUserId)) {
+      return res.status(400).json({ message: 'Invalid userId' });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+        u.id, u.full_name, u.email, u.account_type, u.bio, u.avatar_url,
+        f.created_at as followed_at
+      FROM follows f
+      JOIN users u ON f.following_id = u.id
+      WHERE f.follower_id = $1
+      ORDER BY f.created_at DESC`,
+      [targetUserId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get following by user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+

@@ -258,15 +258,6 @@ const Applications = () => {
                                 </button>
                               </div>
                             )}
-
-                            {application.status !== 'pending' && application.status !== 'reviewed' && (
-                              <button
-                                onClick={() => handleStatusUpdate(application.id, 'reviewed')}
-                                className="block w-full bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-700"
-                              >
-                                Đánh dấu đã xem
-                              </button>
-                            )}
                           </div>
                         </div>
                       </div>
