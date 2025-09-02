@@ -26,14 +26,14 @@ const LoginModal = ({ onClose }) => {
     setLoading(true);
 
     const result = await login(formData.email, formData.password);
-    
+
     if (result.success) {
       onClose();
       navigate('/');
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -46,7 +46,7 @@ const LoginModal = ({ onClose }) => {
       onClose();
       navigate('/');
     } else {
-      setError('Demo account not available');
+      setError('Tài khoản demo không khả dụng');
     }
 
     setLoading(false);
@@ -72,8 +72,8 @@ const LoginModal = ({ onClose }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-          <p className="text-gray-600">Sign in to your JobConnect account</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Chào mừng trở lại</h2>
+          <p className="text-gray-600">Đăng nhập vào tài khoản jobook của bạn</p>
         </div>
 
         {/* Error Message */}
@@ -96,7 +96,7 @@ const LoginModal = ({ onClose }) => {
               type="email"
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="your.email@example.com"
+              placeholder="email@gmail.com"
               value={formData.email}
               onChange={handleChange}
             />
@@ -105,7 +105,7 @@ const LoginModal = ({ onClose }) => {
           {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              Mật khẩu
             </label>
             <input
               id="password"
@@ -113,7 +113,7 @@ const LoginModal = ({ onClose }) => {
               type="password"
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu"
               value={formData.password}
               onChange={handleChange}
             />
@@ -128,13 +128,13 @@ const LoginModal = ({ onClose }) => {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
 
         {/* Sign Up Link */}
         <div className="text-center mt-6">
-          <span className="text-gray-600">Don't have an account? </span>
+          <span className="text-gray-600">Chưa có tài khoản? </span>
           <button
             onClick={() => {
               onClose();
@@ -142,7 +142,7 @@ const LoginModal = ({ onClose }) => {
             }}
             className="text-blue-600 font-semibold hover:text-blue-500"
           >
-            Sign up now
+            Đăng ký ngay
           </button>
         </div>
       </div>
