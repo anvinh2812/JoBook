@@ -1,0 +1,14 @@
+<svg width="200" height="140" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="140" fill="#fff" stroke="#ddd"/>
+  <rect x="10" y="10" width="50" height="50" fill="#fff" stroke="#bbb"/>
+  <circle cx="35" cy="35" r="18" fill="#e5e7eb" stroke="#cbd5e1"/>
+  <rect x="70" y="10" width="70" height="16" fill="none" stroke="#e57373" stroke-dasharray="4 3" rx="3"/>
+  <rect x="145" y="10" width="45" height="10" fill="none" stroke="#bbb" rx="2"/>
+  <rect x="70" y="30" width="120" height="10" fill="none" stroke="#e57373" stroke-dasharray="4 3" rx="3"/>
+  <rect x="70" y="44" width="120" height="10" fill="none" stroke="#e57373" stroke-dasharray="4 3" rx="3"/>
+  <rect x="10" y="70" width="180" height="1" fill="#e5e7eb"/>
+  <text x="12" y="84" font-family="Arial" font-size="10" fill="#d64f4f">Mục tiêu nghề nghiệp</text>
+  <rect x="10" y="86" width="180" height="1" fill="#e5e7eb"/>
+  <text x="12" y="102" font-family="Arial" font-size="10" fill="#d64f4f">Học vấn</text>
+  <rect x="10" y="104" width="180" height="1" fill="#e5e7eb"/>
+</svg>

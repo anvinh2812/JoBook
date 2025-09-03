@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const API_BASE_URL = '/api';
 
@@ -20,6 +21,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+  toast.error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -54,6 +56,7 @@ export const cvsAPI = {
   toggleCV: (id) => api.patch(`/cvs/${id}/toggle`),
   deleteCV: (id) => api.delete(`/cvs/${id}`),
   getCVFile: (id) => api.get(`/cvs/${id}/file`, { responseType: 'blob' }),
+  renameCV: (id, name) => api.patch(`/cvs/${id}/name`, { name }),
 };
 
 // Applications API
@@ -73,6 +76,9 @@ export const followsAPI = {
   getFollowing: () => api.get('/follows/following'),
   getFollowStatus: (userId) => api.get(`/follows/status/${userId}`),
   getFollowCounts: (userId) => api.get(`/follows/counts/${userId}`),
+  // By specific userId (for viewing other profiles)
+  getFollowersByUser: (userId) => api.get(`/follows/${userId}/followers`),
+  getFollowingByUser: (userId) => api.get(`/follows/${userId}/following`),
 };
 
 // Users API

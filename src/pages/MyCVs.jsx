@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { cvsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import CVViewerModal from '../components/CVViewerModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import notify from '../utils/notify';
 
 const MyCVs = () => {
   const [cvs, setCvs] = useState([]);
@@ -9,6 +11,9 @@ const MyCVs = () => {
   const [uploading, setUploading] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
   const [cvUrl, setCvUrl] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [editingNameId, setEditingNameId] = useState(null);
+  const [nameDraft, setNameDraft] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,13 +38,13 @@ const MyCVs = () => {
 
     // Validate file type
     if (file.type !== 'application/pdf') {
-      alert('Chỉ chấp nhận file PDF');
+      notify.error('Chỉ chấp nhận file PDF');
       return;
     }
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File không được vượt quá 5MB');
+      notify.error('File không được vượt quá 5MB');
       return;
     }
 
@@ -53,7 +58,7 @@ const MyCVs = () => {
       e.target.value = ''; // Reset file input
     } catch (error) {
       console.error('Error uploading CV:', error);
-      alert(error.response?.data?.message || 'Lỗi khi tải lên CV');
+      notify.error(error, 'Lỗi khi tải lên CV');
     } finally {
       setUploading(false);
     }
@@ -65,19 +70,56 @@ const MyCVs = () => {
       fetchCVs();
     } catch (error) {
       console.error('Error toggling CV:', error);
-      alert('Lỗi khi thay đổi trạng thái CV');
+      notify.error('Lỗi khi thay đổi trạng thái CV');
     }
   };
 
   const handleDeleteCV = async (cvId) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa CV này?')) return;
+    setConfirmDeleteId(cvId);
+  };
 
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
     try {
-      await cvsAPI.deleteCV(cvId);
+      await cvsAPI.deleteCV(confirmDeleteId);
       fetchCVs();
     } catch (error) {
       console.error('Error deleting CV:', error);
-      alert('Lỗi khi xóa CV');
+      notify.error('Lỗi khi xóa CV');
+    } finally {
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const startEditName = (cv) => {
+    setEditingNameId(cv.id);
+    setNameDraft(cv.name || '');
+  };
+
+  const cancelEditName = () => {
+    setEditingNameId(null);
+    setNameDraft('');
+  };
+
+  const saveName = async (cvId) => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      notify.error('Tên CV không được để trống');
+      return;
+    }
+    if (trimmed.length > 150) {
+      notify.error('Tên CV quá dài (tối đa 150 ký tự)');
+      return;
+    }
+    try {
+      await cvsAPI.renameCV(cvId, trimmed);
+      await fetchCVs();
+      setEditingNameId(null);
+      setNameDraft('');
+      notify.success('Đã đổi tên CV');
+    } catch (error) {
+      console.error('Error renaming CV:', error);
+      notify.error('Lỗi khi đổi tên CV');
     }
   };
 
@@ -90,7 +132,7 @@ const MyCVs = () => {
       setShowCVModal(true);
     } catch (error) {
       console.error('Error viewing CV:', error);
-      alert('Không thể xem CV');
+      notify.error('Không thể xem CV');
     }
   };
 
@@ -134,7 +176,7 @@ const MyCVs = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Quản lý CV
           </h1>
-          
+
           {/* Upload button */}
           <label className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 cursor-pointer">
             {uploading ? 'Đang tải lên...' : 'Tải lên CV'}
@@ -147,7 +189,7 @@ const MyCVs = () => {
             />
           </label>
         </div>
-        
+
         <p className="text-gray-600 text-sm">
           Tải lên CV của bạn để có thể đính kèm vào bài đăng tìm việc hoặc nộp ứng tuyển.
           Chỉ chấp nhận file PDF, dung lượng tối đa 5MB.
@@ -181,20 +223,53 @@ const MyCVs = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    
+
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        CV #{cv.id}
+                      <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                        {editingNameId === cv.id ? (
+                          <>
+                            <input
+                              type="text"
+                              value={nameDraft}
+                              onChange={(e) => setNameDraft(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') saveName(cv.id); if (e.key === 'Escape') cancelEditName(); }}
+                              className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                              placeholder="Nhập tên CV"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveName(cv.id)}
+                              className="bg-green-600 text-white px-2 py-1 rounded-md text-xs hover:bg-green-700"
+                            >
+                              Lưu
+                            </button>
+                            <button
+                              onClick={cancelEditName}
+                              className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-xs hover:bg-gray-300"
+                            >
+                              Hủy
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{cv.name || `CV #${cv.id}`}</span>
+                            <button
+                              onClick={() => startEditName(cv)}
+                              className="text-sm text-primary-600 hover:text-primary-700 underline"
+                            >
+                              Sửa tên
+                            </button>
+                          </>
+                        )}
                       </h3>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className="text-sm text-gray-500">
                           Tải lên: {formatDate(cv.created_at)}
                         </span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          cv.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${cv.is_active
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {cv.is_active ? 'Đang hoạt động' : 'Tạm dừng'}
                         </span>
                       </div>
@@ -208,18 +283,17 @@ const MyCVs = () => {
                     >
                       Xem
                     </button>
-                    
+
                     <button
                       onClick={() => handleToggleActive(cv.id)}
-                      className={`px-3 py-1 rounded-md text-sm font-medium ${
-                        cv.is_active
-                          ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                          : 'bg-green-600 text-white hover:bg-green-700'
-                      }`}
+                      className={`px-3 py-1 rounded-md text-sm font-medium ${cv.is_active
+                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
                     >
                       {cv.is_active ? 'Tạm dừng' : 'Kích hoạt'}
                     </button>
-                    
+
                     <button
                       onClick={() => handleDeleteCV(cv.id)}
                       className="bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-red-700"
@@ -244,6 +318,17 @@ const MyCVs = () => {
           }}
         />
       )}
+
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Xóa CV"
+        message="Bạn có chắc chắn muốn xóa CV này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="danger"
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };
