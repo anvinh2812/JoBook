@@ -7,6 +7,10 @@ import html2canvas from 'html2canvas';
 import { cvsAPI } from '../services/api';
 import notify from '../utils/notify';
 
+import { FaPenFancy } from "react-icons/fa";
+import { suggestCVSummary } from "../services/gemini";
+
+
 const defaultFormData = {
     fullName: '',
     appliedPosition: '',
@@ -41,12 +45,44 @@ const defaultFormData = {
     ]
 };
 
-
 const CreateCV = () => {
     const [formData, setFormData] = useState(defaultFormData);
     const [step, setStep] = useState(1);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const cvRef = useRef();
+
+    //AI
+    const handleSuggestSummary = async () => {
+        // Kiểm tra xem có đủ dữ liệu hay không
+        const { fullName, appliedPosition, skillsList, experienceList } = formData;
+
+        const hasEnoughData = fullName || appliedPosition ||
+            (skillsList?.some(skill => skill.name)) ||
+            (experienceList?.some(exp => exp.details));
+
+        if (!hasEnoughData) {
+            notify.error("Vui lòng điền ít nhất họ tên, vị trí ứng tuyển, kỹ năng hoặc kinh nghiệm để AI có thể gợi ý.");
+            return;
+        }
+
+        try {
+            const suggestion = await suggestCVSummary(formData);
+            setFormData(prev => ({ ...prev, summary: suggestion }));
+            notify.success("Đã gợi ý mục tiêu nghề nghiệp!");
+        } catch (err) {
+            if (err.response) {
+                console.error("❌ Chi tiết lỗi Gemini:", JSON.stringify(err.response.data, null, 2));
+            } else {
+                console.error("❌ Lỗi không rõ:", err.message);
+            }
+            notify.error("Gợi ý thất bại. Vui lòng kiểm tra kết nối hoặc thử lại sau.");
+        }
+
+
+    };
+
+
+
 
     const handleChange = (e) => {
         if (e.nativeEvent?.isComposing) return;
@@ -148,6 +184,14 @@ const CreateCV = () => {
             {step === 2 && (
                 <form onSubmit={e => { e.preventDefault(); handleExportPDF(); }}>
                     <button type="button" onClick={handleBack} className="text-primary-600 underline mb-2">← Chọn lại mẫu</button>
+                    <button
+                        type="button"
+                        onClick={handleSuggestSummary}
+                        className="flex items-center gap-2 text-sm text-primary-600 underline mt-4 mb-2"
+                    >
+                        <FaPenFancy className="text-primary-600" /> Gợi ý mục tiêu nghề nghiệp bằng AI
+                    </button>
+
                     <div
                         ref={cvRef}
                         style={{
