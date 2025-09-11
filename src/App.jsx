@@ -15,6 +15,9 @@ import MyCVs from './pages/MyCVs';
 import Applications from './pages/Applications';
 import CreateCV from './pages/CreateCV';
 
+import FloatingChatbotButton from './components/FloatingChatbotButton';
+
+
 // Component to handle routing based on auth status
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -124,6 +127,7 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-50">
           <AppRoutes />
+          <FloatingChatbotButton />
         </div>
       </Router>
     </AuthProvider>

@@ -25,10 +25,10 @@ app.use('/api/cvs', require('./routes/cvs'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/follows', require('./routes/follows'));
 
-// Test route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'JoBook API is running!' });
-});
+
+// Gemini routes
+app.use('/api/gemini', require('./routes/gemini'));
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
