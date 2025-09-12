@@ -28,8 +28,11 @@ const SearchUsers = () => {
 
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
-      if (searchQuery.trim() || accountTypeFilter !== 'all') {
+      // When search changes, reset to first page; if already on page 1, fetch now
+      if (page === 1) {
         fetchUsers();
+      } else {
+        setPage(1);
       }
     }, 500);
 
@@ -40,10 +43,9 @@ const SearchUsers = () => {
     try {
       setLoading(true);
       const params = { page, limit: LIMIT };
-
       if (searchQuery.trim()) {
-        params.search = searchQuery;
-      }
+        params.search = searchQuery.trim();
+      } // else no 'search' param -> fetch all
 
       if (accountTypeFilter === 'candidate' || accountTypeFilter === 'company') {
         params.type = accountTypeFilter;
