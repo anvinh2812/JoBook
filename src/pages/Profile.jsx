@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI } from '../services/api';
+import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI, companiesAPI } from '../services/api';
 import FollowModal from '../components/FollowModal';
 import EditPostModal from '../components/EditPostModal';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -15,6 +15,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     bio: user?.bio || '',
+    address: user?.address || '',
   });
   const [userPosts, setUserPosts] = useState([]);
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
@@ -29,11 +30,24 @@ const Profile = () => {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
   const [cvUrl, setCvUrl] = useState('');
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     if (user) {
+      // Admin accounts should not have a personal profile page
+      if (user.account_type === 'admin') {
+        window.location.href = '/admin/companies';
+        return;
+      }
       fetchUserPosts();
       fetchFollowCounts();
+      if (user.account_type === 'company' && user.company_id) {
+        companiesAPI.getById(user.company_id)
+          .then(res => setCompany(res.data.company))
+          .catch(() => setCompany(null));
+      } else {
+        setCompany(null);
+      }
     }
   }, [user, postFilter]);
 
@@ -216,6 +230,16 @@ const Profile = () => {
                   />
                 </div>
                 <div>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Địa chỉ của bạn"
+                  />
+                </div>
+                <div>
                   <textarea
                     name="bio"
                     value={formData.bio}
@@ -258,6 +282,28 @@ const Profile = () => {
                     {user?.account_type === 'candidate' ? 'Ứng viên' : 'Doanh nghiệp'}
                   </span>
                   <span className="text-gray-600">{user?.email}</span>
+                </div>
+                <div className="mt-2 text-gray-700">
+                  <div><span className="font-medium">Địa chỉ:</span> {user?.address || 'Chưa cập nhật'}</div>
+                  {user?.account_type === 'company' && (
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="font-medium">Thuộc công ty:</span>
+                      {company ? (
+                        <div className="flex items-center gap-2">
+                          {company.logo_url && (
+                            <img src={company.logo_url} alt={company.name} className="w-5 h-5 object-cover rounded" />
+                          )}
+                          <span>{company.name}</span>
+                          {/* Intentionally hide MST (tax_code) from display */}
+                          {company.address && (
+                            <span className="text-gray-500 text-sm ml-3">Địa chỉ: {company.address}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span>Không xác định</span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <p className="text-gray-700 mt-3">{user?.bio || 'Chưa có giới thiệu'}</p>
 

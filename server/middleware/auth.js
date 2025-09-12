@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Verify user still exists
     const userResult = await pool.query(
-      'SELECT id, email, account_type FROM users WHERE id = $1',
+      'SELECT id, email, account_type, company_id FROM users WHERE id = $1',
       [decoded.userId]
     );
 
@@ -22,7 +22,7 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    req.user = userResult.rows[0];
+  req.user = userResult.rows[0];
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Invalid token' });

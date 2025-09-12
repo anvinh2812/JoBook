@@ -91,4 +91,22 @@ export const usersAPI = {
   searchUsers: (params) => api.get('/users', { params }),
 };
 
+// Companies API (admin management + public lookup)
+export const companiesAPI = {
+  list: (params) => api.get('/companies', { params }),
+  review: (id, payload) => api.patch(`/companies/${id}/review`, payload),
+  byTax: (taxCode) => api.get(`/companies/by-tax/${taxCode}`),
+  create: (payload) => api.post('/companies', payload),
+  getById: (id) => api.get(`/companies/${id}`),
+  update: (id, payload) => api.patch(`/companies/${id}`, payload),
+  remove: (id) => api.delete(`/companies/${id}`),
+  uploadLogo: (file) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return api.post('/companies/upload-logo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+};
+
 export default api;

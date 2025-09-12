@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { applicationsAPI, cvsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import notify from '../utils/notify';
 import CVViewerModal from '../components/CVViewerModal';
+import ReadMore from '../components/ReadMore';
 
 const Applications = () => {
   const [myApplications, setMyApplications] = useState([]);
@@ -11,6 +13,7 @@ const Applications = () => {
   const [loading, setLoading] = useState(true);
   const [showCVModal, setShowCVModal] = useState(false);
   const [cvUrl, setCvUrl] = useState('');
+  const [statusFilter, setStatusFilter] = useState(null); // 'pending' | 'accepted' | 'rejected' | null
   const { user } = useAuth();
 
   useEffect(() => {
@@ -87,6 +90,22 @@ const Applications = () => {
     }
   };
 
+  // Accent colors for card left border and status dot
+  const getStatusAccent = (status) => {
+    switch (status) {
+      case 'pending':
+        return { border: 'border-yellow-400', dot: 'bg-yellow-400' };
+      case 'reviewed':
+        return { border: 'border-blue-400', dot: 'bg-blue-400' };
+      case 'accepted':
+        return { border: 'border-green-500', dot: 'bg-green-500' };
+      case 'rejected':
+        return { border: 'border-red-500', dot: 'bg-red-500' };
+      default:
+        return { border: 'border-gray-300', dot: 'bg-gray-300' };
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
@@ -144,45 +163,123 @@ const Applications = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
-                    {myApplications.map((application) => (
-                      <div key={application.id} className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-lg font-medium text-gray-900">
-                                {application.post_title}
-                              </h3>
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                                {getStatusText(application.status)}
-                              </span>
+                  <>
+                    {/* Filter controls */}
+                    <div className="px-6 pt-6">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-gray-500 mr-2">Lọc trạng thái:</span>
+                        {[
+                          { key: 'all', label: 'Tất cả' },
+                          { key: 'pending', label: 'Chờ xử lý' },
+                          { key: 'accepted', label: 'Đã chấp nhận' },
+                          { key: 'rejected', label: 'Đã từ chối' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.key}
+                            onClick={() => {
+                              if (opt.key === 'all') {
+                                setStatusFilter(null);
+                              } else {
+                                setStatusFilter(opt.key);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-sm border transition ${(opt.key === 'all' ? statusFilter === null : statusFilter === opt.key)
+                              ? 'bg-primary-600 text-white border-primary-600'
+                              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                              }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* List */}
+                    <div className="divide-y divide-gray-200 mt-4">
+                      {(statusFilter ? myApplications.filter((a) => a.status === statusFilter) : myApplications).map((application) => (
+                        <div
+                          key={application.id}
+                          className={`p-6 rounded-lg bg-white hover:bg-gray-50 transition border border-gray-200 border-l-4 ${getStatusAccent(application.status).border}`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="mb-3 flex items-center justify-between">
+                                <div className="inline-flex items-center gap-2">
+                                  <span className={`h-2 w-2 rounded-full ${getStatusAccent(application.status).dot}`}></span>
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                                    {getStatusText(application.status)}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-500">{formatDate(application.created_at)}</div>
+                              </div>
+
+                              <div className="text-gray-800 space-y-3">
+                                <div className="flex items-start gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                                    Công ty
+                                  </span>
+                                  <div className="mt-0.5">
+                                    {application.company_name ? (
+                                      <span className="font-semibold">{application.company_name}</span>
+                                    ) : (
+                                      <span className="italic text-gray-500">(Không có công ty)</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">
+                                    Bài viết của
+                                  </span>
+                                  <div className="mt-0.5 font-semibold">
+                                    {application.author_type === 'admin' ? (
+                                      <span>{application.author_name}</span>
+                                    ) : (
+                                      <Link to={`/users/${application.author_id}?post=${application.post_id}`} className="text-primary-700 hover:underline">
+                                        {application.author_name}
+                                      </Link>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                                    Tiêu đề
+                                  </span>
+                                  <div className="mt-0.5 font-semibold">“{application.post_title}”</div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                                    Nội dung
+                                  </span>
+                                  <div className="flex-1">
+                                    <ReadMore
+                                      text={application.post_description}
+                                      lines={5}
+                                      className="mt-0.5 text-gray-700 whitespace-pre-wrap bg-gray-50 border border-gray-200 rounded-md p-3"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
                             </div>
 
-                            <p className="text-gray-600 mb-2">
-                              Công ty: {application.company_name}
-                            </p>
-
-                            <p className="text-gray-700 text-sm mb-3">
-                              {application.post_description}
-                            </p>
-
-                            <div className="text-sm text-gray-500">
-                              Nộp vào: {formatDate(application.created_at)}
+                            <div className="ml-4">
+                              <button
+                                onClick={() => handleViewCV(application.cv_id)}
+                                className="bg-primary-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-700"
+                              >
+                                Xem CV đã nộp
+                              </button>
                             </div>
-                          </div>
-
-                          <div className="ml-4">
-                            <button
-                              onClick={() => handleViewCV(application.cv_id)}
-                              className="bg-primary-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-700"
-                            >
-                              Xem CV đã nộp
-                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+
+                    {/* No result for filter */}
+                    {statusFilter && (statusFilter ? myApplications.filter((a) => a.status === statusFilter).length === 0 : false) && (
+                      <div className="text-center py-10 text-sm text-gray-500">Không có ứng tuyển với trạng thái đã chọn.</div>
+                    )}
+                  </>
                 )}
               </div>
             )}

@@ -107,9 +107,10 @@ const CreateCV = () => {
         formData.append('cv', pdfBlob, 'cv.pdf');
         try {
             await cvsAPI.uploadCV(formData);
-            // Có thể thông báo thành công hoặc reload danh sách CV
+            notify.success('Lưu CV lên hệ thống thành công');
         } catch (err) {
-            notify.error('Lưu CV lên hệ thống thất bại!');
+            const msg = err?.response?.data?.message || 'Lưu CV lên hệ thống thất bại!';
+            notify.error(msg);
         }
         cvNode.style.width = prevWidth;
         setIsExporting(false);

@@ -45,12 +45,13 @@ const SearchUsers = () => {
         params.search = searchQuery;
       }
 
-      if (accountTypeFilter !== 'all') {
+      if (accountTypeFilter === 'candidate' || accountTypeFilter === 'company') {
         params.type = accountTypeFilter;
+      } else if (accountTypeFilter === 'same_company') {
+        params.same_company = true;
       }
-
       const response = await usersAPI.searchUsers(params);
-      const filteredUsers = response.data.users.filter(user => user.id !== currentUser.id);
+      const filteredUsers = response.data.users.filter(user => user.id !== currentUser.id && user.account_type !== 'admin');
       setUsers(filteredUsers);
       setHasMore((response.data.users || []).length === LIMIT);
       setTotal(response.data.total ?? 0);
@@ -157,6 +158,9 @@ const SearchUsers = () => {
             <option value="all">Tất cả</option>
             <option value="candidate">Ứng viên</option>
             <option value="company">Doanh nghiệp</option>
+            {currentUser?.account_type === 'company' && (
+              <option value="same_company">Cùng công ty</option>
+            )}
           </select>
         </div>
       </div>

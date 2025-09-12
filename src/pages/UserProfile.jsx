@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI } from '../services/api';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { usersAPI, postsAPI, followsAPI, cvsAPI, applicationsAPI, companiesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import FollowModal from '../components/FollowModal';
 import PostCard from '../components/PostCard';
@@ -10,6 +10,7 @@ import notify from '../utils/notify';
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
 
@@ -26,6 +27,7 @@ const UserProfile = () => {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
   const [cvUrl, setCvUrl] = useState('');
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -36,8 +38,26 @@ const UserProfile = () => {
   useEffect(() => {
     if (user) {
       fetchUserPosts();
+      // Fetch company info for company accounts
+      if (user.account_type === 'company' && user.company_id) {
+        companiesAPI.getById(user.company_id)
+          .then(res => setCompany(res.data.company))
+          .catch(() => setCompany(null));
+      } else {
+        setCompany(null);
+      }
     }
   }, [user, postFilter]);
+
+  // Scroll to specific post if postId in query
+  useEffect(() => {
+    const target = searchParams.get('post');
+    if (!target) return;
+    const el = document.getElementById(`post-${target}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [userPosts, searchParams]);
 
   const fetchUserData = async () => {
     try {
@@ -54,6 +74,12 @@ const UserProfile = () => {
         followsAPI.getFollowCounts(userId),
         followsAPI.getFollowStatus(userId)
       ]);
+
+      // If the target user is an admin, do not allow viewing their profile
+      if (userResponse.data?.user?.account_type === 'admin') {
+        navigate('/search-users');
+        return;
+      }
 
       setUser(userResponse.data.user);
       setFollowCounts(followCountsResponse.data);
@@ -222,6 +248,29 @@ const UserProfile = () => {
             </div>
 
             <p className="text-gray-700 mt-3">{user.bio || 'Chưa có giới thiệu'}</p>
+
+            {/* Additional info similar to own profile */}
+            <div className="mt-3 text-gray-700">
+              <div><span className="font-medium">Địa chỉ:</span> {user.address || 'Chưa cập nhật'}</div>
+              {user.account_type === 'company' && (
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="font-medium">Thuộc công ty:</span>
+                  {company ? (
+                    <div className="flex items-center gap-2">
+                      {company.logo_url && (
+                        <img src={company.logo_url} alt={company.name} className="w-5 h-5 object-cover rounded" />
+                      )}
+                      <span>{company.name}</span>
+                      {company.address && (
+                        <span className="text-gray-500 text-sm ml-3">Địa chỉ: {company.address}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span>Không xác định</span>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Follow stats */}
             <div className="flex space-x-6 mt-4">

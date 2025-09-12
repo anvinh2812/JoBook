@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const LoginModal = ({ onClose }) => {
+const LoginModal = ({ onClose, onSwitchToRegister }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -12,6 +12,18 @@ const LoginModal = ({ onClose }) => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const translateLoginError = (msg = '') => {
+    const m = (msg || '').toLowerCase();
+    if (m.includes('invalid credentials') || m.includes('incorrect') || m.includes('invalid email') || m.includes('password')) {
+      return 'Email hoặc mật khẩu không đúng';
+    }
+    if (m.includes('user not found')) return 'Không tìm thấy tài khoản';
+    if (m.includes('disabled') || m.includes('locked')) return 'Tài khoản đã bị khóa';
+    if (m.includes('too many') || m.includes('rate limit')) return 'Bạn đã thử quá nhiều lần, vui lòng thử lại sau';
+    if (m.includes('network')) return 'Lỗi mạng, vui lòng thử lại';
+    return 'Đăng nhập thất bại, vui lòng kiểm tra thông tin và thử lại';
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -29,9 +41,14 @@ const LoginModal = ({ onClose }) => {
 
     if (result.success) {
       onClose();
-      navigate('/');
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (savedUser?.account_type === 'admin') {
+        navigate('/admin/companies');
+      } else {
+        navigate('/');
+      }
     } else {
-      setError(result.message);
+      setError(translateLoginError(result.message));
     }
 
     setLoading(false);
@@ -44,7 +61,12 @@ const LoginModal = ({ onClose }) => {
 
     if (result.success) {
       onClose();
-      navigate('/');
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (savedUser?.account_type === 'admin') {
+        navigate('/admin/companies');
+      } else {
+        navigate('/');
+      }
     } else {
       setError('Tài khoản demo không khả dụng');
     }
@@ -138,7 +160,7 @@ const LoginModal = ({ onClose }) => {
           <button
             onClick={() => {
               onClose();
-              navigate('/register');
+              onSwitchToRegister?.();
             }}
             className="text-blue-600 font-semibold hover:text-blue-500"
           >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { postsAPI, cvsAPI } from '../services/api';
+import { postsAPI, cvsAPI, companiesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const CreatePost = () => {
@@ -13,6 +13,7 @@ const CreatePost = () => {
   const [cvs, setCvs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [company, setCompany] = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -26,7 +27,14 @@ const CreatePost = () => {
     if (user.account_type === 'candidate') {
       fetchCVs();
     }
+    // Fetch company info if user is company
+    if (user.account_type === 'company' && user.company_id) {
+      companiesAPI.getById(user.company_id)
+        .then(res => setCompany(res.data.company))
+        .catch(() => setCompany(null));
+    }
   }, [user]);
+  // Note: Removed auto-fill of title from CV selection to avoid surprising the user.
 
   const fetchCVs = async () => {
     try {
@@ -44,6 +52,16 @@ const CreatePost = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleSelectCV = (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      attached_cv_id: value,
+    }));
+  };
+
+  // Removed copy-to-title helper per request.
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,6 +99,18 @@ const CreatePost = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           {isJobSeeker ? 'Tạo bài đăng tìm việc' : 'Tạo bài đăng tuyển dụng'}
         </h1>
+        {isCompany && company && (
+          <div className="flex items-center gap-3 mb-4">
+            {company.logo_url ? (
+              <img src={company.logo_url} alt={company.name} className="w-8 h-8 rounded object-cover border" />
+            ) : (
+              <div className="w-8 h-8 rounded bg-gray-200 flex items-center justify-center text-sm text-gray-600">{company.name?.charAt(0)}</div>
+            )}
+            <div className="text-gray-700">
+              Đăng dưới tên: <span className="font-medium">{company.name}</span>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
@@ -155,20 +185,23 @@ const CreatePost = () => {
                   </p>
                 </div>
               ) : (
-                <select
-                  name="attached_cv_id"
-                  value={formData.attached_cv_id}
-                  onChange={handleChange}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  required
-                >
-                  <option value="">Chọn CV...</option>
-                  {cvs.map((cv) => (
-                    <option key={cv.id} value={cv.id}>
-                      CV #{cv.id} - {new Date(cv.created_at).toLocaleDateString('vi-VN')}
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    name="attached_cv_id"
+                    value={formData.attached_cv_id}
+                    onChange={handleSelectCV}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  >
+                    <option value="">Chọn CV...</option>
+                    {cvs.map((cv) => (
+                      <option key={cv.id} value={cv.id}>
+                        {(cv.name || `CV #${cv.id}`)} ({new Date(cv.created_at).toLocaleDateString('vi-VN')})
+                      </option>
+                    ))}
+                  </select>
+                  {/* Removed copy-to-title button */}
+                </>
               )}
             </div>
           )}

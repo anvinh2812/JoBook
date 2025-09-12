@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import ReadMore from './ReadMore';
 import { Link } from 'react-router-dom';
 
-const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) => {
+const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, showCompanyName = false }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -36,7 +37,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+    <div id={`post-${post.id}`} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -54,7 +55,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
             </div>
           )}
           <div>
-            {post.user_id === currentUser.id ? (
+            {post.user_id === currentUser.id || post.author_type === 'admin' ? (
               <h3 className="font-semibold text-gray-900">{post.author_name}</h3>
             ) : (
               <Link
@@ -68,6 +69,12 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
               <span className="bg-gray-100 px-2 py-1 rounded-full text-xs">
                 {post.author_type === 'candidate' ? 'Ứng viên' : 'Doanh nghiệp'}
               </span>
+              {showCompanyName && post.author_type === 'company' && post.company_name ? (
+                <span className="inline-flex items-center gap-1 text-gray-600">
+                  <span className="text-gray-400">•</span>
+                  <span className="truncate max-w-[220px]" title={post.company_name}>{post.company_name}</span>
+                </span>
+              ) : null}
               {post.is_following_author && (
                 <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs">
                   Đang theo dõi
@@ -99,9 +106,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete }) =>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           {post.title}
         </h2>
-        <p className="text-gray-700 whitespace-pre-wrap">
-          {post.description}
-        </p>
+        <ReadMore text={post.description} lines={5} className="text-gray-700" scrollTargetId={`post-${post.id}`} />
       </div>
 
       {/* Actions */}

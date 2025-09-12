@@ -14,6 +14,8 @@ import Profile from './pages/Profile';
 import MyCVs from './pages/MyCVs';
 import Applications from './pages/Applications';
 import CreateCV from './pages/CreateCV';
+import AdminCompanies from './pages/AdminCompanies';
+import CompanyRegister from './pages/CompanyRegister';
 
 // Component to handle routing based on auth status
 const AppRoutes = () => {
@@ -45,6 +47,7 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/register/company" element={<CompanyRegister />} />
 
       {/* Protected routes */}
       <Route path="/home" element={
@@ -108,6 +111,14 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Applications />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/companies" element={
+        <ProtectedRoute>
+          <Layout>
+            <AdminCompanies />
           </Layout>
         </ProtectedRoute>
       } />
