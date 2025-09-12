@@ -5,6 +5,9 @@ const pool = require('../config/database'); // PostgreSQL pool
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Danh sách cột bị cấm truy vấn
+const FORBIDDEN_COLUMNS = ['password_hash', 'tax_code'];
+
 // Schema mô tả cho Gemini
 const schemaDescription = `
 Database JoBook (PostgreSQL):
@@ -64,6 +67,8 @@ Database JoBook (PostgreSQL):
 - review_note (TEXT, nullable)
 - reviewed_at (timestamp, nullable)
 - created_at, updated_at
+- email
+- code
 `;
 
 router.post('/chat', async (req, res) => {
@@ -75,32 +80,17 @@ router.post('/chat', async (req, res) => {
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    // B1. Prompt để sinh SQL an toàn
+    // B1. Nhờ Gemini sinh SQL
     const sqlPrompt = `
-Bạn là trợ lý SQL cho hệ thống JoBook. 
-Schema cơ sở dữ liệu:
-
+Bạn là trợ lý SQL. Dựa trên schema sau:
 ${schemaDescription}
-
-QUY TẮC BẢO MẬT:
-1. Chỉ được phép sinh câu lệnh SQL SELECT.
-2. Chỉ được truy vấn các cột PUBLIC:
-   - users: id, full_name, email, account_type, bio, avatar_url, created_at
-   - cvs: id, name, file_url, is_active, created_at
-   - posts: id, post_type, title, description, created_at
-   - applications: id, post_id, cv_id, applicant_id, status, created_at
-   - follows: follower_id, following_id, created_at
-   - companies: id, name, address, contact_phone, logo_url, created_at
-   - companies.status chỉ được dùng để lọc status='accepted'.
-3. Tuyệt đối KHÔNG được phép truy vấn các cột nhạy cảm như: 
-   password_hash, tax_code, legal_name, company_id, review_note, reviewed_by_user_id, reviewed_at, hay status khác 'accepted'.
-4. Nếu người dùng hỏi về dữ liệu thuộc diện private/bảo mật → trả lời đúng một câu: 
-   "Bạn không có quyền truy cập thông tin này."
 
 Người dùng hỏi: "${prompt}"
 
-👉 Nếu câu hỏi hợp lệ, chỉ in ra SQL SELECT đúng với PostgreSQL.
-👉 Nếu câu hỏi yêu cầu dữ liệu nhạy cảm, trả về đúng câu: "Xin lỗi! Tôi không có quyền truy cập thông tin này."
+Yêu cầu:
+1. Chỉ tạo truy vấn SELECT hợp lệ cho PostgreSQL.
+2. Tuyệt đối không truy vấn các cột nhạy cảm: ${FORBIDDEN_COLUMNS.join(', ')}.
+3. Trả về duy nhất câu lệnh SQL, không giải thích, không markdown.
     `;
 
     const sqlResult = await model.generateContent(sqlPrompt);
@@ -111,14 +101,19 @@ Người dùng hỏi: "${prompt}"
 
     console.log('🔎 Gemini SQL:', sqlQuery);
 
-    // Nếu AI trả lời câu bảo mật thì trả thẳng cho user
-    if (sqlQuery.toLowerCase().includes('Xin lỗi! Tôi không có quyền truy cập')) {
-      return res.json({ response: 'Xin lỗi! Tôi không có quyền truy cập thông tin này.' });
+    // Check cột cấm
+    if (FORBIDDEN_COLUMNS.some(col => sqlQuery.toLowerCase().includes(col))) {
+      return res.json({
+        response: 'Xin lỗi! Tôi không có quyền truy cập thông tin nhạy cảm.'
+      });
     }
 
-    // Bảo mật: chỉ cho phép SELECT
+    // Chỉ cho phép SELECT
     if (!sqlQuery.toLowerCase().startsWith('select')) {
-      return res.json({ response: 'Xin lỗi! Tôi không có quyền truy cập thông tin này.' });
+      return res.json({
+        response: 'Tôi chưa hiểu rõ câu hỏi của bạn, bạn có thể diễn đạt lại không?',
+        sql: sqlQuery
+      });
     }
 
     // B2. Thực thi SQL
@@ -131,8 +126,7 @@ Người dùng hỏi: "${prompt}"
 Dữ liệu từ database:
 ${JSON.stringify(rows, null, 2)}
 
-👉 Hãy trả lời tự nhiên, ngắn gọn, dễ hiểu bằng tiếng Việt.
-Nếu dữ liệu rỗng, hãy trả lời "Không tìm thấy dữ liệu phù hợp."
+Hãy trả lời tự nhiên, ngắn gọn, dễ hiểu bằng tiếng Việt.
     `;
 
     const answerResult = await model.generateContent(answerPrompt);
@@ -141,10 +135,22 @@ Nếu dữ liệu rỗng, hãy trả lời "Không tìm thấy dữ liệu phù 
     return res.json({ response: answerText, sql: sqlQuery, data: rows });
   } catch (err) {
     console.error('🚨 Gemini DB Error:', err);
+
+    let userMessage = 'Xin lỗi, hệ thống đang gặp sự cố. Bạn thử lại sau nhé!';
+
+    if (FORBIDDEN_COLUMNS.some(col => err.message?.toLowerCase().includes(col))) {
+      userMessage = 'Xin lỗi! Tôi không có quyền truy cập thông tin nhạy cảm.';
+    } else if (
+      err.message.includes('syntax error') ||
+      err.message.includes('invalid input') ||
+      err.message.includes('SQL')
+    ) {
+      userMessage = 'Tôi chưa hiểu rõ câu hỏi của bạn, bạn có thể diễn đạt lại không?';
+    }
+
     return res.status(500).json({
       error: 'Gemini DB error',
-      detail: err.message,
-      stack: err.stack
+      message: userMessage
     });
   }
 });

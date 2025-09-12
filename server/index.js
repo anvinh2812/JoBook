@@ -30,7 +30,6 @@ app.use('/api/companies', require('./routes/companies'));
 // Gemini routes
 app.use('/api/gemini', require('./routes/gemini'));
 
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

@@ -15,11 +15,11 @@ const ChatBotModal = ({ onClose }) => {
 
     try {
       const res = await axios.post('http://localhost:5001/api/gemini/chat', { prompt: input });
-      const reply = res.data.response || '⚠️ Lỗi phản hồi từ AI.';
+      const reply = res.data.response || 'Xin lỗi, hiện tại trợ lý AI đang gặp sự cố. Bạn thử hỏi lại sau nhé!';
 
       setMessages([...newMessages, { sender: 'ai', text: reply }]);
     } catch (err) {
-      setMessages([...newMessages, { sender: 'ai', text: '⚠️ Lỗi phản hồi từ AI.' }]);
+      setMessages([...newMessages, { sender: 'ai', text: 'Xin lỗi, hiện tại trợ lý AI đang gặp sự cố. Bạn thử hỏi lại sau nhé!' }]);
     }
   };
 
