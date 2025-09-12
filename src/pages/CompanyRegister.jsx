@@ -7,16 +7,17 @@ const CompanyRegister = () => {
     const [form, setForm] = useState({
         name: '',
         legal_name: '',
-        tax_code: '',
         address: '',
         contact_phone: '',
         logo_url: '',
+        email: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState('');
+    const [successDialog, setSuccessDialog] = useState({ open: false, message: '' });
 
     const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -26,8 +27,8 @@ const CompanyRegister = () => {
         setSuccess('');
 
         // Basic validation
-        if (!form.name || !form.tax_code || !form.address) {
-            setError('Vui lòng nhập đủ: Tên công ty, Mã số thuế, Địa chỉ');
+        if (!form.name || !form.address || !form.email) {
+            setError('Vui lòng nhập đủ: Tên công ty, Địa chỉ, Email');
             return;
         }
         setLoading(true);
@@ -45,14 +46,14 @@ const CompanyRegister = () => {
             await companiesAPI.create({
                 name: form.name,
                 legal_name: form.legal_name || null,
-                tax_code: form.tax_code,
                 address: form.address,
                 contact_phone: form.contact_phone || null,
                 logo_url: logo_url || null,
+                email: form.email,
             });
-            setSuccess('Gửi đăng ký thành công. Công ty đang chờ admin duyệt.');
-            // Redirect to landing page after short delay
-            setTimeout(() => navigate('/'), 1200);
+            const msg = 'Gửi đăng ký thành công. Công ty đang chờ admin duyệt.';
+            setSuccess(msg);
+            setSuccessDialog({ open: true, message: msg });
         } catch (e) {
             setError(e.response?.data?.message || 'Có lỗi xảy ra.');
         } finally {
@@ -106,10 +107,11 @@ const CompanyRegister = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Tên pháp lý (tuỳ chọn)</label>
                             <input name="legal_name" value={form.legal_name} onChange={onChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: CÔNG TY TNHH ABC" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Mã số thuế</label>
-                            <input name="tax_code" value={form.tax_code} onChange={onChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: 0101234567" />
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email liên hệ</label>
+                            <input name="email" type="email" value={form.email} onChange={onChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: contact@congty.vn" />
                         </div>
+                        {/* Tax code is no longer input at registration; it will be generated upon admin approval */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại (tuỳ chọn)</label>
                             <input name="contact_phone" value={form.contact_phone} onChange={onChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: 0901234567" />
@@ -149,6 +151,29 @@ const CompanyRegister = () => {
                     </form>
                 </div>
             </div>
+            {successDialog.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-lg font-semibold mb-2">Đăng ký thành công</h3>
+                        <p className="text-gray-700 mb-6">{successDialog.message}</p>
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                onClick={() => {
+                                    setSuccessDialog({ open: false, message: '' });
+                                    navigate('/');
+                                    setTimeout(() => {
+                                        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch { }
+                                    }, 0);
+                                }}
+                            >
+                                Đồng ý
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

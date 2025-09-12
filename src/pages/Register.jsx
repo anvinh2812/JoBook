@@ -10,7 +10,7 @@ const Register = () => {
     confirmPassword: '',
     account_type: 'candidate',
     bio: '',
-    tax_code: '',
+    code: '',
     address: '',
   });
   const [error, setError] = useState('');
@@ -30,10 +30,14 @@ const Register = () => {
   }, [location.search]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    // Normalize company code: uppercase, alphanumeric only, max 10
+    if (name === 'code') {
+      const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+      setFormData((prev) => ({ ...prev, code: normalized }));
+      return;
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -55,8 +59,13 @@ const Register = () => {
     setLoading(true);
 
     const { confirmPassword, ...registerData } = formData;
-    if (registerData.account_type === 'company' && !registerData.tax_code) {
-      setError('Vui lòng nhập Mã số thuế công ty');
+    if (registerData.account_type === 'company' && !registerData.code) {
+      setError('Vui lòng nhập Mã công ty');
+      setLoading(false);
+      return;
+    }
+    if (registerData.account_type === 'company' && registerData.code && registerData.code.length !== 10) {
+      setError('Mã công ty không hợp lệ. Vui lòng nhập đủ 10 ký tự chữ/số viết hoa.');
       setLoading(false);
       return;
     }
@@ -104,19 +113,28 @@ const Register = () => {
 
             {formData.account_type === 'company' && (
               <div>
-                <label htmlFor="tax_code" className="block text-sm font-medium text-gray-700 mb-2">
-                  Mã số thuế công ty
+                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mã công ty
                 </label>
                 <input
-                  id="tax_code"
-                  name="tax_code"
+                  id="code"
+                  name="code"
                   type="text"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập MST công ty (đã được admin duyệt)"
-                  value={formData.tax_code}
+                  placeholder="VD: ABC123DEF4 (đã được admin duyệt)"
+                  maxLength={10}
+                  pattern="[A-Z0-9]{10}"
+                  title="10 ký tự chữ/số viết hoa"
+                  autoComplete="off"
+                  inputMode="text"
+                  value={formData.code}
                   onChange={handleChange}
                 />
+                <p className="text-xs text-gray-500 mt-2">
+                  Mã công ty gồm 10 ký tự chữ/số viết hoa. Chưa có mã?{' '}
+                  <Link to="/register/company" className="text-blue-600 underline">Đăng ký công ty</Link> trước.
+                </p>
               </div>
             )}
             <h2 className="text-2xl font-bold text-gray-900 mb-2">

@@ -9,7 +9,7 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-  let { full_name, email, password, account_type, bio, tax_code, address } = req.body;
+  let { full_name, email, password, account_type, bio, code, address } = req.body;
 
     // Normalize and validate account type
     const allowedTypes = ['candidate', 'company'];
@@ -34,22 +34,22 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    // If company account, require accepted company by tax_code and set company_id
+    // If company account, require accepted company by code and set company_id
     let companyId = null;
     if (account_type === 'company') {
-      if (!tax_code) {
-        return res.status(400).json({ message: 'tax_code is required for company accounts' });
+      if (!code) {
+        return res.status(400).json({ message: 'code is required for company accounts' });
       }
       const companyRes = await pool.query(
-        'SELECT id, status FROM companies WHERE tax_code = $1',
-        [tax_code]
+        'SELECT id, status FROM companies WHERE code = $1',
+        [code]
       );
       if (companyRes.rows.length === 0) {
-        return res.status(400).json({ message: 'Company with this tax_code not found. Please submit company registration first.' });
+        return res.status(400).json({ message: 'Không tìm thấy công ty với mã công ty này. Vui lòng đăng ký công ty trước.' });
       }
       const company = companyRes.rows[0];
       if (company.status !== 'accepted') {
-        return res.status(400).json({ message: 'Company is not accepted yet. Please wait for admin approval.' });
+        return res.status(400).json({ message: 'Công ty chưa được duyệt. Vui lòng chờ admin phê duyệt.' });
       }
       companyId = company.id;
     }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { companiesAPI } from '../services/api';
 
 const RegisterModal = ({ onClose, presetAccountType, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
@@ -11,7 +10,7 @@ const RegisterModal = ({ onClose, presetAccountType, onSwitchToLogin }) => {
         confirmPassword: '',
         account_type: 'candidate',
         bio: '',
-        tax_code: '',
+        code: '',
         address: '',
     });
     const [error, setError] = useState('');
@@ -36,7 +35,13 @@ const RegisterModal = ({ onClose, presetAccountType, onSwitchToLogin }) => {
     }, [presetAccountType]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'code') {
+            const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+            setFormData((prev) => ({ ...prev, code: normalized }));
+            return;
+        }
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -51,23 +56,15 @@ const RegisterModal = ({ onClose, presetAccountType, onSwitchToLogin }) => {
             setError('Mật khẩu phải có ít nhất 6 ký tự');
             return;
         }
-        if (formData.account_type === 'company' && !formData.tax_code) {
-            setError('Vui lòng nhập Mã số thuế công ty');
+        if (formData.account_type === 'company' && !formData.code) {
+            setError('Vui lòng nhập Mã công ty');
             return;
         }
 
-        // If registering as company account, check company status by tax code first
-        if (formData.account_type === 'company' && formData.tax_code) {
-            try {
-                const res = await companiesAPI.byTax(formData.tax_code);
-                const status = (res?.data?.status || '').toUpperCase();
-                if (status === 'PENDING') {
-                    setError('công ty đang chờ xét duyệt xin vui lòng thử lại sau');
-                    return;
-                }
-            } catch (err) {
-                // If company not found or API error, let backend validation handle it as before
-            }
+        // Optional: validate code length/format client-side
+        if (formData.account_type === 'company' && formData.code && formData.code.length !== 10) {
+            setError('Mã công ty không hợp lệ. Vui lòng nhập đủ 10 ký tự chữ/số viết hoa.');
+            return;
         }
 
         setLoading(true);
@@ -137,8 +134,22 @@ const RegisterModal = ({ onClose, presetAccountType, onSwitchToLogin }) => {
 
                         {formData.account_type === 'company' && (
                             <div>
-                                <label htmlFor="tax_code" className="block text-sm font-medium text-gray-700 mb-2">Mã số thuế công ty</label>
-                                <input id="tax_code" name="tax_code" type="text" required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nhập MST công ty (đã được admin duyệt)" value={formData.tax_code} onChange={handleChange} />
+                                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">Mã công ty</label>
+                                <input
+                                    id="code"
+                                    name="code"
+                                    type="text"
+                                    required
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="VD: ABC123DEF4 (đã được admin duyệt)"
+                                    maxLength={10}
+                                    pattern="[A-Z0-9]{10}"
+                                    title="10 ký tự chữ/số viết hoa"
+                                    autoComplete="off"
+                                    inputMode="text"
+                                    value={formData.code}
+                                    onChange={handleChange}
+                                />
                             </div>
                         )}
 

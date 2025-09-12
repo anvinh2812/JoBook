@@ -55,22 +55,51 @@ const requireAdmin = (req, res, next) => {
 		}
 	});
 
-// Create company (public), defaults to pending
+// Helper: generate 10-digit numeric tax code
+function randomDigits(length = 10) {
+	let s = '';
+	for (let i = 0; i < length; i++) s += Math.floor(Math.random() * 10);
+	return s;
+}
+
+async function generateUniqueTaxCode(maxAttempts = 12) {
+	for (let i = 0; i < maxAttempts; i++) {
+		const candidate = randomDigits(10);
+		const { rows } = await pool.query('SELECT 1 FROM companies WHERE tax_code = $1', [candidate]);
+		if (rows.length === 0) return candidate;
+	}
+	throw new Error('Không thể sinh mã số thuế duy nhất, vui lòng thử lại.');
+}
+
+// Helper: generate 10-char uppercase alphanumeric company code
+function randomCode(length = 10) {
+	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	let s = '';
+	for (let i = 0; i < length; i++) s += chars[Math.floor(Math.random() * chars.length)];
+	return s;
+}
+
+async function generateUniqueCompanyCode(maxAttempts = 12) {
+	for (let i = 0; i < maxAttempts; i++) {
+		const candidate = randomCode(10);
+		const { rows } = await pool.query('SELECT 1 FROM companies WHERE code = $1', [candidate]);
+		if (rows.length === 0) return candidate;
+	}
+	throw new Error('Không thể sinh mã công ty duy nhất, vui lòng thử lại.');
+}
+
+// Create company (public), defaults to pending; tax_code will be generated on acceptance
 router.post('/', async (req, res) => {
 	try {
-		const { name, legal_name, tax_code, address, contact_phone, logo_url } = req.body;
-		if (!name || !tax_code || !address) {
-			return res.status(400).json({ message: 'name, tax_code, address are required' });
-		}
-		const exists = await pool.query('SELECT id FROM companies WHERE tax_code = $1', [tax_code]);
-		if (exists.rows.length > 0) {
-			return res.status(409).json({ message: 'Company with this tax_code already exists' });
+		const { name, legal_name, address, contact_phone, logo_url, email } = req.body;
+		if (!name || !address || !email) {
+			return res.status(400).json({ message: 'name, address and email are required' });
 		}
 		const { rows } = await pool.query(
-			`INSERT INTO companies (name, legal_name, tax_code, address, contact_phone, logo_url)
-			 VALUES ($1,$2,$3,$4,$5,$6)
-			 RETURNING id, name, legal_name, tax_code, address, contact_phone, logo_url, status, created_at`,
-			[name, legal_name || null, tax_code, address, contact_phone || null, logo_url || null]
+			`INSERT INTO companies (name, legal_name, tax_code, address, contact_phone, logo_url, email)
+			 VALUES ($1,$2,NULL,$3,$4,$5,$6)
+			 RETURNING id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status, created_at`,
+			[name, legal_name || null, address, contact_phone || null, logo_url || null, email]
 		);
 		return res.status(201).json({ message: 'Company created, pending review', company: rows[0] });
 	} catch (err) {
@@ -89,14 +118,16 @@ router.get('/', authenticateToken, async (req, res) => {
 		let rows;
 		if (status === 'all') {
 			const result = await pool.query(
-				`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, status, reviewed_by_user_id, review_note, reviewed_at, created_at
+				`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status,
+						reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at
 				 FROM companies
 				 ORDER BY created_at DESC`
 			);
 			rows = result.rows;
 		} else {
 			const result = await pool.query(
-				`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, status, reviewed_by_user_id, review_note, reviewed_at, created_at
+				`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status,
+						reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at
 				 FROM companies
 				 WHERE status = $1
 				 ORDER BY created_at DESC`,
@@ -132,7 +163,8 @@ router.get('/:id', async (req, res) => {
 	try {
 		const { id } = req.params;
 		const { rows } = await pool.query(
-			`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, status
+			`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status,
+					reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at
 			 FROM companies WHERE id = $1`,
 			[id]
 		);
@@ -152,7 +184,7 @@ router.patch('/:id/review', authenticateToken, requireAdmin, async (req, res) =>
 		if (!['accepted','rejected','pending'].includes(status)) {
 			return res.status(400).json({ message: 'Invalid status' });
 		}
-		const { rows } = await pool.query(
+	const { rows } = await pool.query(
 			`UPDATE companies
 			 SET status = $1,
 					 reviewed_by_user_id = $2,
@@ -160,11 +192,70 @@ router.patch('/:id/review', authenticateToken, requireAdmin, async (req, res) =>
 					 reviewed_at = NOW(),
 					 updated_at = NOW()
 			 WHERE id = $4
-			 RETURNING id, name, tax_code, status, reviewed_by_user_id, review_note, reviewed_at`,
+	     RETURNING id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status,
+		       reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at`,
 			[status, req.user.id, review_note || null, id]
 		);
 		if (rows.length === 0) return res.status(404).json({ message: 'Company not found' });
-		return res.json({ message: 'Company reviewed', company: rows[0] });
+
+		// If accepted and tax_code is null, generate a unique 10-digit tax_code
+		let company = rows[0];
+		if (company.status === 'accepted') {
+			let changed = false;
+			// Ensure tax_code
+			if (company.tax_code === null || company.tax_code === undefined) {
+				for (let attempt = 0; attempt < 12; attempt++) {
+					const candidate = await generateUniqueTaxCode();
+					try {
+						const up = await pool.query(
+							`UPDATE companies SET tax_code = $1, updated_at = NOW() WHERE id = $2 AND tax_code IS NULL RETURNING tax_code`,
+							[candidate, id]
+						);
+						if (up.rows.length) {
+							changed = true;
+							break;
+						} else {
+							// Maybe set concurrently; stop trying
+							break;
+						}
+					} catch (e) {
+						if (e && e.code !== '23505') throw e; // retry on unique violation
+					}
+				}
+			}
+			// Ensure company code
+			if (company.code === null || company.code === undefined) {
+				for (let attempt = 0; attempt < 12; attempt++) {
+					const candidate = await generateUniqueCompanyCode();
+					try {
+						const up = await pool.query(
+							`UPDATE companies SET code = $1, updated_at = NOW() WHERE id = $2 AND code IS NULL RETURNING code`,
+							[candidate, id]
+						);
+						if (up.rows.length) {
+							changed = true;
+							break;
+						} else {
+							// Maybe set concurrently; stop trying
+							break;
+						}
+					} catch (e) {
+						if (e && e.code !== '23505') throw e;
+					}
+				}
+			}
+			if (changed) {
+				const refetch = await pool.query(
+					`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status,
+							reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at
+					 FROM companies WHERE id = $1`,
+					[id]
+				);
+				company = refetch.rows[0] || company;
+			}
+		}
+
+		return res.json({ message: 'Company reviewed', company });
 	} catch (err) {
 		console.error('Review company error:', err);
 		return res.status(500).json({ message: 'Server error' });
@@ -176,21 +267,22 @@ module.exports = router;
 router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
 	try {
 		const { id } = req.params;
-		const { name, legal_name, tax_code, address, contact_phone, logo_url } = req.body;
+		const { name, legal_name, address, contact_phone, logo_url } = req.body;
+		// Disallow manual MST (tax_code) edits
+		if (Object.prototype.hasOwnProperty.call(req.body, 'tax_code')) {
+			return res.status(400).json({ message: 'Mã số thuế được hệ thống sinh tự động khi chấp nhận và không cho phép chỉnh sửa' });
+		}
 
 		// Fetch current company
 		const current = await pool.query(
-			`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url FROM companies WHERE id = $1`,
+			`SELECT id, name, legal_name, tax_code, address, contact_phone, logo_url, status FROM companies WHERE id = $1`,
 			[id]
 		);
 		if (current.rows.length === 0) return res.status(404).json({ message: 'Company not found' });
 
-		// Tax code uniqueness check if changed
-		if (tax_code && tax_code !== current.rows[0].tax_code) {
-			const exists = await pool.query('SELECT id FROM companies WHERE tax_code = $1 AND id <> $2', [tax_code, id]);
-			if (exists.rows.length > 0) {
-				return res.status(409).json({ message: 'Mã số thuế đã tồn tại' });
-			}
+		// Only allow updates when status is 'accepted'
+		if (current.rows[0].status !== 'accepted') {
+			return res.status(400).json({ message: 'Chỉ được sửa nội dung của công ty khi trạng thái là đã được chấp nhận' });
 		}
 
 		// If updating logo_url, optionally remove old local file
@@ -202,14 +294,13 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
 			`UPDATE companies
 			 SET name = COALESCE($1, name),
 					 legal_name = COALESCE($2, legal_name),
-					 tax_code = COALESCE($3, tax_code),
-					 address = COALESCE($4, address),
-					 contact_phone = COALESCE($5, contact_phone),
-					 logo_url = COALESCE($6, logo_url),
+					 address = COALESCE($3, address),
+					 contact_phone = COALESCE($4, contact_phone),
+					 logo_url = COALESCE($5, logo_url),
 					 updated_at = NOW()
-			 WHERE id = $7
-			 RETURNING id, name, legal_name, tax_code, address, contact_phone, logo_url, status, reviewed_by_user_id, review_note, reviewed_at, created_at`,
-			[name || null, legal_name || null, tax_code || null, address || null, contact_phone || null, finalLogo, id]
+			 WHERE id = $6
+			 RETURNING id, name, legal_name, tax_code, address, contact_phone, logo_url, email, code, status, reviewed_by_user_id, review_note, reviewed_at, created_at, updated_at`,
+			[name || null, legal_name || null, address || null, contact_phone || null, finalLogo, id]
 		);
 
 		// Delete old logo file if replaced
