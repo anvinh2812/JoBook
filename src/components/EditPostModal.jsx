@@ -104,8 +104,8 @@ const EditPostModal = ({ post, onClose, onSave }) => {
                 onChange={handleChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder={
-                  isJobSeeker 
-                    ? "VD: Frontend Developer tìm việc tại Hà Nội" 
+                  isJobSeeker
+                    ? "VD: Frontend Developer tìm việc tại Hà Nội"
                     : "VD: Tuyển Backend Developer React/Node.js"
                 }
                 required
@@ -125,8 +125,8 @@ const EditPostModal = ({ post, onClose, onSave }) => {
                 onChange={handleChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder={
-                  isJobSeeker 
-                    ? "Mô tả về kỹ năng, kinh nghiệm và mong muốn của bạn..." 
+                  isJobSeeker
+                    ? "Mô tả về kỹ năng, kinh nghiệm và mong muốn của bạn..."
                     : "Mô tả về vị trí tuyển dụng, yêu cầu và đãi ngộ..."
                 }
                 required
@@ -139,6 +139,11 @@ const EditPostModal = ({ post, onClose, onSave }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Chọn CV đính kèm *
                 </label>
+                {post.cv_name && (
+                  <div className="mb-2 text-sm text-gray-600">
+                    CV hiện tại: <span className="font-medium text-gray-800">{post.cv_name}</span>
+                  </div>
+                )}
                 {cvs.length === 0 ? (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                     <p className="text-yellow-800">
@@ -156,7 +161,7 @@ const EditPostModal = ({ post, onClose, onSave }) => {
                     <option value="">Chọn CV...</option>
                     {cvs.map((cv) => (
                       <option key={cv.id} value={cv.id}>
-                        CV #{cv.id} - {new Date(cv.created_at).toLocaleDateString('vi-VN')}
+                        {(cv.name || `CV #${cv.id}`)} ({new Date(cv.created_at).toLocaleDateString('vi-VN')})
                       </option>
                     ))}
                   </select>

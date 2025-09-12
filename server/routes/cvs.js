@@ -53,33 +53,45 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Upload CV
-router.post('/upload', authenticateToken, upload.single('cv'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+// Upload CV with multer error handling
+router.post('/upload', authenticateToken, (req, res) => {
+  upload.single('cv')(req, res, async (err) => {
+    try {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: 'Kích thước CV vượt quá 5MB' });
+        }
+        return res.status(400).json({ message: err.message || 'Tải lên CV thất bại' });
+      }
 
-    // Only candidates can upload CVs
-    if (req.user.account_type !== 'candidate') {
-      return res.status(403).json({ message: 'Only candidates can upload CVs' });
-    }
+      if (!req.file) {
+        return res.status(400).json({ message: 'Không có tệp CV được tải lên' });
+      }
 
-    const file_url = `/uploads/cvs/${req.file.filename}`;
-    
-    const result = await pool.query(
-      'INSERT INTO cvs (user_id, file_url) VALUES ($1, $2) RETURNING *',
-      [req.user.id, file_url]
-    );
-    
-    res.status(201).json({ 
-      message: 'CV uploaded successfully',
-      cv: result.rows[0] 
-    });
-  } catch (error) {
-    console.error('Upload CV error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+      // Only candidates can upload CVs
+      if (req.user.account_type !== 'candidate') {
+        return res.status(403).json({ message: 'Chỉ ứng viên mới được tải lên CV' });
+      }
+
+      const file_url = `/uploads/cvs/${req.file.filename}`;
+      // Determine CV name: use provided name or fallback to original file name (without extension)
+      const rawName = (req.body?.name || path.parse(req.file.originalname).name || 'CV').toString();
+      const name = rawName.substring(0, 150); // safety cap
+
+      const result = await pool.query(
+        'INSERT INTO cvs (user_id, file_url, name) VALUES ($1, $2, $3) RETURNING *',
+        [req.user.id, file_url, name]
+      );
+
+      return res.status(201).json({
+        message: 'Tải lên CV thành công',
+        cv: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Upload CV error:', error);
+      return res.status(500).json({ message: 'Lỗi máy chủ' });
+    }
+  });
 });
 
 // Toggle CV active status
@@ -158,12 +170,8 @@ router.patch('/:id/name', authenticateToken, async (req, res) => {
       cv: result.rows[0]
     });
   } catch (error) {
-    console.error('Rename CV error:', error);
-    // Likely the column does not exist on DB
-    if (error?.message && /column\s+"?name"?\s+does not exist/i.test(error.message)) {
-      return res.status(500).json({ message: 'Database is missing column "name" on table cvs. Please run migration to add it.' });
-    }
-    res.status(500).json({ message: 'Server error' });
+  console.error('Rename CV error:', error);
+  res.status(500).json({ message: 'Server error' });
   }
 });
 

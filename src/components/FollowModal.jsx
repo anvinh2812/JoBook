@@ -18,7 +18,8 @@ const FollowModal = ({ userId, type, onClose }) => {
         : await followsAPI.getFollowingByUser(userId);
       // Backend returns array directly for these endpoints; fallback to keyed response
       const data = Array.isArray(response.data) ? response.data : (response.data[type] || []);
-      setUsers(data);
+      // Exclude admin accounts from lists
+      setUsers(data.filter(u => u.account_type !== 'admin'));
     } catch (error) {
       console.error(`Error fetching ${type}:`, error);
     } finally {

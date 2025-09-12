@@ -28,74 +28,80 @@ const Layout = ({ children }) => {
 
             {/* Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <Link
-                to="/"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Trang chủ
-              </Link>
-              <Link
-                to="/search-users"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/search-users')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Tìm người dùng
-              </Link>
-              <Link
-                to="/create-post"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-post')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                {user?.account_type === 'candidate' ? 'Đăng bài tìm việc' : 'Đăng bài tuyển dụng'}
-              </Link>
-              {/* <Link
-                to="/profile"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/profile')
+              {user?.account_type === 'admin' ? (
+                // Admin: only one tab for company review
+                <Link
+                  to="/admin/companies"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/admin/companies')
                     ? 'text-primary-600 bg-primary-50'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Hồ sơ
-              </Link> */}
-              {user?.account_type === 'candidate' && (
+                    }`}
+                >
+                  Duyệt công ty
+                </Link>
+              ) : (
+                // Non-admin: normal navigation
                 <>
                   <Link
-                    to="/create-cv"
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-cv')
+                    to="/"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/')
                       ? 'text-primary-600 bg-primary-50'
                       : 'text-gray-500 hover:text-gray-700'
                       }`}
                   >
-                    Tạo CV
+                    Trang chủ
                   </Link>
                   <Link
-                    to="/my-cvs"
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/my-cvs')
+                    to="/search-users"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/search-users')
                       ? 'text-primary-600 bg-primary-50'
                       : 'text-gray-500 hover:text-gray-700'
                       }`}
                   >
-                    Quản lý CV
+                    Tìm người dùng
+                  </Link>
+                  <Link
+                    to="/create-post"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-post')
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                  >
+                    {user?.account_type === 'candidate' ? 'Đăng bài tìm việc' : 'Đăng bài tuyển dụng'}
+                  </Link>
+                  {user?.account_type === 'candidate' && (
+                    <>
+                      <Link
+                        to="/create-cv"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-cv')
+                          ? 'text-primary-600 bg-primary-50'
+                          : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                      >
+                        Tạo CV
+                      </Link>
+                      <Link
+                        to="/my-cvs"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/my-cvs')
+                          ? 'text-primary-600 bg-primary-50'
+                          : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                      >
+                        Quản lý CV
+                      </Link>
+                    </>
+                  )}
+                  <Link
+                    to="/applications"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/applications')
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                  >
+                    {user?.account_type === 'candidate' ? 'CV đã nộp' : 'CV nhận được'}
                   </Link>
                 </>
               )}
-              <Link
-                to="/applications"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/applications')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                {user?.account_type === 'candidate' ? 'CV đã nộp' : 'CV nhận được'}
-              </Link>
             </nav>
 
             {/* User menu */}

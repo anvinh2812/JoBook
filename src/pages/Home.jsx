@@ -342,6 +342,7 @@ const Home = () => {
               onViewCV={handleViewCV}
               onEdit={handleEditPost}
               onDelete={handleDeletePost}
+              showCompanyName={true}
             />
           ))
         )}

@@ -42,15 +42,21 @@ const upload = multer({
 router.get('/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, full_name, email, account_type, bio, avatar_url, created_at FROM users WHERE id = $1',
+  'SELECT id, full_name, email, account_type, bio, avatar_url, created_at, address, company_id FROM users WHERE id = $1',
       [req.params.id]
     );
     
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    res.json({ user: result.rows[0] });
+
+    const user = result.rows[0];
+    // Block admin profile exposure
+    if (user.account_type === 'admin') {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+  res.json({ user });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -60,11 +66,11 @@ router.get('/:id', async (req, res) => {
 // Update profile
 router.patch('/profile', authenticateToken, async (req, res) => {
   try {
-    const { full_name, bio } = req.body;
+    const { full_name, bio, address } = req.body;
     
     const result = await pool.query(
-      'UPDATE users SET full_name = $1, bio = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING id, full_name, email, account_type, bio, avatar_url',
-      [full_name, bio, req.user.id]
+      'UPDATE users SET full_name = $1, bio = $2, address = COALESCE($3, address), updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING id, full_name, email, account_type, bio, avatar_url, address, company_id',
+      [full_name, bio, address || null, req.user.id]
     );
     
     res.json({ 
@@ -115,15 +121,15 @@ router.post('/avatar', authenticateToken, upload.single('avatar'), async (req, r
   }
 });
 
-// Search users
-router.get('/', async (req, res) => {
+// Search users (auth required for advanced filters)
+router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { search, type, page = 1, limit = 10 } = req.query;
+  const { search, type, page = 1, limit = 10, same_company } = req.query;
     const pageNum = Number(page) || 1;
     const limitNum = Math.min(50, Number(limit) || 10);
     const offset = (pageNum - 1) * limitNum;
     
-    let baseWhere = 'WHERE 1=1';
+  let baseWhere = "WHERE 1=1 AND account_type <> 'admin'"; // exclude admin from lists
     const whereParams = [];
     
     if (search) {
@@ -136,8 +142,18 @@ router.get('/', async (req, res) => {
       whereParams.push(type);
     }
 
+    // Filter by same company as current user (for company accounts)
+    const wantSameCompany = same_company === 'true' || same_company === '1';
+    if (wantSameCompany) {
+      if (!req.user.company_id) {
+        return res.status(400).json({ message: 'Tài khoản không gắn với công ty' });
+      }
+      baseWhere += ` AND company_id = $${whereParams.length + 1}`;
+      whereParams.push(req.user.company_id);
+    }
+
     // total count
-    const countResult = await pool.query(`SELECT COUNT(*)::int AS total FROM users ${baseWhere}`, whereParams);
+  const countResult = await pool.query(`SELECT COUNT(*)::int AS total FROM users ${baseWhere}`, whereParams);
     const total = countResult.rows[0]?.total || 0;
 
     // page data

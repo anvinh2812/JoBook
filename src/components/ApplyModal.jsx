@@ -94,7 +94,7 @@ const ApplyModal = ({ post, onClose, onSubmit }) => {
                 >
                   {cvs.map((cv) => (
                     <option key={cv.id} value={cv.id}>
-                      CV #{cv.id} - {new Date(cv.created_at).toLocaleDateString('vi-VN')}
+                      {(cv.name || `CV #${cv.id}`)} ({new Date(cv.created_at).toLocaleDateString('vi-VN')})
                     </option>
                   ))}
                 </select>
