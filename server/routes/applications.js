@@ -79,11 +79,15 @@ router.get('/my-applications', authenticateToken, async (req, res) => {
         a.*,
         p.title as post_title,
         p.description as post_description,
-        u.full_name as company_name,
+    u.id as author_id,
+          u.account_type as author_type,
+        u.full_name as author_name,
+        co.name as company_name,
         c.file_url as cv_file_url
       FROM applications a
       JOIN posts p ON a.post_id = p.id
       JOIN users u ON p.user_id = u.id
+      LEFT JOIN companies co ON p.company_id = co.id
       JOIN cvs c ON a.cv_id = c.id
       WHERE a.applicant_id = $1
       ORDER BY a.created_at DESC`,

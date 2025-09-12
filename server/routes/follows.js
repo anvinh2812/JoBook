@@ -15,14 +15,17 @@ router.post('/:userId', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Cannot follow yourself' });
     }
     
-    // Check if user exists
+    // Check if user exists and is not admin
     const userResult = await pool.query(
-      'SELECT id FROM users WHERE id = $1',
+      'SELECT id, account_type FROM users WHERE id = $1',
       [followingId]
     );
     
     if (userResult.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
+    }
+    if (userResult.rows[0].account_type === 'admin') {
+      return res.status(400).json({ message: 'Cannot follow this user' });
     }
     
     // Check if already following
@@ -78,7 +81,7 @@ router.get('/followers', authenticateToken, async (req, res) => {
         f.created_at as followed_at
       FROM follows f
       JOIN users u ON f.follower_id = u.id
-      WHERE f.following_id = $1
+  WHERE f.following_id = $1 AND u.account_type <> 'admin'
       ORDER BY f.created_at DESC`,
       [req.user.id]
     );
@@ -99,7 +102,7 @@ router.get('/following', authenticateToken, async (req, res) => {
         f.created_at as followed_at
       FROM follows f
       JOIN users u ON f.following_id = u.id
-      WHERE f.follower_id = $1
+  WHERE f.follower_id = $1 AND u.account_type <> 'admin'
       ORDER BY f.created_at DESC`,
       [req.user.id]
     );
@@ -164,7 +167,7 @@ router.get('/:userId/followers', authenticateToken, async (req, res) => {
         f.created_at as followed_at
       FROM follows f
       JOIN users u ON f.follower_id = u.id
-      WHERE f.following_id = $1
+  WHERE f.following_id = $1 AND u.account_type <> 'admin'
       ORDER BY f.created_at DESC`,
       [targetUserId]
     );
@@ -191,7 +194,7 @@ router.get('/:userId/following', authenticateToken, async (req, res) => {
         f.created_at as followed_at
       FROM follows f
       JOIN users u ON f.following_id = u.id
-      WHERE f.follower_id = $1
+  WHERE f.follower_id = $1 AND u.account_type <> 'admin'
       ORDER BY f.created_at DESC`,
       [targetUserId]
     );

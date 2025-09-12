@@ -9,7 +9,16 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { full_name, email, password, account_type, bio } = req.body;
+  let { full_name, email, password, account_type, bio, tax_code, address } = req.body;
+
+    // Normalize and validate account type
+    const allowedTypes = ['candidate', 'company'];
+    if (!allowedTypes.includes(account_type)) {
+      account_type = 'candidate';
+    }
+    if (account_type === 'admin') {
+      return res.status(403).json({ message: 'Cannot self-register as admin' });
+    }
 
     // Check if user already exists
     const existingUser = await pool.query(
@@ -25,17 +34,45 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // If company account, require accepted company by tax_code and set company_id
+    let companyId = null;
+    if (account_type === 'company') {
+      if (!tax_code) {
+        return res.status(400).json({ message: 'tax_code is required for company accounts' });
+      }
+      const companyRes = await pool.query(
+        'SELECT id, status FROM companies WHERE tax_code = $1',
+        [tax_code]
+      );
+      if (companyRes.rows.length === 0) {
+        return res.status(400).json({ message: 'Company with this tax_code not found. Please submit company registration first.' });
+      }
+      const company = companyRes.rows[0];
+      if (company.status !== 'accepted') {
+        return res.status(400).json({ message: 'Company is not accepted yet. Please wait for admin approval.' });
+      }
+      companyId = company.id;
+    }
+
+    // Build dynamic insert to include company_id when present
+  const fields = ['full_name', 'email', 'password_hash', 'account_type', 'bio', 'address'];
+  const values = [full_name, email, password_hash, account_type, bio || '', address || null];
+    if (companyId) {
+      fields.push('company_id');
+      values.push(companyId);
+    }
+    const placeholders = fields.map((_, i) => `$${i + 1}`);
     const result = await pool.query(
-      'INSERT INTO users (full_name, email, password_hash, account_type, bio) VALUES ($1, $2, $3, $4, $5) RETURNING id, full_name, email, account_type, bio, created_at',
-      [full_name, email, password_hash, account_type, bio || '']
+      `INSERT INTO users (${fields.join(', ')}) VALUES (${placeholders.join(', ')})
+  RETURNING id, full_name, email, account_type, bio, address, company_id, created_at`,
+      values
     );
 
     const user = result.rows[0];
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+  { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -47,8 +84,10 @@ router.post('/register', async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
-        account_type: user.account_type,
-        bio: user.bio,
+  account_type: user.account_type,
+  bio: user.bio,
+  address: user.address,
+  company_id: user.company_id || null,
         created_at: user.created_at
       }
     });
@@ -65,7 +104,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const result = await pool.query(
-      'SELECT id, full_name, email, password_hash, account_type, bio, avatar_url FROM users WHERE email = $1',
+      'SELECT id, full_name, email, password_hash, account_type, bio, address, avatar_url, company_id FROM users WHERE email = $1',
       [email]
     );
 
@@ -95,9 +134,11 @@ router.post('/login', async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
-        account_type: user.account_type,
-        bio: user.bio,
-        avatar_url: user.avatar_url
+  account_type: user.account_type,
+  bio: user.bio,
+  address: user.address,
+  avatar_url: user.avatar_url,
+  company_id: user.company_id || null
       }
     });
   } catch (error) {
@@ -110,7 +151,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, full_name, email, account_type, bio, avatar_url, created_at FROM users WHERE id = $1',
+      'SELECT id, full_name, email, account_type, bio, address, avatar_url, created_at, company_id FROM users WHERE id = $1',
       [req.user.id]
     );
 

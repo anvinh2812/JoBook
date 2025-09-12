@@ -16,6 +16,10 @@ router.get('/', authenticateToken, async (req, res) => {
         u.full_name as author_name,
         u.account_type as author_type,
         u.avatar_url as author_avatar,
+        co.name as company_name,
+        co.logo_url as company_logo_url,
+        co.tax_code as company_tax_code,
+  c.name as cv_name,
         c.file_url as cv_file_url,
         CASE WHEN f.follower_id IS NOT NULL THEN true ELSE false END as is_following_author,
         CASE 
@@ -24,6 +28,7 @@ router.get('/', authenticateToken, async (req, res) => {
         END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
+      LEFT JOIN companies co ON p.company_id = co.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
       LEFT JOIN follows f ON f.following_id = p.user_id AND f.follower_id = $1
     `;
@@ -70,6 +75,10 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
         u.full_name as author_name,
         u.account_type as author_type,
         u.avatar_url as author_avatar,
+        co.name as company_name,
+        co.logo_url as company_logo_url,
+        co.tax_code as company_tax_code,
+  c.name as cv_name,
         c.file_url as cv_file_url,
         CASE 
           WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
@@ -77,6 +86,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
         END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
+      LEFT JOIN companies co ON p.company_id = co.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
       WHERE p.user_id = $1
     `;
@@ -106,26 +116,49 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
 // Create post
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { post_type, title, description, attached_cv_id } = req.body;
+  const { post_type, title, description, attached_cv_id } = req.body;
     
     // Validate post type with account type
     if (post_type === 'find_job' && req.user.account_type !== 'candidate') {
       return res.status(400).json({ message: 'Only candidates can create find_job posts' });
     }
     
-    if (post_type === 'find_candidate' && req.user.account_type !== 'company') {
+  if (post_type === 'find_candidate' && req.user.account_type !== 'company') {
       return res.status(400).json({ message: 'Only companies can create find_candidate posts' });
     }
     
-    // For find_job posts, attached_cv_id is required
-    if (post_type === 'find_job' && !attached_cv_id) {
+    // Normalize attached_cv_id to integer or null
+    const attachedId = (attached_cv_id === undefined || attached_cv_id === null || attached_cv_id === '')
+      ? null
+      : parseInt(attached_cv_id, 10);
+
+    if (attached_cv_id !== undefined && attached_cv_id !== null && attached_cv_id !== '' && Number.isNaN(attachedId)) {
+      return res.status(400).json({ message: 'Invalid CV id' });
+    }
+
+    // For find_job posts, attached_cv_id is required and must belong to the user
+    if (post_type === 'find_job' && !attachedId) {
       return res.status(400).json({ message: 'CV is required for job seeking posts' });
     }
+    if (post_type === 'find_job' && attachedId) {
+      const cvCheck = await pool.query('SELECT id FROM cvs WHERE id = $1 AND user_id = $2', [attachedId, req.user.id]);
+      if (cvCheck.rows.length === 0) {
+        return res.status(400).json({ message: 'Selected CV is invalid' });
+      }
+    }
     
-    const result = await pool.query(
-      'INSERT INTO posts (user_id, post_type, title, description, attached_cv_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [req.user.id, post_type, title, description, attached_cv_id || null]
-    );
+    // Auto attach company_id for recruitment posts
+    let insertQuery = 'INSERT INTO posts (user_id, post_type, title, description, attached_cv_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+    let params = [req.user.id, post_type, title, description, attachedId];
+    if (post_type === 'find_candidate') {
+      if (!req.user.company_id) {
+        return res.status(400).json({ message: 'Your account is not linked to a company' });
+      }
+      insertQuery = 'INSERT INTO posts (user_id, post_type, title, description, attached_cv_id, company_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+      params = [req.user.id, post_type, title, description, attachedId, req.user.company_id];
+    }
+
+    const result = await pool.query(insertQuery, params);
     
     res.status(201).json({ post: result.rows[0] });
   } catch (error) {
@@ -137,7 +170,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Update post
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const { title, description, attached_cv_id } = req.body;
+  const { title, description, attached_cv_id } = req.body;
     const postId = req.params.id;
     
     // Check if user owns the post
@@ -150,16 +183,31 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Post not found or not authorized' });
     }
     
-    const post = checkResult.rows[0];
+  const post = checkResult.rows[0];
     
-    // For find_job posts, attached_cv_id is required
-    if (post.post_type === 'find_job' && !attached_cv_id) {
+    // Normalize attached_cv_id to integer or null
+    const attachedId = (attached_cv_id === undefined || attached_cv_id === null || attached_cv_id === '')
+      ? null
+      : parseInt(attached_cv_id, 10);
+
+    if (Number.isNaN(attachedId)) {
+      return res.status(400).json({ message: 'Invalid CV id' });
+    }
+
+    // For find_job posts, attached_cv_id is required and must belong to the user
+    if (post.post_type === 'find_job' && !attachedId) {
       return res.status(400).json({ message: 'CV is required for job seeking posts' });
+    }
+    if (post.post_type === 'find_job' && attachedId) {
+      const cvCheck = await pool.query('SELECT id FROM cvs WHERE id = $1 AND user_id = $2', [attachedId, req.user.id]);
+      if (cvCheck.rows.length === 0) {
+        return res.status(400).json({ message: 'Selected CV is invalid' });
+      }
     }
     
     const result = await pool.query(
-      'UPDATE posts SET title = $1, description = $2, attached_cv_id = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 AND user_id = $5 RETURNING *',
-      [title, description, attached_cv_id || null, postId, req.user.id]
+      'UPDATE posts SET title = $1, description = $2, attached_cv_id = $3 WHERE id = $4 AND user_id = $5 RETURNING *',
+      [title, description, attachedId, postId, req.user.id]
     );
     
     res.json({ post: result.rows[0] });
@@ -178,6 +226,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
         u.full_name as author_name,
         u.account_type as author_type,
         u.avatar_url as author_avatar,
+        co.name as company_name,
+        co.logo_url as company_logo_url,
+        co.tax_code as company_tax_code,
+  c.name as cv_name,
         c.file_url as cv_file_url,
         CASE 
           WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
@@ -185,6 +237,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         END AS is_expired
       FROM posts p
       JOIN users u ON p.user_id = u.id
+      LEFT JOIN companies co ON p.company_id = co.id
       LEFT JOIN cvs c ON p.attached_cv_id = c.id
       WHERE p.id = $1`,
       [req.params.id]

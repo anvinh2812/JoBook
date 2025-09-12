@@ -26,14 +26,24 @@ const Login = () => {
     setLoading(true);
 
     const result = await login(formData.email, formData.password);
-    
+
     if (result.success) {
-      navigate('/');
+      // Redirect admin to admin companies page; others to home
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (savedUser?.account_type === 'admin') {
+        navigate('/admin/companies');
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
+  };
+
+  const fillAdmin = () => {
+    setFormData({ email: 'admin@gmail.com', password: '123456' });
   };
 
   return (
@@ -59,7 +69,7 @@ const Login = () => {
               {error}
             </div>
           )}
-          
+
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -100,6 +110,13 @@ const Login = () => {
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            </button>
+            <button
+              type="button"
+              onClick={fillAdmin}
+              className="mt-3 w-full text-sm text-gray-600 underline"
+            >
+              Điền nhanh tài khoản admin
             </button>
           </div>
         </form>

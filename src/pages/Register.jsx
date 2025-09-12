@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
@@ -10,12 +10,24 @@ const Register = () => {
     confirmPassword: '',
     account_type: 'candidate',
     bio: '',
+    tax_code: '',
+    address: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Preselect account type from query string: ?type=company or candidate
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const type = params.get('type');
+    if (type === 'company' || type === 'candidate') {
+      setFormData((prev) => ({ ...prev, account_type: type }));
+    }
+  }, [location.search]);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,6 +55,11 @@ const Register = () => {
     setLoading(true);
 
     const { confirmPassword, ...registerData } = formData;
+    if (registerData.account_type === 'company' && !registerData.tax_code) {
+      setError('Vui lòng nhập Mã số thuế công ty');
+      setLoading(false);
+      return;
+    }
     const result = await register(registerData);
 
     if (result.success) {
@@ -84,6 +101,24 @@ const Register = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
             </div>
+
+            {formData.account_type === 'company' && (
+              <div>
+                <label htmlFor="tax_code" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mã số thuế công ty
+                </label>
+                <input
+                  id="tax_code"
+                  name="tax_code"
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Nhập MST công ty (đã được admin duyệt)"
+                  value={formData.tax_code}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Tạo tài khoản của bạn
             </h2>
@@ -148,6 +183,22 @@ const Register = () => {
                 <option value="candidate">Ứng viên</option>
                 <option value="company">Nhà tuyển dụng</option>
               </select>
+            </div>
+
+            {/* Address */}
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                Địa chỉ
+              </label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Nhập địa chỉ"
+                value={formData.address}
+                onChange={handleChange}
+              />
             </div>
 
             {/* Bio */}
