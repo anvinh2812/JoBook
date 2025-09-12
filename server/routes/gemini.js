@@ -4,19 +4,20 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const pool = require('../config/database'); // PostgreSQL pool
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const { authenticateToken } = require('../middleware/auth'); 
 
 // Schema mô tả cho Gemini
 const schemaDescription = `
 Database JoBook (PostgreSQL):
+
 1. users
 - id (PK)
 - full_name
 - email (unique)
 - password_hash
-- account_type ('candidate' | 'company')
+- account_type ('candidate' | 'company' | 'admin')
 - bio
 - avatar_url
+- company_id (FK -> companies.id, nullable)
 - created_at, updated_at
 
 2. cvs
@@ -30,6 +31,7 @@ Database JoBook (PostgreSQL):
 3. posts
 - id (PK)
 - user_id (FK -> users.id)
+- company_id (FK -> companies.id, nullable)
 - post_type ('find_job' | 'find_candidate')
 - title
 - description
@@ -48,6 +50,20 @@ Database JoBook (PostgreSQL):
 - follower_id (FK -> users.id)
 - following_id (FK -> users.id)
 - created_at
+
+6. companies
+- id (PK)
+- name (NOT NULL)
+- legal_name (nullable)
+- tax_code (unique, NOT NULL)
+- address (TEXT, NOT NULL)
+- contact_phone (nullable)
+- logo_url (nullable)
+- status ('pending' | 'accepted' | 'rejected', default 'pending')
+- reviewed_by_user_id (FK -> users.id, nullable)
+- review_note (TEXT, nullable)
+- reviewed_at (timestamp, nullable)
+- created_at, updated_at
 `;
 
 router.post('/chat', async (req, res) => {
@@ -59,15 +75,32 @@ router.post('/chat', async (req, res) => {
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    // B1. Nhờ Gemini sinh SQL
+    // B1. Prompt để sinh SQL an toàn
     const sqlPrompt = `
-Bạn là trợ lý SQL. Dựa trên schema sau:
+Bạn là trợ lý SQL cho hệ thống JoBook. 
+Schema cơ sở dữ liệu:
+
 ${schemaDescription}
+
+QUY TẮC BẢO MẬT:
+1. Chỉ được phép sinh câu lệnh SQL SELECT.
+2. Chỉ được truy vấn các cột PUBLIC:
+   - users: id, full_name, email, account_type, bio, avatar_url, created_at
+   - cvs: id, name, file_url, is_active, created_at
+   - posts: id, post_type, title, description, created_at
+   - applications: id, post_id, cv_id, applicant_id, status, created_at
+   - follows: follower_id, following_id, created_at
+   - companies: id, name, address, contact_phone, logo_url, created_at
+   - companies.status chỉ được dùng để lọc status='accepted'.
+3. Tuyệt đối KHÔNG được phép truy vấn các cột nhạy cảm như: 
+   password_hash, tax_code, legal_name, company_id, review_note, reviewed_by_user_id, reviewed_at, hay status khác 'accepted'.
+4. Nếu người dùng hỏi về dữ liệu thuộc diện private/bảo mật → trả lời đúng một câu: 
+   "Bạn không có quyền truy cập thông tin này."
 
 Người dùng hỏi: "${prompt}"
 
-👉 Trả về duy nhất một câu lệnh SQL SELECT hợp lệ cho PostgreSQL.
-Chỉ in SQL, không thêm giải thích, không markdown.
+👉 Nếu câu hỏi hợp lệ, chỉ in ra SQL SELECT đúng với PostgreSQL.
+👉 Nếu câu hỏi yêu cầu dữ liệu nhạy cảm, trả về đúng câu: "Xin lỗi! Tôi không có quyền truy cập thông tin này."
     `;
 
     const sqlResult = await model.generateContent(sqlPrompt);
@@ -78,9 +111,14 @@ Chỉ in SQL, không thêm giải thích, không markdown.
 
     console.log('🔎 Gemini SQL:', sqlQuery);
 
+    // Nếu AI trả lời câu bảo mật thì trả thẳng cho user
+    if (sqlQuery.toLowerCase().includes('Xin lỗi! Tôi không có quyền truy cập')) {
+      return res.json({ response: 'Xin lỗi! Tôi không có quyền truy cập thông tin này.' });
+    }
+
     // Bảo mật: chỉ cho phép SELECT
     if (!sqlQuery.toLowerCase().startsWith('select')) {
-      return res.status(400).json({ error: 'Only SELECT queries are allowed', sql: sqlQuery });
+      return res.json({ response: 'Xin lỗi! Tôi không có quyền truy cập thông tin này.' });
     }
 
     // B2. Thực thi SQL
@@ -94,6 +132,7 @@ Dữ liệu từ database:
 ${JSON.stringify(rows, null, 2)}
 
 👉 Hãy trả lời tự nhiên, ngắn gọn, dễ hiểu bằng tiếng Việt.
+Nếu dữ liệu rỗng, hãy trả lời "Không tìm thấy dữ liệu phù hợp."
     `;
 
     const answerResult = await model.generateContent(answerPrompt);
