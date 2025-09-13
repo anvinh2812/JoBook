@@ -68,12 +68,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // const logout = () => {
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('user');
+  //   setToken(null);
+  //   setUser(null);
+  // };
+
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-  };
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('chatHistory'); 
+  setToken(null);
+  setUser(null);
+};
+
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser);

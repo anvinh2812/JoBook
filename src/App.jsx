@@ -17,9 +17,11 @@ import CreateCV from './pages/CreateCV';
 import AdminCompanies from './pages/AdminCompanies';
 import CompanyRegister from './pages/CompanyRegister';
 
+import FloatingChatbotButton from './components/FloatingChatbotButton';
+
 // Component to handle routing based on auth status
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -30,102 +32,106 @@ const AppRoutes = () => {
   }
 
   return (
-    <Routes>
-      {/* Landing page for non-authenticated users */}
-      <Route path="/" element={
-        isAuthenticated ? (
+    <>
+      <Routes>
+        {/* Landing page for non-authenticated users */}
+        <Route path="/" element={
+          isAuthenticated ? (
+            <ProtectedRoute>
+              <Layout>
+                <Home />
+              </Layout>
+            </ProtectedRoute>
+          ) : (
+            <LandingPage />
+          )
+        } />
+
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/register/company" element={<CompanyRegister />} />
+
+        {/* Protected routes */}
+        <Route path="/home" element={
           <ProtectedRoute>
             <Layout>
               <Home />
             </Layout>
           </ProtectedRoute>
-        ) : (
-          <LandingPage />
-        )
-      } />
+        } />
 
-      {/* Public routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/register/company" element={<CompanyRegister />} />
+        <Route path="/search-users" element={
+          <ProtectedRoute>
+            <Layout>
+              <SearchUsers />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      {/* Protected routes */}
-      <Route path="/home" element={
-        <ProtectedRoute>
-          <Layout>
-            <Home />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/users/:userId" element={
+          <ProtectedRoute>
+            <Layout>
+              <UserProfile />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/search-users" element={
-        <ProtectedRoute>
-          <Layout>
-            <SearchUsers />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/create-post" element={
+          <ProtectedRoute>
+            <Layout>
+              <CreatePost />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/users/:userId" element={
-        <ProtectedRoute>
-          <Layout>
-            <UserProfile />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Layout>
+              <Profile />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/create-post" element={
-        <ProtectedRoute>
-          <Layout>
-            <CreatePost />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/my-cvs" element={
+          <ProtectedRoute>
+            <Layout>
+              <MyCVs />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/profile" element={
-        <ProtectedRoute>
-          <Layout>
-            <Profile />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/create-cv" element={
+          <ProtectedRoute>
+            <Layout>
+              <CreateCV />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
+        <Route path="/applications" element={
+          <ProtectedRoute>
+            <Layout>
+              <Applications />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/my-cvs" element={
-        <ProtectedRoute>
-          <Layout>
-            <MyCVs />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        <Route path="/admin/companies" element={
+          <ProtectedRoute>
+            <Layout>
+              <AdminCompanies />
+            </Layout>
+          </ProtectedRoute>
+        } />
 
-      <Route path="/create-cv" element={
-        <ProtectedRoute>
-          <Layout>
-            <CreateCV />
-          </Layout>
-        </ProtectedRoute>
-      } />
+        {/* Redirect unknown routes */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
 
-      <Route path="/applications" element={
-        <ProtectedRoute>
-          <Layout>
-            <Applications />
-          </Layout>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/admin/companies" element={
-        <ProtectedRoute>
-          <Layout>
-            <AdminCompanies />
-          </Layout>
-        </ProtectedRoute>
-      } />
-
-      {/* Redirect unknown routes */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+      {/* ✅ Nút chatbot chỉ hiện khi user đăng nhập */}
+      {user && <FloatingChatbotButton />}
+    </>
   );
 };
 
