@@ -18,6 +18,7 @@ import AdminCompanies from './pages/AdminCompanies';
 import CompanyRegister from './pages/CompanyRegister';
 
 import FloatingChatbotButton from './components/FloatingChatbotButton';
+import { Toaster } from 'react-hot-toast';
 
 // Component to handle routing based on auth status
 const AppRoutes = () => {
@@ -131,6 +132,8 @@ const AppRoutes = () => {
 
       {/* ✅ Nút chatbot chỉ hiện khi user đăng nhập */}
       {user && <FloatingChatbotButton />}
+      {/* Global toast container */}
+      <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
     </>
   );
 };
