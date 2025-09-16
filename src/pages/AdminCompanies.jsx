@@ -255,7 +255,7 @@ const AdminCompanies = () => {
     const rejectedList = sortByDateDesc(items.filter((c) => c.status === 'rejected'), 'reviewed_at');
     const currentList = tab === 'pending' ? pendingList : tab === 'accepted' ? acceptedList : rejectedList;
 
-    
+
 
     return (
         <div>
