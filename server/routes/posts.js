@@ -7,7 +7,7 @@ const router = express.Router();
 // Get all posts (with user info and following status)
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { page = 1, limit = 10, type } = req.query;
+    const { page = 1, limit = 10, type, start_date, end_date } = req.query;
     const offset = (page - 1) * limit;
     
     let query = `
@@ -34,10 +34,22 @@ router.get('/', authenticateToken, async (req, res) => {
     `;
     
     const params = [req.user.id];
-    
+    const conditions = [];
     if (type) {
-      query += ` WHERE p.post_type = $${params.length + 1}`;
+      conditions.push(`p.post_type = $${params.length + 1}`);
       params.push(type);
+    }
+    if (start_date) {
+      conditions.push(`p.created_at >= $${params.length + 1}::date`);
+      params.push(start_date);
+    }
+    if (end_date) {
+      // less than next day to include the full end date
+      conditions.push(`p.created_at < ($${params.length + 1}::date + INTERVAL '1 day')`);
+      params.push(end_date);
+    }
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(' AND ');
     }
     
     query += ` ORDER BY 

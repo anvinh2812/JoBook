@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { CalendarRange, Check, RotateCcw } from 'lucide-react';
 import DateRangeFilter from '../components/DateRangeFilter';
 import { postsAPI, cvsAPI, applicationsAPI } from '../services/api';
@@ -29,11 +29,12 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  // Pagination
+  // Infinite scroll state
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
-  const [hasMore, setHasMore] = useState(false);
-  const [totalPages, setTotalPages] = useState(1); // used when date filter active
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef(null);
+  const [isFetching, setIsFetching] = useState(false);
   // Date filter (effective values used for fetching) - default last 14 days
   const { start: defaultStart, end: defaultEnd } = useMemo(() => getDefaultDateRange(), []);
   const [startDate, setStartDate] = useState(defaultStart);
@@ -45,13 +46,7 @@ const Home = () => {
   const isPendingInvalid = useMemo(() => (
     pendingStartDate && pendingEndDate && pendingStartDate > pendingEndDate
   ), [pendingStartDate, pendingEndDate]);
-  // Page input state (for manual page jump)
-  const [pageInput, setPageInput] = useState('1');
-
-  // Keep input in sync with current page
-  useEffect(() => {
-    setPageInput(String(page));
-  }, [page]);
+  // Remove manual page input in infinite scroll mode
   const [selectedPost, setSelectedPost] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
@@ -62,8 +57,10 @@ const Home = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // reset to first page when filter type changes
+    // reset when filter type changes
+    setPosts([]);
     setPage(1);
+    setHasMore(true);
   }, [filter]);
 
   // Keep pending inputs in sync with effective values
@@ -73,112 +70,57 @@ const Home = () => {
   }, [startDate, endDate]);
 
   useEffect(() => {
+    // reset when date range changes via Apply
+    setPosts([]);
+    setPage(1);
+    setHasMore(true);
+  }, [startDate, endDate]);
+
+  useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, page, startDate, endDate]);
 
   const fetchPosts = async () => {
     try {
-      setLoading(true);
-      // If no date filter -> use server-side pagination
-      if (!isDateFilterActive) {
-        const params = {
-          ...(filter !== 'all' ? { type: filter } : {}),
-          page,
-          limit: PAGE_SIZE,
-        };
-        const response = await postsAPI.getPosts(params);
-        const data = response.data.posts || [];
-        setPosts(data);
-        setHasMore(data.length === PAGE_SIZE);
-        setTotalPages(1);
-        return;
-      }
+      if (isFetching) return;
+      setLoading(page === 1);
+      setIsFetching(true);
 
-      // With date filter -> fetch all pages, filter locally, then paginate client-side
-      const all = [];
-      let curPage = 1;
-      // To avoid excessive loops, cap pages
-      const MAX_PAGES = 100; // adjust if needed
-      // Fetch until less than server default page size (we pass PAGE_SIZE)
-      // or until cap reached
-      // Always include type filter if selected
-      while (curPage <= MAX_PAGES) {
-        const params = {
-          ...(filter !== 'all' ? { type: filter } : {}),
-          page: curPage,
-          limit: PAGE_SIZE,
-        };
-        const res = await postsAPI.getPosts(params);
-        const chunk = res.data.posts || [];
-        all.push(...chunk);
-        if (chunk.length < PAGE_SIZE) break;
-        curPage += 1;
-      }
-
-      // Apply date filtering locally
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-      // Normalize end to end-of-day
-      const endNormalized = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999) : null;
-      const filtered = all.filter((p) => {
-        const d = new Date(p.created_at);
-        if (start && d < start) return false;
-        if (endNormalized && d > endNormalized) return false;
-        return true;
-      });
-
-      // Sort: active first, then following priority, then newest
-      const toIsExpired = (p) => {
-        if (typeof p.is_expired === 'boolean') return p.is_expired;
-        return p.post_type === 'find_candidate' && new Date(p.created_at) < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+      const params = {
+        ...(filter !== 'all' ? { type: filter } : {}),
+        ...(startDate ? { start_date: startDate } : {}),
+        ...(endDate ? { end_date: endDate } : {}),
+        page,
+        limit: PAGE_SIZE,
       };
-      filtered.sort((a, b) => {
-        const aExpired = toIsExpired(a) ? 1 : 0;
-        const bExpired = toIsExpired(b) ? 1 : 0;
-        if (aExpired !== bExpired) return aExpired - bExpired; // non-expired (0) first
-
-        const aFollow = a.is_following_author ? 0 : 1;
-        const bFollow = b.is_following_author ? 0 : 1;
-        if (aFollow !== bFollow) return aFollow - bFollow; // following first
-
-        return new Date(b.created_at) - new Date(a.created_at); // newest first
-      });
-
-      const tp = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-      setTotalPages(tp);
-
-      // Clamp page if it exceeds totalPages
-      const effectivePage = Math.min(page, tp);
-      if (effectivePage !== page) {
-        setPage(effectivePage);
-      }
-
-      const startIdx = (effectivePage - 1) * PAGE_SIZE;
-      const pageSlice = filtered.slice(startIdx, startIdx + PAGE_SIZE);
-      setPosts(pageSlice);
-      setHasMore(effectivePage < tp);
+      const response = await postsAPI.getPosts(params);
+      const data = response.data.posts || [];
+      setPosts((prev) => (page === 1 ? data : [...prev, ...data]));
+      setHasMore(data.length === PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   };
 
-  const commitPageInput = () => {
-    const raw = parseInt(pageInput, 10);
-    if (Number.isNaN(raw) || raw < 1) {
-      setPage(1);
-      return;
+  // Infinite scroll intersection observer
+  const onIntersect = useCallback((entries) => {
+    const first = entries[0];
+    if (first.isIntersecting && hasMore && !isFetching) {
+      setPage((p) => p + 1);
     }
-    if (isDateFilterActive) {
-      // clamp to known totalPages under date filter
-      setPage(Math.min(raw, Math.max(1, totalPages)));
-    } else {
-      // server-side pages can be open-ended; just ensure >= 1
-      setPage(raw);
-    }
-  };
+  }, [hasMore, isFetching]);
+
+  useEffect(() => {
+    const node = loaderRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(onIntersect, { root: null, rootMargin: '0px', threshold: 1.0 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onIntersect]);
 
   const handleApply = (post) => {
     setSelectedPost(post);
@@ -344,43 +286,15 @@ const Home = () => {
         )}
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between mt-8">
-        <div className="text-sm text-gray-600">
-          {isDateFilterActive ? (
-            <span>Trang {page} / {totalPages}</span>
-          ) : (
-            <span>Trang {page}</span>
-          )}
-        </div>
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-          >
-            Trang trước
-          </button>
-          {/* Manual page input */}
-          <input
-            type="number"
-            min={1}
-            max={isDateFilterActive ? totalPages : undefined}
-            value={pageInput}
-            onChange={(e) => setPageInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') commitPageInput(); }}
-            onBlur={commitPageInput}
-            className="w-20 px-3 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            placeholder="Trang"
-          />
-          <button
-            onClick={() => setPage((p) => p + 1)}
-            disabled={isDateFilterActive ? page >= totalPages : !hasMore}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${(isDateFilterActive ? page >= totalPages : !hasMore) ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-          >
-            Trang sau
-          </button>
-        </div>
+      {/* Infinite loader sentinel */}
+      <div ref={loaderRef} className="flex items-center justify-center py-8">
+        {isFetching ? (
+          <span className="text-sm text-gray-500">Đang tải thêm…</span>
+        ) : hasMore ? (
+          <span className="text-sm text-gray-400">Cuộn để tải thêm</span>
+        ) : (
+          <span className="text-sm text-gray-400">Đã hết bài</span>
+        )}
       </div>
 
       {/* Apply Modal */}
