@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { CalendarRange, Check, RotateCcw } from 'lucide-react';
+import DateRangeFilter from '../components/DateRangeFilter';
 import { postsAPI, cvsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PostCard from '../components/PostCard';
@@ -7,6 +9,21 @@ import CVViewerModal from '../components/CVViewerModal';
 import EditPostModal from '../components/EditPostModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import notify from '../utils/notify';
+
+// Helper to format a Date to yyyy-mm-dd (for input[type=date])
+const formatDate = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const past = new Date();
+  past.setDate(today.getDate() - 14);
+  return { start: formatDate(past), end: formatDate(today) };
+};
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -17,9 +34,10 @@ const Home = () => {
   const PAGE_SIZE = 20;
   const [hasMore, setHasMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1); // used when date filter active
-  // Date filter (effective values used for fetching)
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // Date filter (effective values used for fetching) - default last 14 days
+  const { start: defaultStart, end: defaultEnd } = useMemo(() => getDefaultDateRange(), []);
+  const [startDate, setStartDate] = useState(defaultStart);
+  const [endDate, setEndDate] = useState(defaultEnd);
   // Pending inputs (do not trigger fetch until user clicks Apply)
   const [pendingStartDate, setPendingStartDate] = useState('');
   const [pendingEndDate, setPendingEndDate] = useState('');
@@ -288,40 +306,18 @@ const Home = () => {
 
           {/* Date range filter */}
           <div className="flex items-center gap-2 ml-auto">
-            <label className="text-sm text-gray-600">Từ ngày</label>
-            <input
-              type="date"
-              value={pendingStartDate}
-              onChange={(e) => setPendingStartDate(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') applyDateFilter(); }}
-              className="px-3 py-2 rounded-md bg-gray-100 text-sm"
+            <div className="flex items-center gap-2 px-2 py-1 rounded-md text-gray-700">
+              <CalendarRange className="w-5 h-5 text-primary-600" />
+              <span className="text-sm text-gray-700 font-medium">Lọc theo thời gian</span>
+            </div>
+            <DateRangeFilter
+              start={pendingStartDate}
+              end={pendingEndDate}
+              onChange={(s, e) => { setPendingStartDate(s); setPendingEndDate(e); }}
+              onApply={applyDateFilter}
+              onClear={clearDateFilter}
+              invalid={isPendingInvalid}
             />
-            <label className="text-sm text-gray-600">Đến ngày</label>
-            <input
-              type="date"
-              value={pendingEndDate}
-              onChange={(e) => setPendingEndDate(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') applyDateFilter(); }}
-              className="px-3 py-2 rounded-md bg-gray-100 text-sm"
-            />
-            {isPendingInvalid && (
-              <span className="text-xs text-red-600">Khoảng thời gian không hợp lệ</span>
-            )}
-            <button
-              onClick={applyDateFilter}
-              disabled={isPendingInvalid}
-              className={`px-3 py-2 rounded-md text-sm ${isPendingInvalid ? 'bg-gray-100 text-gray-400' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
-            >
-              Áp dụng
-            </button>
-            {isDateFilterActive ? (
-              <button
-                onClick={clearDateFilter}
-                className="px-3 py-2 rounded-md text-sm bg-red-100 text-red-700 hover:bg-red-200"
-              >
-                Xóa lọc thời gian
-              </button>
-            ) : null}
           </div>
         </div>
       </div>
