@@ -169,7 +169,6 @@ const Applications = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-gray-500 mr-2">Lọc trạng thái:</span>
                         {[
-                          { key: 'all', label: 'Tất cả' },
                           { key: 'pending', label: 'Chờ xử lý' },
                           { key: 'accepted', label: 'Đã chấp nhận' },
                           { key: 'rejected', label: 'Đã từ chối' },
@@ -177,13 +176,10 @@ const Applications = () => {
                           <button
                             key={opt.key}
                             onClick={() => {
-                              if (opt.key === 'all') {
-                                setStatusFilter(null);
-                              } else {
-                                setStatusFilter(opt.key);
-                              }
+                              // Toggle: if already selected, clear filter
+                              setStatusFilter((prev) => (prev === opt.key ? null : opt.key));
                             }}
-                            className={`px-3 py-1.5 rounded-full text-sm border transition ${(opt.key === 'all' ? statusFilter === null : statusFilter === opt.key)
+                            className={`px-3 py-1.5 rounded-full text-sm border transition ${statusFilter === opt.key
                               ? 'bg-primary-600 text-white border-primary-600'
                               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                               }`}
