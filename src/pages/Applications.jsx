@@ -194,8 +194,8 @@ const Applications = () => {
                       </div>
                     </div>
 
-                    {/* List */}
-                    <div className="divide-y divide-gray-200 mt-4">
+                    {/* List: use spacing instead of divide to avoid overriding left border color */}
+                    <div className="mt-4 space-y-4">
                       {(statusFilter ? myApplications.filter((a) => a.status === statusFilter) : myApplications).map((application) => (
                         <div
                           key={application.id}
