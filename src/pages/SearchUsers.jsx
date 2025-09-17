@@ -7,7 +7,10 @@ import notify from '../utils/notify';
 const SearchUsers = () => {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [accountTypeFilter, setAccountTypeFilter] = useState('all');
+  // Account type filter: 'candidate' | 'company' | 'same_company'
+  // Default is set after reading current user to avoid a brief "all" fetch
+  const [accountTypeFilter, setAccountTypeFilter] = useState('');
+  const [filterInitialized, setFilterInitialized] = useState(false);
   const [loading, setLoading] = useState(false);
   // Pagination (10 per page)
   const [page, setPage] = useState(1);
@@ -18,15 +21,28 @@ const SearchUsers = () => {
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const { user: currentUser } = useAuth();
 
+  // Initialize default filter based on current user's role
   useEffect(() => {
+    if (!filterInitialized && currentUser) {
+      const defaultFilter = currentUser.account_type === 'candidate' ? 'company' : 'candidate';
+      setAccountTypeFilter(defaultFilter);
+      setFilterInitialized(true);
+      setPage(1);
+    }
+  }, [currentUser, filterInitialized]);
+
+  useEffect(() => {
+    if (!filterInitialized) return;
     setPage(1);
-  }, [accountTypeFilter]);
+  }, [accountTypeFilter, filterInitialized]);
 
   useEffect(() => {
+    if (!filterInitialized) return;
     fetchUsers();
-  }, [accountTypeFilter, page]);
+  }, [accountTypeFilter, page, filterInitialized]);
 
   useEffect(() => {
+    if (!filterInitialized) return;
     const delayedSearch = setTimeout(() => {
       // When search changes, reset to first page; if already on page 1, fetch now
       if (page === 1) {
@@ -37,7 +53,7 @@ const SearchUsers = () => {
     }, 500);
 
     return () => clearTimeout(delayedSearch);
-  }, [searchQuery]);
+  }, [searchQuery, filterInitialized]);
 
   const fetchUsers = async () => {
     try {
@@ -157,7 +173,6 @@ const SearchUsers = () => {
             onChange={(e) => setAccountTypeFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
           >
-            <option value="all">Tất cả</option>
             <option value="candidate">Ứng viên</option>
             <option value="company">Doanh nghiệp</option>
             {currentUser?.account_type === 'company' && (
