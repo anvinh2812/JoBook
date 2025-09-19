@@ -167,7 +167,7 @@ const SearchUsers = () => {
             />
           </div>
 
-          {/* Account Type Filter */}
+          {/* Account Type Filter: allow switching between Candidate and Company for all users (no "Tất cả") */}
           <select
             value={accountTypeFilter}
             onChange={(e) => setAccountTypeFilter(e.target.value)}
@@ -175,9 +175,6 @@ const SearchUsers = () => {
           >
             <option value="candidate">Ứng viên</option>
             <option value="company">Doanh nghiệp</option>
-            {currentUser?.account_type === 'company' && (
-              <option value="same_company">Cùng công ty</option>
-            )}
           </select>
         </div>
       </div>
@@ -206,7 +203,8 @@ const SearchUsers = () => {
                 <div className="flex items-center space-x-5 mb-5">
                   {(() => {
                     const isCompany = user.account_type === 'company';
-                    const showCompanyBrand = currentUser?.account_type === 'candidate' && isCompany;
+                    // Always show company branding (logo/name) for company accounts
+                    const showCompanyBrand = isCompany;
                     const logo = showCompanyBrand ? (user.company_logo_url || user.avatar_url) : user.avatar_url;
                     const altText = showCompanyBrand ? (user.company_name || user.full_name || 'Doanh nghiệp') : (user.full_name || 'Người dùng');
                     const placeholderChar = (showCompanyBrand ? (user.company_name || '') : (user.full_name || ''))?.charAt(0)?.toUpperCase();
@@ -226,7 +224,8 @@ const SearchUsers = () => {
                   <div className="flex-1">
                     {(() => {
                       const isCompany = user.account_type === 'company';
-                      const showCompanyBrand = currentUser?.account_type === 'candidate' && isCompany;
+                      // Always show company branding (logo/name) for company accounts
+                      const showCompanyBrand = isCompany;
                       return (
                         <>
                           <h3

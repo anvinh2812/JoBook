@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postsAPI, cvsAPI, companiesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import EndDatePicker from '../components/EndDatePicker';
 
 const CreatePost = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const CreatePost = () => {
     description: '',
     post_type: '',
     attached_cv_id: '',
+    end_at: '',
   });
   const [cvs, setCvs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,27 @@ const CreatePost = () => {
         setError('Vui lòng chọn CV để đính kèm');
         setLoading(false);
         return;
+      }
+
+      // Validate end date for company recruitment posts
+      if (formData.post_type === 'find_candidate') {
+        if (!formData.end_at) {
+          setError('Vui lòng chọn ngày kết thúc');
+          setLoading(false);
+          return;
+        }
+        const endDate = new Date(formData.end_at);
+        const now = new Date();
+        if (isNaN(endDate.getTime())) {
+          setError('Thời gian không hợp lệ');
+          setLoading(false);
+          return;
+        }
+        if (endDate <= now) {
+          setError('Ngày kết thúc phải sau thời điểm hiện tại');
+          setLoading(false);
+          return;
+        }
       }
 
       const postData = {
@@ -168,6 +191,25 @@ const CreatePost = () => {
               required
             />
           </div>
+
+          {/* End date for company posts */}
+          {isCompany && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Thời gian kết thúc tuyển
+              </label>
+              <div className="mt-2">
+                <EndDatePicker
+                  value={formData.end_at?.slice(0, 10) || ''}
+                  onChange={(d) => setFormData((prev) => ({ ...prev, end_at: d ? `${d}T23:59:59` : '' }))}
+                  onApply={() => { }}
+                  onClear={() => setFormData((prev) => ({ ...prev, end_at: '' }))}
+                  invalid={false}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Ngày bắt đầu được tính từ thời điểm bạn bấm đăng.</p>
+            </div>
+          )}
 
           {/* CV Selection for job seekers */}
           {formData.post_type === 'find_job' && (
