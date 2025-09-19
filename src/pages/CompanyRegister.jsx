@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { companiesAPI } from '../services/api';
 
@@ -7,6 +7,7 @@ const CompanyRegister = () => {
     const [form, setForm] = useState({
         name: '',
         legal_name: '',
+        tax_code: '',
         address: '',
         contact_phone: '',
         logo_url: '',
@@ -17,7 +18,14 @@ const CompanyRegister = () => {
     const [success, setSuccess] = useState('');
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState('');
+    const fileInputRef = useRef(null);
     const [successDialog, setSuccessDialog] = useState({ open: false, message: '' });
+
+    // Ensure tax_code is only digits and max 10
+    const onTaxCodeChange = (e) => {
+        const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 10);
+        setForm((prev) => ({ ...prev, tax_code: digits }));
+    };
 
     const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -27,8 +35,12 @@ const CompanyRegister = () => {
         setSuccess('');
 
         // Basic validation
-        if (!form.name || !form.address || !form.email) {
-            setError('Vui lòng nhập đủ: Tên công ty, Địa chỉ, Email');
+        if (!form.name || !form.address || !form.email || !form.tax_code) {
+            setError('Vui lòng nhập đủ: Tên công ty, Địa chỉ, Email, Mã số thuế');
+            return;
+        }
+        if (!/^[0-9]{10}$/.test(String(form.tax_code))) {
+            setError('Mã số thuế phải gồm đúng 10 chữ số');
             return;
         }
         setLoading(true);
@@ -46,6 +58,7 @@ const CompanyRegister = () => {
             await companiesAPI.create({
                 name: form.name,
                 legal_name: form.legal_name || null,
+                tax_code: form.tax_code,
                 address: form.address,
                 contact_phone: form.contact_phone || null,
                 logo_url: logo_url || null,
@@ -99,45 +112,88 @@ const CompanyRegister = () => {
                     )}
 
                     <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="md:col-span-2">
+                        {/* Hàng 1: Tên công ty & Tên pháp lý */}
+                        <div className="md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Tên công ty</label>
                             <input name="name" value={form.name} onChange={onChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: Công ty ABC" />
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Tên pháp lý (tuỳ chọn)</label>
                             <input name="legal_name" value={form.legal_name} onChange={onChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: CÔNG TY TNHH ABC" />
                         </div>
-                        <div className="md:col-span-2">
+
+                        {/* Hàng 2: Email & Số điện thoại */}
+                        <div className="md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Email liên hệ</label>
                             <input name="email" type="email" value={form.email} onChange={onChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: contact@congty.vn" />
                         </div>
-                        {/* Tax code is no longer input at registration; it will be generated upon admin approval */}
-                        <div>
+                        <div className="md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại (tuỳ chọn)</label>
                             <input name="contact_phone" value={form.contact_phone} onChange={onChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: 0901234567" />
                         </div>
+
+                        {/* MST: Full width */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Mã số thuế (10 số)</label>
+                            <input
+                                name="tax_code"
+                                value={form.tax_code}
+                                onChange={onTaxCodeChange}
+                                required
+                                pattern="^[0-9]{10}$"
+                                inputMode="numeric"
+                                maxLength={10}
+                                autoComplete="off"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="VD: 0312345678"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Nhập đúng 10 chữ số. Trùng với MST đã đăng ký của doanh nghiệp.</p>
+                        </div>
+
+                        {/* Địa chỉ: Full width */}
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
                             <input name="address" value={form.address} onChange={onChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM" />
                         </div>
+
+                        {/* Logo: ô tải ảnh có icon trang trí */}
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Logo công ty (tuỳ chọn)</label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="file"
-                                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                                    onChange={(e) => {
-                                        const f = e.target.files?.[0];
-                                        setLogoFile(f || null);
-                                        setLogoPreview(f ? URL.createObjectURL(f) : '');
-                                    }}
-                                    className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
-                                />
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:bg-gray-50">
+                                        <div className="flex items-center gap-4">
+                                            <div className="shrink-0 h-12 w-12 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+                                                {/* Icon máy ảnh */}
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-blue-600">
+                                                    <path d="M9 2a1 1 0 0 0-.894.553L7.382 4H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3h-2.382l-.724-1.447A1 1 0 0 0 14 2H9Zm3 6a5 5 0 1 1-5 5 5.006 5.006 0 0 1 5-5Zm0 2a3 3 0 1 0 3 3 3.004 3.004 0 0 0-3-3Z" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-gray-700">
+                                                    Kéo thả ảnh vào đây hoặc
+                                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="ml-1 text-blue-600 hover:underline">chọn ảnh</button>
+                                                </p>
+                                                <p className="text-xs text-gray-500">Hỗ trợ PNG, JPG, JPEG, WEBP. Tối đa 3MB.</p>
+                                            </div>
+                                        </div>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            onChange={(e) => {
+                                                const f = e.target.files?.[0];
+                                                setLogoFile(f || null);
+                                                setLogoPreview(f ? URL.createObjectURL(f) : '');
+                                            }}
+                                            className="hidden"
+                                        />
+                                    </div>
+                                </div>
                                 {logoPreview && (
-                                    <img src={logoPreview} alt="logo preview" className="h-12 w-12 object-cover rounded border" />
+                                    <img src={logoPreview} alt="logo preview" className="h-16 w-16 object-cover rounded-lg border" />
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500 mt-2">Hỗ trợ PNG, JPG, JPEG, WEBP. Tối đa 3MB.</p>
                         </div>
 
                         <div className="md:col-span-2">

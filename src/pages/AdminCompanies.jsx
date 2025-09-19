@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import emailjs from '@emailjs/browser';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { companiesAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +54,68 @@ const AdminCompanies = () => {
 
     const openReviewDialog = (company, status) => {
         setReviewDialog({ open: true, company, status, note: '', submitting: false, error: '' });
+    };
+
+    // EmailJS configuration (Vite env variables)
+    const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const EMAILJS_TEMPLATE_ACCEPTED_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ACCEPTED_ID;
+    const EMAILJS_TEMPLATE_REJECTED_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_REJECTED_ID;
+    const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    // Helper to send email via EmailJS; non-blocking for UI
+    const sendCompanyReviewEmail = async (company, status, note) => {
+        const templateId = status === 'accepted' ? EMAILJS_TEMPLATE_ACCEPTED_ID : EMAILJS_TEMPLATE_REJECTED_ID;
+        if (!EMAILJS_SERVICE_ID || !templateId || !EMAILJS_PUBLIC_KEY) {
+            console.warn('EmailJS env variables missing. Skipping email send.');
+            return;
+        }
+        if (!company?.email) {
+            console.warn('Company email missing. Skipping email send.');
+            return;
+        }
+        const params = {
+            to_email: company.email,
+            company_name: company.name,
+            company_code: company.code,
+            // Provide both keys in case template uses one or the other
+            company_tax_code: company.tax_code,
+            tax_code: company.tax_code,
+            review_status: status,
+            review_note: note || '',
+        };
+        try {
+            await emailjs.send(EMAILJS_SERVICE_ID, templateId, params, { publicKey: EMAILJS_PUBLIC_KEY });
+            toast.success(status === 'accepted' ? 'Đã gửi email chấp nhận' : 'Đã gửi email từ chối');
+        } catch (err) {
+            console.error('EmailJS send failed', err);
+            const msg = typeof err?.text === 'string' && err.text.toLowerCase().includes('recipients address is empty')
+                ? 'Thiếu người nhận trong EmailJS. Mở template và đặt "To email" = {{to_email}} hoặc cấu hình email mặc định.'
+                : 'Gửi email thất bại';
+            toast.error(msg);
+        }
+    };
+
+    // Small helper to wait
+    const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+    // After review, poll for fields that may be generated asynchronously (code, tax_code, email)
+    const waitForCompanyFieldsAndSend = async (baseCompany, status, note) => {
+        const id = baseCompany?.id;
+        if (!id) return;
+        const maxAttempts = 6; // ~3s total with 500ms interval
+        let latest = baseCompany;
+        for (let i = 0; i < maxAttempts; i++) {
+            try {
+                const { data } = await companiesAPI.getById(id);
+                latest = data.company || latest;
+            } catch {
+                // ignore fetch errors and retry
+            }
+            if (latest?.email && latest?.code && latest?.tax_code) break;
+            await sleep(500);
+        }
+        // Send with the best data we have
+        await sendCompanyReviewEmail(latest, status, note);
     };
 
     const startEdit = (company) => {
@@ -165,7 +229,10 @@ const AdminCompanies = () => {
         if (!reviewDialog.company || !reviewDialog.status) return;
         try {
             setReviewDialog((d) => ({ ...d, submitting: true }));
-            await review(reviewDialog.company.id, reviewDialog.status, reviewDialog.note);
+            const updated = await review(reviewDialog.company.id, reviewDialog.status, reviewDialog.note);
+            // Fire-and-forget: wait briefly for generated fields, then send email
+            waitForCompanyFieldsAndSend(updated || reviewDialog.company, reviewDialog.status, reviewDialog.note)
+                .catch((e) => console.warn('Email notification failed later:', e));
             // Also close the details modal so no popup remains
             cancelEdit();
             setSelected(null);
@@ -187,6 +254,8 @@ const AdminCompanies = () => {
     const acceptedList = sortByDateDesc(items.filter((c) => c.status === 'accepted'), 'reviewed_at');
     const rejectedList = sortByDateDesc(items.filter((c) => c.status === 'rejected'), 'reviewed_at');
     const currentList = tab === 'pending' ? pendingList : tab === 'accepted' ? acceptedList : rejectedList;
+
+
 
     return (
         <div>

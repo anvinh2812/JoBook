@@ -14,14 +14,17 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
     });
   };
 
-  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && new Date(post.created_at) < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000));
+  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && post.start_at && post.end_at ? (new Date() < new Date(post.start_at) || new Date() > new Date(post.end_at)) : false);
 
   const daysLeft = (() => {
     if (post.post_type !== 'find_candidate') return null;
-    const created = new Date(post.created_at).getTime();
-    const deadline = created + 10 * 24 * 60 * 60 * 1000;
-    const msLeft = deadline - Date.now();
-    if (msLeft <= 0) return 0;
+    if (!post.start_at || !post.end_at) return null;
+    const now = Date.now();
+    const start = new Date(post.start_at).getTime();
+    const end = new Date(post.end_at).getTime();
+    if (now < start) return null; // chưa bắt đầu => không hiển thị "Còn X ngày"
+    if (now >= end) return 0; // hết hạn
+    const msLeft = end - now;
     return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
   })();
 
