@@ -1,4 +1,7 @@
 import React from 'react';
+import SmartInput from "./SmartInput";
+import SmartText from "./SmartText";
+
 
 const Section = ({ title, children }) => (
     <section className="mb-6">
@@ -15,23 +18,54 @@ const Box = ({ children }) => (
 
 
 const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, templateStyle, isExporting, onAvatarChange }) => {
+    console.log('[CVPreview] isExporting:', isExporting);
+    console.log('[CVPreview] data:', data);
+
     // ATS-friendly: 1 cột, tối giản, không icon/màu đậm, font hệ thống
     if (templateStyle === 'ats') {
         return (
             <div className="bg-white w-full max-w-[820px] mx-auto p-8 border border-gray-300" style={{ fontFamily: 'Arial, Calibri, Helvetica, sans-serif', fontSize: '14px', color: '#111' }}>
                 <div className="mb-4">
+                    {/* Họ và tên */}
                     <div className="text-2xl font-bold tracking-tight">
-                        {isExporting ? (data.fullName || 'Họ và tên') : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-2xl" />
+                        {isExporting ? (
+                            <span>{data.fullName || "Họ và tên"}</span>
+                        ) : (
+                            <SmartInput
+                                type="text"
+                                name="fullName"
+                                value={data.fullName || ""}
+                                onChange={onChange}
+                                placeholder="Họ và tên"
+                                className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-2xl"
+                            />
                         )}
                     </div>
+
+                    {/* Email & Số điện thoại */}
                     <div className="text-sm text-gray-700 mt-1">
                         {isExporting ? (
-                            <span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>
+                            <span>
+                                {data.email || "Email"} • {data.phone || "Số điện thoại"}
+                            </span>
                         ) : (
                             <div className="flex gap-4 items-center">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
+                                <SmartInput
+                                    type="email"
+                                    name="email"
+                                    value={data.email || ""}
+                                    onChange={onChange}
+                                    placeholder="Email"
+                                    className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700"
+                                />
+                                <SmartInput
+                                    type="text"
+                                    name="phone"
+                                    value={data.phone || ""}
+                                    onChange={onChange}
+                                    placeholder="Số điện thoại"
+                                    className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700"
+                                />
                             </div>
                         )}
                     </div>
@@ -41,7 +75,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {isExporting ? (
                         <div className="whitespace-pre-line text-[13.5px]">{data.summary}</div>
                     ) : (
-                        <textarea name="summary" value={data.summary} onChange={onChange} rows={4} placeholder="Tóm tắt hồ sơ phù hợp ATS (không dùng icon/ký tự đặc biệt)" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none text-[13.5px]" />
+                        <textarea
+                            name="summary"
+                            value={data.summary}
+                            onChange={onChange}
+                            rows={4}
+                            placeholder="Tóm tắt hồ sơ phù hợp ATS (không dùng icon/ký tự đặc biệt)"
+                            className="w-full border-b border-gray-400 focus:border-gray-700 outline-none text-[13.5px]"
+                        />
                     )}
                 </Section>
                 <Section title="Kinh nghiệm làm việc">
@@ -50,32 +91,105 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (
                                     <>
-                                        <span className="w-1/3 inline-block text-gray-700">{exp.time}</span>
-                                        <span className="w-2/3 inline-block text-right">{exp.company}</span>
+                                        <span className="w-1/3 inline-block text-gray-700">
+                                            {exp.time || "03/2022 - 02/2025"}
+                                        </span>
+                                        <span className="w-2/3 inline-block text-right">
+                                            {exp.company || "Tên công ty"}
+                                        </span>
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="03/2022 - 02/2025"
+                                            value={exp.time || ""}
+                                            onChange={(e) =>
+                                                onListChange("experienceList", idx, "time", e.target.value)
+                                            }
+                                            className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="Tên công ty..."
+                                            value={exp.company || ""}
+                                            onChange={(e) =>
+                                                onListChange("experienceList", idx, "company", e.target.value)
+                                            }
+                                            className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
                                     </>
                                 )}
                             </div>
+
                             {isExporting ? (
                                 <>
-                                    <div className="font-bold">{exp.position}</div>
-                                    <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul>
+                                    <div className="font-bold">{exp.position || "Vị trí"}</div>
+                                    <ul className="list-disc ml-5 mt-1">
+                                        {(exp.details || "")
+                                            .split("\n")
+                                            .filter((l) => l.trim() !== "")
+                                            .map((l, i) => (
+                                                <li key={i}>{l}</li>
+                                            ))}
+                                    </ul>
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
-                                    <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (
-                                        <li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" /></li>
-                                    ))}
-                                        <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
+                                    <SmartInput
+                                        type="text"
+                                        placeholder="Vị trí"
+                                        value={exp.position || ""}
+                                        onChange={(e) =>
+                                            onListChange("experienceList", idx, "position", e.target.value)
+                                        }
+                                        className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1"
+                                    />
+
+                                    <ul className="list-disc ml-5 mt-1">
+                                        {(exp.details || "").split("\n").map((line, i) => (
+                                            <li key={i}>
+                                                <SmartInput
+                                                    type="textarea"
+                                                    value={line || ""}
+                                                    onChange={(e) => {
+                                                        const lines = (exp.details || "").split("\n");
+                                                        lines[i] = e.target.value;
+                                                        onListChange("experienceList", idx, "details", lines.join("\n"));
+                                                    }}
+                                                    className="w-full outline-none border-b border-gray-400 focus:border-gray-700"
+                                                />
+                                            </li>
+                                        ))}
+                                        <li>
+                                            <button
+                                                type="button"
+                                                className="text-xs text-gray-800 underline"
+                                                onClick={() =>
+                                                    onListChange(
+                                                        "experienceList",
+                                                        idx,
+                                                        "details",
+                                                        (exp.details ? exp.details + "\n" : "\n")
+                                                    )
+                                                }
+                                            >
+                                                + Thêm dòng
+                                            </button>
+                                        </li>
                                     </ul>
                                 </>
                             )}
-                            {data.experienceList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('experienceList', idx)}>Xóa</button>}
+
+                            {data.experienceList.length > 1 && !isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 underline mt-1"
+                                    onClick={() => onRemoveList("experienceList", idx)}
+                                >
+                                    Xóa
+                                </button>
+                            )}
                         </div>
                     ))}
                     {!isExporting && <button type="button" className="text-xs text-gray-800 underline" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>}
@@ -86,28 +200,84 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (
                                     <>
-                                        <span className="w-1/3 inline-block text-gray-700">{edu.time}</span>
-                                        <span className="w-2/3 inline-block text-right">{edu.school}</span>
+                                        <span className="w-1/3 inline-block text-gray-700">
+                                            {edu.time || "2016 - 2020"}
+                                        </span>
+                                        <span className="w-2/3 inline-block text-right">
+                                            {edu.school || "Tên trường"}
+                                        </span>
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="2016 - 2020"
+                                            value={edu.time || ""}
+                                            onChange={(e) =>
+                                                onListChange("educationList", idx, "time", e.target.value)
+                                            }
+                                            className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="Tên trường..."
+                                            value={edu.school || ""}
+                                            onChange={(e) =>
+                                                onListChange("educationList", idx, "school", e.target.value)
+                                            }
+                                            className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
                                     </>
                                 )}
                             </div>
+
                             {isExporting ? (
                                 <>
-                                    <div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div>
+                                    <div>{edu.major || "Chuyên ngành"}</div>
+                                    <div>{edu.result || "Kết quả/Thành tích"}</div>
+                                    <div>{edu.note || "Ghi chú"}</div>
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
-                                    <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
-                                    <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
+                                    <SmartInput
+                                        type="text"
+                                        placeholder="Chuyên ngành"
+                                        value={edu.major || ""}
+                                        onChange={(e) =>
+                                            onListChange("educationList", idx, "major", e.target.value)
+                                        }
+                                        className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1"
+                                    />
+                                    <SmartInput
+                                        type="text"
+                                        placeholder="Kết quả/Thành tích"
+                                        value={edu.result || ""}
+                                        onChange={(e) =>
+                                            onListChange("educationList", idx, "result", e.target.value)
+                                        }
+                                        className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1"
+                                    />
+                                    <SmartInput
+                                        type="textarea"
+                                        placeholder="Ghi chú"
+                                        value={edu.note || ""}
+                                        onChange={(e) =>
+                                            onListChange("educationList", idx, "note", e.target.value)
+                                        }
+                                        className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1"
+                                    />
                                 </>
                             )}
-                            {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
+
+                            {data.educationList.length > 1 && !isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 underline mt-1"
+                                    onClick={() => onRemoveList("educationList", idx)}
+                                >
+                                    Xóa
+                                </button>
+                            )}
                         </div>
                     ))}
                     {!isExporting && <button type="button" className="text-xs text-gray-800 underline" onClick={() => onAddList('educationList', { time: '', school: '', major: '', result: '', note: '' })}>+ Thêm học vấn</button>}
@@ -118,32 +288,99 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (
                                     <>
-                                        <span className="w-1/3 inline-block text-gray-700">{act.time}</span>
-                                        <span className="w-2/3 inline-block text-right">{act.org}</span>
+                                        <span className="w-1/3 inline-block text-gray-700">
+                                            {act.time || "08/2016 - 08/2018"}
+                                        </span>
+                                        <span className="w-2/3 inline-block text-right">
+                                            {act.org || "Tên tổ chức"}
+                                        </span>
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="08/2016 - 08/2018"
+                                            value={act.time || ""}
+                                            onChange={(e) =>
+                                                onListChange("activityList", idx, "time", e.target.value)
+                                            }
+                                            className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
+                                        <SmartInput
+                                            type="text"
+                                            placeholder="Tên tổ chức..."
+                                            value={act.org || ""}
+                                            onChange={(e) =>
+                                                onListChange("activityList", idx, "org", e.target.value)
+                                            }
+                                            className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700"
+                                        />
                                     </>
                                 )}
                             </div>
                             {isExporting ? (
                                 <>
-                                    <div className="font-bold">{act.role}</div>
-                                    <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul>
+                                    <div className="font-bold">{act.role || "Vai trò"}</div>
+                                    <ul className="list-disc ml-5 mt-1">
+                                        {(act.details || "").split("\n").map((l, i) => (
+                                            <li key={i}>{l}</li>
+                                        ))}
+                                    </ul>
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
-                                    <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (
-                                        <li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" /></li>
-                                    ))}
-                                        <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
+                                    <SmartInput
+                                        type="text"
+                                        placeholder="Vai trò"
+                                        value={act.role || ""}
+                                        onChange={(e) =>
+                                            onListChange("activityList", idx, "role", e.target.value)
+                                        }
+                                        className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1"
+                                    />
+                                    <ul className="list-disc ml-5 mt-1">
+                                        {(act.details || "").split("\n").map((line, i) => (
+                                            <li key={i}>
+                                                <SmartInput
+                                                    type="textarea"
+                                                    value={line || ""}
+                                                    onChange={(e) => {
+                                                        const lines = (act.details || "").split("\n");
+                                                        lines[i] = e.target.value;
+                                                        onListChange("activityList", idx, "details", lines.join("\n"));
+                                                    }}
+                                                    className="w-full outline-none border-b border-gray-400 focus:border-gray-700"
+                                                />
+                                            </li>
+                                        ))}
+                                        <li>
+                                            <button
+                                                type="button"
+                                                className="text-xs text-gray-800 underline"
+                                                onClick={() =>
+                                                    onListChange(
+                                                        "activityList",
+                                                        idx,
+                                                        "details",
+                                                        act.details ? act.details + "\n" : "\n"
+                                                    )
+                                                }
+                                            >
+                                                + Thêm dòng
+                                            </button>
+                                        </li>
                                     </ul>
                                 </>
                             )}
-                            {data.activityList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('activityList', idx)}>Xóa</button>}
+                            {data.activityList.length > 1 && !isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 underline mt-1"
+                                    onClick={() => onRemoveList("activityList", idx)}
+                                >
+                                    Xóa
+                                </button>
+                            )}
                         </div>
                     ))}
                     {!isExporting && <button type="button" className="text-xs text-gray-800 underline" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>}
@@ -190,7 +427,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute left-4 bottom-2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) onAvatarChange?.(file);
+                            }}
+                        />
                     </label>
                 )}
             </div>
@@ -219,7 +464,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {isExporting ? (
                     <div className="flex-1 border border-rose-300 border-dashed rounded px-3 py-1 italic break-all">{value || placeholder}</div>
                 ) : (
-                    <input type={type} name={name} value={value} onChange={safeChange} placeholder={placeholder} className="flex-1 bg-transparent outline-none border border-rose-300 border-dashed focus:border-rose-500 rounded px-3 py-1 italic" />
+                    <SmartInput
+                        type={type}
+                        name={name}
+                        value={value || ""}
+                        onChange={safeChange}
+                        placeholder={placeholder}
+                        className="flex-1 bg-transparent outline-none border border-rose-300 border-dashed focus:border-rose-500 rounded px-3 py-1 italic"
+                    />
                 )}
             </div>
         );
@@ -232,14 +484,32 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div className="flex items-baseline justify-between gap-4">
                             <div className="border border-rose-400 border-dashed rounded px-3 py-1">
                                 {isExporting ? (
-                                    <div className="italic text-2xl font-semibold text-rose-400">{data.fullName || 'Họ Tên'}</div>
+                                    <div className="italic text-2xl font-semibold text-rose-400">
+                                        {data.fullName || "Họ Tên"}
+                                    </div>
                                 ) : (
-                                    <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="bg-transparent outline-none italic text-2xl font-semibold text-rose-500" />
+                                    <SmartInput
+                                        type="text"
+                                        name="fullName"
+                                        value={data.fullName || ""}
+                                        onChange={safeChange}
+                                        placeholder="Họ Tên"
+                                        className="bg-transparent outline-none italic text-2xl font-semibold text-rose-500"
+                                    />
                                 )}
                             </div>
                             <div className="italic text-gray-500">
-                                {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
-                                    <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="bg-transparent outline-none italic" />
+                                {isExporting ? (
+                                    data.appliedPosition || "Vị trí ứng tuyển"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        name="appliedPosition"
+                                        value={data.appliedPosition || ""}
+                                        onChange={safeChange}
+                                        placeholder="Vị trí ứng tuyển"
+                                        className="bg-transparent outline-none italic"
+                                    />
                                 )}
                             </div>
                         </div>
@@ -261,9 +531,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <SectionTitle>Mục tiêu nghề nghiệp</SectionTitle>
                 <div className="text-sm text-gray-700 mt-2">
                     {isExporting ? (
-                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                        <div className="whitespace-pre-wrap break-words">
+                            {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                        </div>
                     ) : (
-                        <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                        <textarea
+                            name="summary"
+                            value={data.summary || ""}
+                            onChange={safeChange}
+                            placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                            className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 break-words resize-none"
+                            rows={3}
+                        />
                     )}
                 </div>
 
@@ -272,18 +551,58 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {(data.educationList || []).map((edu, idx) => (
                         <LabeledTwoCol
                             key={idx}
-                            leftTop={isExporting ? (edu.major || 'Ngành học / Môn học') : (
-                                <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
-                            )}
-                            leftBottom={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
-                                <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
-                            )}
-                            rightTop={isExporting ? (edu.school || 'Tên trường học') : (
-                                <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
-                            )}
-                            rightBottom={isExporting ? (edu.result || edu.note || 'Mô tả quá trình học tập hoặc thành tích của bạn') : (
-                                <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
-                            )}
+                            leftTop={
+                                isExporting ? (
+                                    edu.major || "Ngành học / Môn học"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={edu.major || ""}
+                                        onChange={listChange("educationList", idx, "major")}
+                                        placeholder="Ngành học / Môn học"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400"
+                                    />
+                                )
+                            }
+                            leftBottom={
+                                isExporting ? (
+                                    edu.time || "Bắt đầu  -  Kết thúc"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={edu.time || ""}
+                                        onChange={listChange("educationList", idx, "time")}
+                                        placeholder="Bắt đầu  -  Kết thúc"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700"
+                                    />
+                                )
+                            }
+                            rightTop={
+                                isExporting ? (
+                                    edu.school || "Tên trường học"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={edu.school || ""}
+                                        onChange={listChange("educationList", idx, "school")}
+                                        placeholder="Tên trường học"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium"
+                                    />
+                                )
+                            }
+                            rightBottom={
+                                isExporting ? (
+                                    edu.result || edu.note || "Mô tả quá trình học tập hoặc thành tích của bạn"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={edu.result || ""}
+                                        onChange={listChange("educationList", idx, "result")}
+                                        placeholder="Mô tả quá trình học tập hoặc thành tích của bạn"
+                                        className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600"
+                                    />
+                                )
+                            }
                         />
                     ))}
                     {!isExporting && (
@@ -296,18 +615,58 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {(data.experienceList || []).map((exp, idx) => (
                         <LabeledTwoCol
                             key={idx}
-                            leftTop={isExporting ? (exp.position || 'Vị trí công việc') : (
-                                <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
-                            )}
-                            leftBottom={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
-                            )}
-                            rightTop={isExporting ? (exp.company || 'Tên công ty') : (
-                                <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
-                            )}
-                            rightBottom={isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
-                            )}
+                            leftTop={
+                                isExporting ? (
+                                    exp.position || "Vị trí công việc"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={exp.position || ""}
+                                        onChange={listChange("experienceList", idx, "position")}
+                                        placeholder="Vị trí công việc"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400"
+                                    />
+                                )
+                            }
+                            leftBottom={
+                                isExporting ? (
+                                    exp.time || "Bắt đầu  -  Kết thúc"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={exp.time || ""}
+                                        onChange={listChange("experienceList", idx, "time")}
+                                        placeholder="Bắt đầu  -  Kết thúc"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700"
+                                    />
+                                )
+                            }
+                            rightTop={
+                                isExporting ? (
+                                    exp.company || "Tên công ty"
+                                ) : (
+                                    <SmartInput
+                                        type="text"
+                                        value={exp.company || ""}
+                                        onChange={listChange("experienceList", idx, "company")}
+                                        placeholder="Tên công ty"
+                                        className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium"
+                                    />
+                                )
+                            }
+                            rightBottom={
+                                isExporting ? (
+                                    exp.details || "Mô tả kinh nghiệm làm việc của bạn"
+                                ) : (
+                                    <SmartInput
+                                        type="textarea"
+                                        value={exp.details || ""}
+                                        onChange={listChange("experienceList", idx, "details")}
+                                        placeholder="Mô tả kinh nghiệm làm việc của bạn"
+                                        className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600"
+                                    />
+                                )
+                            }
                         />
                     ))}
                     {!isExporting && (
@@ -321,16 +680,16 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <LabeledTwoCol
                             key={idx}
                             leftTop={isExporting ? (act.role || 'Vị trí của bạn') : (
-                                <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
+                                <SmartInput value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-rose-400" />
                             )}
                             leftBottom={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                <SmartInput value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
                             )}
                             rightTop={isExporting ? (act.org || 'Tên tổ chức') : (
-                                <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                                <SmartInput value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
                             )}
                             rightBottom={isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <SmartInput value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                             )}
                         />
                     ))}
@@ -349,7 +708,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     {isExporting ? (
                                         <div className="text-sm text-gray-800">{s.name || 'Tên kỹ năng'}</div>
                                     ) : (
-                                        <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                        <SmartInput value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                     )}
                                     <div className="mt-1 h-2 bg-gray-200 rounded" />
                                 </div>
@@ -367,11 +726,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     {isExporting ? (
                                         <div className="font-medium text-gray-800">{c.name || 'Tên chứng chỉ'}</div>
                                     ) : (
-                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
+                                        <SmartInput value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-medium" />
                                     )}
                                     <div className="text-gray-600 italic mt-0.5">
                                         {isExporting ? (c.time || 'Thời gian') : (
-                                            <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                            <SmartInput value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                         )}
                                     </div>
                                 </div>
@@ -410,7 +769,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {!isExporting && (
                             <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                                 Sửa ảnh
-                                <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                                <SmartInput type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
                             </label>
                         )}
                     </div>
@@ -418,12 +777,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     <div className="min-w-0">
                         <div className="italic text-2xl font-semibold">
                             {isExporting ? (data.fullName || 'Họ Tên') : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-2xl font-semibold" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-2xl font-semibold" />
                             )}
                         </div>
                         <div className="italic text-white/80">
                             {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
-                                <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/20 focus:border-white italic" />
+                                <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/20 focus:border-white italic" />
                             )}
                         </div>
                         <div className="mt-2 text-sm flex flex-wrap gap-x-3 gap-y-1 items-center text-white/90">
@@ -441,15 +800,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <SmartInput type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
                                     <span className="opacity-70">•</span>
-                                    <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <SmartInput type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
                                     <span className="opacity-70">•</span>
-                                    <input type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <SmartInput type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
                                     <span className="opacity-70">•</span>
-                                    <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
+                                    <SmartInput type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-white/20 focus:border-white" />
                                     <span className="opacity-70">•</span>
-                                    <input type="text" name="dob" value={data.dob} onChange={safeChange} placeholder="DD/MM/YY" className="bg-transparent outline-none border-b border-white/20 focus:border-white w-20" />
+                                    <SmartInput type="text" name="dob" value={data.dob} onChange={safeChange} placeholder="DD/MM/YY" className="bg-transparent outline-none border-b border-white/20 focus:border-white w-20" />
                                 </>
                             )}
                         </div>
@@ -485,9 +844,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
 
                     <SectionRail icon="📝" title="Mục tiêu nghề nghiệp">
                         {isExporting ? (
-                            <div className="text-gray-700 italic">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                            <div className="text-gray-700 italic whitespace-pre-wrap break-words">
+                                {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                            </div>
                         ) : (
-                            <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                            <textarea
+                                name="summary"
+                                value={data.summary}
+                                onChange={safeChange}
+                                placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                                className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic whitespace-pre-wrap break-words resize-none"
+                                rows={3}
+                            />
                         )}
                         <div className="mt-2 border-t border-gray-300" />
                     </SectionRail>
@@ -498,20 +866,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="pb-2 border-b border-gray-200">
                                     <Row
                                         left={isExporting ? (edu.school || 'Tên trường học') : (
-                                            <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                            <SmartInput value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                         )}
                                         right={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
-                                            <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                            <SmartInput value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                         )}
                                     />
                                     <div className="mt-1 text-gray-700 italic">
                                         {isExporting ? (edu.major || 'Ngành học / Môn học') : (
-                                            <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                            <SmartInput value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
                                         )}
                                     </div>
                                     <div className="mt-1 text-gray-500">
                                         {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học hoặc thành tích của bạn') : (
-                                            <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                            <SmartInput value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                         )}
                                     </div>
                                 </div>
@@ -528,20 +896,30 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="pb-2 border-b border-gray-200">
                                     <Row
                                         left={isExporting ? (exp.company || 'Tên công ty') : (
-                                            <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                            <SmartInput value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                         )}
                                         right={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                            <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                            <SmartInput value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                         )}
                                     />
                                     <div className="mt-1 text-gray-700 italic">
                                         {isExporting ? (exp.position || 'Vị trí công việc') : (
-                                            <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                            <SmartInput value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
                                         )}
                                     </div>
-                                    <div className="mt-1 text-gray-500">
-                                        {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                            <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                    <div className="mt-1 text-gray-500 text-sm">
+                                        {isExporting ? (
+                                            <div className="whitespace-pre-wrap break-words">
+                                                {exp.details || 'Mô tả kinh nghiệm làm việc của bạn'}
+                                            </div>
+                                        ) : (
+                                            <SmartInput
+                                                type="textarea"
+                                                value={exp.details || ''}
+                                                onChange={listChange('experienceList', idx, 'details')}
+                                                placeholder="Mô tả kinh nghiệm làm việc của bạn"
+                                                className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500 whitespace-pre-wrap break-words text-sm"
+                                            />
                                         )}
                                     </div>
                                 </div>
@@ -557,7 +935,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {(data.skillsList || []).map((s, idx) => (
                                 <div key={idx} className="pb-2 border-b border-gray-200">
                                     {isExporting ? (s.name || 'Tên kỹ năng') : (
-                                        <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        <SmartInput value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                     )}
                                 </div>
                             ))}
@@ -573,20 +951,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="pb-2 border-b border-gray-200">
                                     <Row
                                         left={isExporting ? (act.org || 'Tên tổ chức') : (
-                                            <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                            <SmartInput value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                         )}
                                         right={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                            <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                            <SmartInput value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                         )}
                                     />
                                     <div className="mt-1 text-gray-700 italic">
                                         {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                            <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                                            <SmartInput value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
                                         )}
                                     </div>
                                     <div className="mt-1 text-gray-500">
                                         {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                            <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                            <SmartInput value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                         )}
                                     </div>
                                 </div>
@@ -603,10 +981,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="pb-2 border-b border-gray-200">
                                     <Row
                                         left={isExporting ? (a.title || 'Tên giải thưởng') : (
-                                            <input value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                            <SmartInput value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                         )}
                                         right={isExporting ? (a.time || 'Thời gian') : (
-                                            <input value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                            <SmartInput value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                         )}
                                     />
                                 </div>
@@ -646,7 +1024,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {!isExporting && (
                         <label className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                             Sửa ảnh
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                            <SmartInput type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
                         </label>
                     )}
                 </div>
@@ -656,14 +1034,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {isExporting ? (
                             <div className="italic text-[22px] font-semibold text-gray-800">{data.fullName || 'Họ Tên'}</div>
                         ) : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none italic text-[22px] font-semibold" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full bg-transparent outline-none italic text-[22px] font-semibold" />
                         )}
                     </div>
                     <div className="mt-2 border border-red-300 border-dashed rounded px-3 py-1">
                         {isExporting ? (
                             <div className="italic text-gray-600">{data.appliedPosition || 'Vị trí ứng tuyển'}</div>
                         ) : (
-                            <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none italic text-gray-700" />
+                            <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none italic text-gray-700" />
                         )}
                     </div>
                 </div>
@@ -677,9 +1055,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         </>
                     ) : (
                         <>
-                            <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
-                            <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
-                            <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="789 456 0123" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                            <SmartInput type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                            <SmartInput type="email" name="email" value={data.email} onChange={safeChange} placeholder="tencuaban@example.com" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
+                            <SmartInput type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="789 456 0123" className="bg-transparent outline-none border border-red-300 border-dashed focus:border-red-500 rounded px-3 py-1 italic" />
                         </>
                     )}
                 </div>
@@ -704,13 +1082,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     <Title icon="🧭">Mục tiêu nghề nghiệp</Title>
                     <div className="mt-2 text-sm text-gray-700">
                         {isExporting ? (
-                            <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                            <div className="whitespace-pre-wrap break-words">
+                                {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                            </div>
                         ) : (
-                            <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            <SmartInput
+                                type="textarea"
+                                name="summary"
+                                value={data.summary}
+                                onChange={safeChange}
+                                placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                                className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 whitespace-pre-wrap break-words resize-none"
+                                rows={3}
+                            />
                         )}
                     </div>
                 </div>
-
                 <div>
                     <Title icon="🛠️">Kỹ năng</Title>
                     <div className="mt-2 space-y-2">
@@ -719,13 +1106,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="text-sm text-gray-800">{s.name || 'Tên kỹ năng'}</div>
                                 ) : (
-                                    <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                                 <div className="mt-1 h-2 bg-gray-200 rounded overflow-hidden">
                                     <div className="h-2 bg-gray-400/70" style={{ width: `${Math.min(100, Math.max(0, Number(s.level ?? 70)))}%` }} />
                                 </div>
                                 {!isExporting && (
-                                    <input type="range" min={0} max={100} value={s.level ?? 70} onChange={(e) => onListChange('skillsList', idx, 'level', e.target.value)} className="w-full" />
+                                    <SmartInput type="range" min={0} max={100} value={s.level ?? 70} onChange={(e) => onListChange('skillsList', idx, 'level', e.target.value)} className="w-full" />
                                 )}
                             </div>
                         ))}
@@ -747,8 +1134,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
-                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                        <SmartInput value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                        <SmartInput value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
                                     </>
                                 )}
                             </div>
@@ -765,7 +1152,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {isExporting ? (
                             <div className="whitespace-pre-wrap">{data.moreInfo || 'Diễn thông tin thêm nếu có'}</div>
                         ) : (
-                            <input type="text" name="moreInfo" value={data.moreInfo || ''} onChange={safeChange} placeholder="Diễn thông tin thêm nếu có" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                            <SmartInput type="text" name="moreInfo" value={data.moreInfo || ''} onChange={safeChange} placeholder="Diễn thông tin thêm nếu có" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                         )}
                     </div>
                 </div>
@@ -788,22 +1175,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 {isExporting ? (
                                                     <div className="font-semibold text-gray-800">{edu.school || 'Tên trường học'}</div>
                                                 ) : (
-                                                    <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                                 {isExporting ? (
                                                     <div className="ml-4 italic text-gray-600">{edu.time || 'Bắt đầu  -  Kết thúc'}</div>
                                                 ) : (
-                                                    <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                    <SmartInput value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600">
                                                 {isExporting ? (edu.major || 'Ngành học / Môn học') : (
-                                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                    <SmartInput value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                                 )}
                                             </div>
                                             <div className="text-gray-500">
                                                 {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học tập hoặc thành tích của bạn') : (
-                                                    <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                    <SmartInput value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                                 )}
                                             </div>
                                         </div>
@@ -825,22 +1212,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 {isExporting ? (
                                                     <div className="font-semibold text-gray-800">{exp.company || 'Tên công ty'}</div>
                                                 ) : (
-                                                    <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                                 {isExporting ? (
                                                     <div className="ml-4 italic text-gray-600">{exp.time || 'Bắt đầu  -  Kết thúc'}</div>
                                                 ) : (
-                                                    <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                    <SmartInput value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600">
                                                 {isExporting ? (exp.position || 'Vị trí công việc') : (
-                                                    <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                    <SmartInput value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                                 )}
                                             </div>
                                             <div className="text-gray-500">
                                                 {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                                    <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                    <SmartInput type="textarea" value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                                 )}
                                             </div>
                                         </div>
@@ -862,22 +1249,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 {isExporting ? (
                                                     <div className="font-semibold text-gray-800">{act.org || 'Tên tổ chức'}</div>
                                                 ) : (
-                                                    <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                                 {isExporting ? (
                                                     <div className="ml-4 italic text-gray-600">{act.time || 'Bắt đầu  -  Kết thúc'}</div>
                                                 ) : (
-                                                    <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                    <SmartInput value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="ml-4 w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600">
                                                 {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                                    <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                    <SmartInput value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                                 )}
                                             </div>
                                             <div className="text-gray-500">
                                                 {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                                    <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                    <SmartInput value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                                 )}
                                             </div>
                                         </div>
@@ -929,7 +1316,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput type="file" accept="image/*" className="hidden" onChange={(e) => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
             </div>
@@ -953,28 +1340,37 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             <div className="col-span-2">
                                 <div className="text-3xl font-extrabold text-gray-800">
                                     {isExporting ? (data.fullName || 'An Đăng Vinh') : (
-                                        <input name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-3xl font-extrabold" />
+                                        <SmartInput name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-3xl font-extrabold" />
                                     )}
                                 </div>
                                 <div className="mt-1 text-[#d19c68] italic text-xl">
                                     {isExporting ? (data.appliedPosition || 'Vị Trí Ứng Tuyển') : (
-                                        <input name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị Trí Ứng Tuyển" className="w-full bg-transparent outline-none border-b border-[#e8c9a5] focus:border-[#c08b5a] italic text-xl" />
+                                        <SmartInput name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị Trí Ứng Tuyển" className="w-full bg-transparent outline-none border-b border-[#e8c9a5] focus:border-[#c08b5a] italic text-xl" />
                                     )}
                                 </div>
                                 <div className="mt-4 text-sm text-gray-600">
                                     {isExporting ? (
-                                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                                        <div className="whitespace-pre-wrap break-words">
+                                            {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                                        </div>
                                     ) : (
-                                        <input name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
+                                        <SmartInput
+                                            type="textarea"
+                                            name="summary"
+                                            value={data.summary}
+                                            onChange={safeChange}
+                                            placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                                            className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-sm whitespace-pre-wrap break-words resize-none"
+                                        />
                                     )}
                                 </div>
                             </div>
                             <div className="col-span-1 self-start">
                                 <div className="space-y-3">
-                                    <CardRow>{isExporting ? (data.phone || '0123 456 789') : (<input name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="w-full bg-transparent outline-none" />)}</CardRow>
-                                    <CardRow>{isExporting ? (data.email || 'anvinh54@gmail.com') : (<input type="email" name="email" value={data.email} onChange={safeChange} placeholder="anvinh54@gmail.com" className="w-full bg-transparent outline-none" />)}</CardRow>
-                                    <CardRow>{isExporting ? (data.website || 'facebook.com/TopCV.vn') : (<input name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="w-full bg-transparent outline-none" />)}</CardRow>
-                                    <CardRow>{isExporting ? (data.address || 'Quận A, thành phố Hà Nội') : (<input name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.phone || '0123 456 789') : (<SmartInput name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.email || 'anvinh54@gmail.com') : (<SmartInput type="email" name="email" value={data.email} onChange={safeChange} placeholder="anvinh54@gmail.com" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.website || 'facebook.com/TopCV.vn') : (<SmartInput name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                    <CardRow>{isExporting ? (data.address || 'Quận A, thành phố Hà Nội') : (<SmartInput name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="w-full bg-transparent outline-none" />)}</CardRow>
                                 </div>
                             </div>
                         </div>
@@ -987,7 +1383,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     <Pill>Thông tin cá nhân</Pill>
                                     <div className="mt-3 space-y-2 text-sm text-gray-700">
                                         {/* Phone / DOB / Email / Website / Address hiển thị ở trên đã đủ; giữ trống hoặc thêm DOB */}
-                                        <CardRow>{isExporting ? (data.dob || 'Ngày sinh') : (<input name="dob" value={data.dob} onChange={safeChange} placeholder="Ngày sinh" className="w-full bg-transparent outline-none" />)}</CardRow>
+                                        <CardRow>{isExporting ? (data.dob || 'Ngày sinh') : (<SmartInput name="dob" value={data.dob} onChange={safeChange} placeholder="Ngày sinh" className="w-full bg-transparent outline-none" />)}</CardRow>
                                     </div>
                                 </div>
                                 <div>
@@ -999,7 +1395,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 {isExporting ? (
                                                     <div className="font-semibold text-gray-800">{edu.major || 'Ngành học / Môn học'}</div>
                                                 ) : (
-                                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                                 {/* Dòng 2: Trường trái + Thời gian phải */}
                                                 <div className="flex items-baseline justify-between gap-3 mt-0.5 text-gray-700">
@@ -1010,8 +1406,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
-                                                            <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
+                                                            <SmartInput value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                            <SmartInput value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 text-right italic" />
                                                         </>
                                                     )}
                                                 </div>
@@ -1028,7 +1424,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {(data.skillsList || []).map((s, idx) => (
                                             <div key={idx}>
                                                 {isExporting ? (s.name || 'Tên kỹ năng') : (
-                                                    <input value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <SmartInput value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
                                                 )}
                                             </div>
                                         ))}
@@ -1046,22 +1442,50 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     <div className="mt-3 space-y-4 text-sm">
                                         {(data.experienceList || []).map((exp, idx) => (
                                             <div key={idx}>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="font-semibold text-gray-800">
-                                                        {isExporting ? (exp.details || 'Tên công ty, Vị trí công việc') : (
-                                                            <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Tên công ty, Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                                    <div className="font-semibold text-gray-800 w-full md:w-3/4">
+                                                        {isExporting ? (
+                                                            exp.details || 'Tên công ty, Vị trí công việc'
+                                                        ) : (
+                                                            <SmartInput
+                                                                type="textarea"
+                                                                value={exp.details || ''}
+                                                                onChange={listChange('experienceList', idx, 'details')}
+                                                                placeholder="Tên công ty, Vị trí công việc"
+                                                                className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold whitespace-pre-wrap break-words"
+                                                            />
                                                         )}
                                                     </div>
-                                                    <div className="italic text-gray-600 ml-4">
-                                                        {isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                                            <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <div className="italic text-gray-600 w-full md:w-1/4">
+                                                        {isExporting ? (
+                                                            exp.time || 'Bắt đầu  -  Kết thúc'
+                                                        ) : (
+                                                            <SmartInput
+                                                                value={exp.time || ''}
+                                                                onChange={listChange('experienceList', idx, 'time')}
+                                                                placeholder="Bắt đầu  -  Kết thúc"
+                                                                className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
+                                                            />
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
                                         {!isExporting && (
-                                            <button type="button" className="text-xs underline text-gray-700" onClick={() => onAddList('experienceList', { time: '', company: '', position: '', details: '' })}>+ Thêm kinh nghiệm</button>
+                                            <button
+                                                type="button"
+                                                className="text-xs underline text-gray-700"
+                                                onClick={() =>
+                                                    onAddList('experienceList', {
+                                                        time: '',
+                                                        company: '',
+                                                        position: '',
+                                                        details: '',
+                                                    })
+                                                }
+                                            >
+                                                + Thêm kinh nghiệm
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -1074,23 +1498,23 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 <div className="flex items-center justify-between">
                                                     <div className="font-semibold text-gray-800">
                                                         {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                                            <input value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                            <SmartInput value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                         )}
                                                     </div>
                                                     <div className="italic text-gray-600 ml-4">
                                                         {isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                                            <input value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                            <SmartInput value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-gray-700">
                                                     {isExporting ? (act.org || 'Tên tổ chức') : (
-                                                        <input value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                        <SmartInput value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                                     )}
                                                 </div>
                                                 <div className="mt-1 text-gray-600">
                                                     {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                                        <input value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                        <SmartInput value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                                     )}
                                                 </div>
                                             </div>
@@ -1109,23 +1533,23 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 <div className="flex items-center justify-between">
                                                     <div className="font-semibold text-gray-800">
                                                         {isExporting ? (pj.name || 'Tên dự án') : (
-                                                            <input value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                            <SmartInput value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                         )}
                                                     </div>
                                                     <div className="italic text-gray-600 ml-4">
                                                         {isExporting ? (pj.time || 'Bắt đầu  -  Kết thúc') : (
-                                                            <input value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                            <SmartInput value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div className="mt-1 text-gray-700">
                                                     {isExporting ? (pj.role || 'Vị trí của bạn trong dự án') : (
-                                                        <input value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                        <SmartInput value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                                     )}
                                                 </div>
                                                 <div className="mt-1 text-gray-600">
                                                     {isExporting ? (pj.details || 'Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu') : (
-                                                        <input value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                        <SmartInput value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                                     )}
                                                 </div>
                                             </div>
@@ -1144,13 +1568,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                                 {/* Dòng 1: Tên chứng chỉ */}
                                                 <div className="font-semibold text-gray-800">
                                                     {isExporting ? (c.name || 'Tên chứng chỉ') : (
-                                                        <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                        <SmartInput value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                     )}
                                                 </div>
                                                 {/* Dòng 2: Thời gian */}
                                                 <div className="italic text-gray-600 mt-0.5">
                                                     {isExporting ? (c.time || 'Thời gian') : (
-                                                        <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                        <SmartInput value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                                     )}
                                                 </div>
                                             </div>
@@ -1202,7 +1626,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
             </div>
@@ -1217,13 +1641,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div className="text-2xl font-extrabold text-white text-center">{data.fullName || 'Họ và tên'}</div>
                             ) : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-2xl font-extrabold text-center" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-2xl font-extrabold text-center" />
                             )}
                             <div className="text-white/80 italic text-center mt-1">
                                 {isExporting ? (
                                     <div>{data.appliedPosition || 'Vị trí ứng tuyển'}</div>
                                 ) : (
-                                    <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-center" />
+                                    <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-center" />
                                 )}
                             </div>
                         </div>
@@ -1240,11 +1664,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="Số điện thoại" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
-                                    <input type="text" name="dob" value={data.dob} onChange={safeChange} placeholder="Ngày sinh" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
-                                    <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="Email" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
-                                    <input type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
-                                    <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Địa chỉ" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                                    <SmartInput type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="Số điện thoại" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                                    <SmartInput type="text" name="dob" value={data.dob} onChange={safeChange} placeholder="Ngày sinh" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                                    <SmartInput type="email" name="email" value={data.email} onChange={safeChange} placeholder="Email" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                                    <SmartInput type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                                    <SmartInput type="text" name="address" value={data.address} onChange={safeChange} placeholder="Địa chỉ" className="w-full bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
                                 </>
                             )}
                         </div>
@@ -1268,11 +1692,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         ) : (
                                             <>
                                                 {/* Dòng 1: Chuyên ngành */}
-                                                <input type="text" value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white" />
+                                                <SmartInput type="text" value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white" />
                                                 {/* Dòng 2: Trường (trái) + Thời gian (phải) trên cùng một dòng */}
                                                 <div className="flex items-center gap-3 mt-1">
-                                                    <input type="text" value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white" />
-                                                    <input type="text" value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-white/30 focus:border-white text-right italic" />
+                                                    <SmartInput type="text" value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white" />
+                                                    <SmartInput type="text" value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-white/30 focus:border-white text-right italic" />
                                                 </div>
                                             </>
                                         )}
@@ -1293,7 +1717,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {isExporting ? (
                                             <div>{s.name || 'Tên kỹ năng'}</div>
                                         ) : (
-                                            <input type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white" />
+                                            <SmartInput type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white" />
                                         )}
                                     </div>
                                 ))}
@@ -1309,12 +1733,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <section className="mb-6">
                             <PillTitle>Mục tiêu nghề nghiệp</PillTitle>
                             {isExporting ? (
-                                <div className="text-sm text-gray-700">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                                    {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                                </div>
                             ) : (
-                                <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                <SmartInput
+                                    type="textarea"
+                                    name="summary"
+                                    value={data.summary}
+                                    onChange={safeChange}
+                                    placeholder="Mục tiêu nghề nghiệp của bạn"
+                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm whitespace-pre-wrap break-words resize-none"
+                                />
                             )}
                         </section>
-
                         <section className="mb-6">
                             <PillTitle>Kinh nghiệm làm việc</PillTitle>
                             <div className="space-y-4">
@@ -1324,12 +1756,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-sm">
                                             <div className="font-semibold">
                                                 {isExporting ? (exp.details || 'Tên công ty, Vị trí công việc') : (
-                                                    <input type="text" value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Tên công ty, Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Tên công ty, Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600 ml-4">
                                                 {isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                                    <input type="text" value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <SmartInput type="text" value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                 )}
                                             </div>
                                         </div>
@@ -1350,12 +1782,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between">
                                             <div className="font-semibold">
                                                 {isExporting ? (a.title || 'Tên giải thưởng') : (
-                                                    <input type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600 ml-4">
                                                 {isExporting ? (a.time || 'Thời gian') : (
-                                                    <input type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <SmartInput type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                 )}
                                             </div>
                                         </div>
@@ -1376,13 +1808,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {/* Dòng 1: Tên chứng chỉ */}
                                         <div className="font-semibold">
                                             {isExporting ? (c.name || 'Tên chứng chỉ') : (
-                                                <input type="text" value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                <SmartInput type="text" value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                             )}
                                         </div>
                                         {/* Dòng 2: Thời gian */}
                                         <div className="italic text-gray-600 mt-0.5">
                                             {isExporting ? (c.time || 'Thời gian') : (
-                                                <input type="text" value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                <SmartInput type="text" value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                             )}
                                         </div>
                                     </div>
@@ -1401,23 +1833,23 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-sm">
                                             <div className="font-semibold">
                                                 {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                                    <input type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600 ml-4">
                                                 {isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                                    <input type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <SmartInput type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                 )}
                                             </div>
                                         </div>
                                         <div className="mt-1 text-sm">
                                             {isExporting ? (act.org || 'Tên tổ chức') : (
-                                                <input type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-sm text-gray-700">
                                             {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                                <input type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1436,23 +1868,23 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-sm">
                                             <div className="font-semibold">
                                                 {isExporting ? (pj.role || 'Vị trí của bạn trong dự án') : (
-                                                    <input type="text" value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             <div className="italic text-gray-600 ml-4">
                                                 {isExporting ? (pj.time || 'Bắt đầu  -  Kết thúc') : (
-                                                    <input type="text" value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                    <SmartInput type="text" value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                                 )}
                                             </div>
                                         </div>
                                         <div className="mt-1 text-sm">
                                             {isExporting ? (pj.name || 'Tên dự án') : (
-                                                <input type="text" value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-sm text-gray-700">
                                             {isExporting ? (pj.details || 'Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu') : (
-                                                <input type="text" value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="text" value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1495,7 +1927,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
             </div>
@@ -1506,7 +1938,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {isExporting ? (
                     <div className="flex-1 border border-white/20 rounded px-3 py-2 text-sm break-all">{value || placeholder}</div>
                 ) : (
-                    <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} className="flex-1 bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
+                    <SmartInput type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} className="flex-1 bg-transparent outline-none border border-white/30 focus:border-white rounded px-3 py-2 text-sm" />
                 )}
             </div>
         );
@@ -1516,13 +1948,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {isExporting ? (
                     <div className="text-sm mb-1 text-white">{name || 'Tên kỹ năng'}</div>
                 ) : (
-                    <input type="text" value={name} onChange={onName} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-sm mb-1 text-white placeholder:text-white/70" />
+                    <SmartInput type="text" value={name} onChange={onName} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-sm mb-1 text-white placeholder:text-white/70" />
                 )}
                 <div className="w-full h-2 bg-white/20 rounded">
                     <div className="h-2 bg-white rounded" style={{ width: `${Math.max(0, Math.min(100, Number(level) || 0))}%` }} />
                 </div>
                 {!isExporting && (
-                    <input type="range" min={0} max={100} value={level || 0} onChange={onLevel} className="w-full mt-1" />
+                    <SmartInput type="range" min={0} max={100} value={level || 0} onChange={onLevel} className="w-full mt-1" />
                 )}
             </div>
         );
@@ -1536,11 +1968,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div className="text-2xl font-extrabold text-center">{data.fullName || 'An Đăng Vinh'}</div>
                             ) : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-2xl font-extrabold text-center" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-2xl font-extrabold text-center" />
                             )}
                             <div className="italic text-white/80 text-center mt-1">
                                 {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
-                                    <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-center" />
+                                    <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white italic text-center" />
                                 )}
                             </div>
                         </div>
@@ -1558,9 +1990,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div>
                             <LeftSectionTitle>Mục tiêu nghề nghiệp</LeftSectionTitle>
                             {isExporting ? (
-                                <div className="text-sm text-white/85">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                                <div className="text-sm text-white/85 whitespace-pre-wrap break-words">
+                                    {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                                </div>
                             ) : (
-                                <input type="text" name="summary" value={data.summary} onChange={onChange} placeholder="Mục tiêu nghề nghiệp của bạn" className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-sm text-white" />
+                                <SmartInput
+                                    type="textarea"
+                                    name="summary"
+                                    value={data.summary}
+                                    onChange={onChange}
+                                    placeholder="Mục tiêu nghề nghiệp của bạn"
+                                    className="w-full bg-transparent outline-none border-b border-white/30 focus:border-white text-sm text-white whitespace-pre-wrap break-words"
+                                />
                             )}
                         </div>
 
@@ -1596,8 +2037,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-32 bg-transparent outline-none border-b border-white/30 focus:border-white text-white/90" />
-                                                <input type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white text-white" />
+                                                <SmartInput type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-32 bg-transparent outline-none border-b border-white/30 focus:border-white text-white/90" />
+                                                <SmartInput type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white text-white" />
                                             </>
                                         )}
                                     </div>
@@ -1621,8 +2062,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-32 bg-transparent outline-none border-b border-white/30 focus:border-white text-white/90" />
-                                                <input type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white text-white" />
+                                                <SmartInput type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-32 bg-transparent outline-none border-b border-white/30 focus:border-white text-white/90" />
+                                                <SmartInput type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="flex-1 bg-transparent outline-none border-b border-white/30 focus:border-white text-white" />
                                             </>
                                         )}
                                     </div>
@@ -1645,22 +2086,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-gray-600 italic">
                                             <div />
                                             {isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
-                                                <input type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 font-semibold text-gray-800">
                                             {isExporting ? (edu.major || 'Ngành học / Môn học') : (
-                                                <input type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                <SmartInput type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                             )}
                                         </div>
                                         <div className="mt-1">
                                             {isExporting ? (edu.school || 'Tên trường học') : (
-                                                <input type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-gray-600 italic">
                                             {isExporting ? (edu.note || 'Mô tả quá trình học tập hoặc thành tích của bạn') : (
-                                                <input type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1679,21 +2120,21 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-gray-600 italic">
                                             <div className="font-semibold text-gray-800">
                                                 {isExporting ? (exp.position || 'Vị trí công việc') : (
-                                                    <input type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             {isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                                <input type="text" value={exp.time} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={exp.time} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1">
                                             {isExporting ? (exp.company || 'Tên công ty') : (
-                                                <input type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-gray-700">
                                             {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                                <input type="text" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="textarea" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1712,21 +2153,21 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-gray-600 italic">
                                             <div className="font-semibold text-gray-800">
                                                 {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                                    <input type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             {isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                                <input type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1">
                                             {isExporting ? (act.org || 'Tên tổ chức') : (
-                                                <input type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-gray-700">
                                             {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                                <input type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1745,21 +2186,21 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <div className="flex items-center justify-between text-gray-600 italic">
                                             <div className="font-semibold text-gray-800">
                                                 {isExporting ? (pj.role || 'Vị trí của bạn trong dự án') : (
-                                                    <input type="text" value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                                    <SmartInput type="text" value={pj.role} onChange={listChange('projectsList', idx, 'role')} placeholder="Vị trí của bạn trong dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                                 )}
                                             </div>
                                             {isExporting ? (pj.time || 'Bắt đầu  -  Kết thúc') : (
-                                                <input type="text" value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={pj.time} onChange={listChange('projectsList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1">
                                             {isExporting ? (pj.name || 'Tên dự án') : (
-                                                <input type="text" value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={pj.name} onChange={listChange('projectsList', idx, 'name')} placeholder="Tên dự án" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                             )}
                                         </div>
                                         <div className="mt-1 text-gray-700">
                                             {isExporting ? (pj.details || 'Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu') : (
-                                                <input type="text" value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="text" value={pj.details} onChange={listChange('projectsList', idx, 'details')} placeholder="Mô tả ngắn gọn về dự án, mục tiêu, vai trò, công nghệ sử dụng và thành tựu" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1814,7 +2255,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute bottom-0 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
             </div>
@@ -1828,23 +2269,33 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {isExporting ? (
                             <div className="text-[28px] font-extrabold" style={{ color: accent }}>{data.fullName || 'An Đăng Vinh'}</div>
                         ) : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-[28px] font-extrabold" style={{ color: accent }} />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-[28px] font-extrabold" style={{ color: accent }} />
                         )}
                         <div className="mt-1 italic text-gray-600">
                             {isExporting ? (
                                 <div>{data.appliedPosition || 'Vị trí ứng tuyển'}</div>
                             ) : (
-                                <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full outline-none border-b border-black" />
+                                <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full outline-none border-b border-black" />
                             )}
                         </div>
                         <div className="border-b mt-2" />
                         <div className="mt-1 text-gray-500 italic break-words whitespace-pre-wrap">
-                            {isExporting ? (
-                                <div className="break-words whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
-                            ) : (
-                                <input type="text" name="summary" value={data.summary} onChange={onChange} placeholder="Mục tiêu nghề nghiệp của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
-                            )}
-                        </div>
+  {isExporting ? (
+    <div className="break-words whitespace-pre-wrap">
+      {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+    </div>
+  ) : (
+    <SmartInput
+      type="textarea"
+      name="summary"
+      value={data.summary}
+      onChange={onChange}
+      placeholder="Mục tiêu nghề nghiệp của bạn"
+      className="w-full outline-none border-b border-gray-200 focus:border-gray-600 break-words whitespace-pre-wrap"
+    />
+  )}
+</div>
+
                     </div>
                 </div>
 
@@ -1856,22 +2307,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {/* dob */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-full text-white flex items-center justify-center" style={{ background: accent }}>🗓️</div>
-                                {isExporting ? (<Value>{data.dob || '15/05/1995'}</Value>) : (<input type="text" name="dob" value={data.dob} onChange={onChange} placeholder="15/05/1995" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
+                                {isExporting ? (<Value>{data.dob || '15/05/1995'}</Value>) : (<SmartInput type="text" name="dob" value={data.dob} onChange={onChange} placeholder="15/05/1995" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
                             </div>
                             {/* email */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-full text-white flex items-center justify-center" style={{ background: accent }}>✉️</div>
-                                {isExporting ? (<Value>{data.email || 'anvinh54@gmail.com'}</Value>) : (<input type="email" name="email" value={data.email} onChange={onChange} placeholder="anvinh54@gmail.com" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
+                                {isExporting ? (<Value>{data.email || 'anvinh54@gmail.com'}</Value>) : (<SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="anvinh54@gmail.com" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
                             </div>
                             {/* phone */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-full text-white flex items-center justify-center" style={{ background: accent }}>☎️</div>
-                                {isExporting ? (<Value>{data.phone || '0123 456 789'}</Value>) : (<input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="0123 456 789" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
+                                {isExporting ? (<Value>{data.phone || '0123 456 789'}</Value>) : (<SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="0123 456 789" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
                             </div>
                             {/* address */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-full text-white flex items-center justify-center" style={{ background: accent }}>📍</div>
-                                {isExporting ? (<Value>{data.address || 'Quận A, thành phố Hà Nội'}</Value>) : (<input type="text" name="address" value={data.address} onChange={onChange} placeholder="Quận A, thành phố Hà Nội" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
+                                {isExporting ? (<Value>{data.address || 'Quận A, thành phố Hà Nội'}</Value>) : (<SmartInput type="text" name="address" value={data.address} onChange={onChange} placeholder="Quận A, thành phố Hà Nội" className="flex-1 outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />)}
                             </div>
                         </div>
                     </div>
@@ -1883,15 +2334,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="grid grid-cols-2 gap-6 text-sm">
                                     <div>
                                         <Label>Tên trường học</Label>
-                                        {isExporting ? (<Value bold>{edu.school || 'Tên trường học'}</Value>) : (<input type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value bold>{edu.school || 'Tên trường học'}</Value>) : (<SmartInput type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                         <Label>Ngành học / Môn học</Label>
-                                        {isExporting ? (<Value>{edu.major || 'Ngành học / Môn học'}</Value>) : (<input type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value>{edu.major || 'Ngành học / Môn học'}</Value>) : (<SmartInput type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                         <Label>Mô tả quá trình học tập hoặc thành tích của bạn</Label>
-                                        {isExporting ? (<Value>{edu.note || ''}</Value>) : (<input type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />)}
+                                        {isExporting ? (<Value>{edu.note || ''}</Value>) : (<SmartInput type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Mô tả quá trình học tập hoặc thành tích của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />)}
                                     </div>
                                     <div>
                                         <Label>Thời gian</Label>
-                                        {isExporting ? (<Value>{edu.time || 'Bắt đầu  -  Kết thúc'}</Value>) : (<input type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value>{edu.time || 'Bắt đầu  -  Kết thúc'}</Value>) : (<SmartInput type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                     </div>
                                 </div>
                             ))}
@@ -1906,11 +2357,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="grid grid-cols-2 gap-6">
                                     <div>
                                         <Label>Thời gian</Label>
-                                        {isExporting ? (<Value>{c.time || 'Thời gian'}</Value>) : (<input type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value>{c.time || 'Thời gian'}</Value>) : (<SmartInput type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                     </div>
                                     <div>
                                         <Label>Tên chứng chỉ</Label>
-                                        {isExporting ? (<Value bold>{c.name || 'Tên chứng chỉ'}</Value>) : (<input type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value bold>{c.name || 'Tên chứng chỉ'}</Value>) : (<SmartInput type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                     </div>
                                 </div>
                             ))}
@@ -1930,19 +2381,19 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <Value>{exp.time || (isExporting ? 'Bắt đầu  -  Kết thúc' : '')}</Value>
                                         <div className="mt-1">
                                             {isExporting ? (<div className="italic font-semibold text-gray-700 break-words whitespace-pre-wrap">{exp.company || 'Tên công ty'}</div>) : (
-                                                <input type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic font-semibold" />
+                                                <SmartInput type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic font-semibold" />
                                             )}
                                         </div>
                                     </div>
                                     <div>
                                         <div className="italic font-semibold text-gray-700">
                                             {isExporting ? (exp.position || 'Vị trí công việc') : (
-                                                <input type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic font-semibold" />
+                                                <SmartInput type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic font-semibold" />
                                             )}
                                         </div>
                                         <div className="text-gray-600 mt-1 break-words whitespace-pre-wrap">
                                             {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                                <input type="text" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                                <SmartInput type="textarea" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                             )}
                                         </div>
                                     </div>
@@ -1961,10 +2412,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {(data.skillsList || []).map((s, idx) => (
                                 <div key={idx}>
                                     {isExporting ? (<div className="italic text-gray-700">{s.name || 'Tên kỹ năng'}</div>) : (
-                                        <input type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                        <SmartInput type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                     )}
                                     {isExporting ? (<div className="text-gray-600 break-words whitespace-pre-wrap">{s.description || 'Mô tả kỹ năng'}</div>) : (
-                                        <input type="text" value={s.description} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                        <SmartInput type="textarea" value={s.description} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                     )}
                                 </div>
                             ))}
@@ -1978,11 +2429,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="grid grid-cols-2 gap-6">
                                     <div>
                                         <Label>Thời gian</Label>
-                                        {isExporting ? (<Value>{a.time || 'Thời gian'}</Value>) : (<input type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value>{a.time || 'Thời gian'}</Value>) : (<SmartInput type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                     </div>
                                     <div>
                                         <Label>Tên giải thưởng</Label>
-                                        {isExporting ? (<Value bold>{a.title || 'Tên giải thưởng'}</Value>) : (<input type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
+                                        {isExporting ? (<Value bold>{a.title || 'Tên giải thưởng'}</Value>) : (<SmartInput type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />)}
                                     </div>
                                 </div>
                             ))}
@@ -2002,17 +2453,17 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         <Value>{act.time || (isExporting ? 'Bắt đầu  -  Kết thúc' : '')}</Value>
                                         <div className="mt-1 italic text-gray-700">
                                             {isExporting ? (act.org || 'Tên tổ chức') : (
-                                                <input type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
+                                                <SmartInput type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 italic" />
                                             )}
                                             <div className="font-semibold">{isExporting ? (act.role || 'Vị trí của bạn') : null}</div>
                                             {!isExporting && (
-                                                <input type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1 font-semibold" />
+                                                <SmartInput type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1 font-semibold" />
                                             )}
                                         </div>
                                     </div>
                                     <div className="text-gray-600 break-words whitespace-pre-wrap">
                                         {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                            <input type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
+                                            <SmartInput type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600" />
                                         )}
                                     </div>
                                 </div>
@@ -2026,7 +2477,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
     }
     // Mẫu mới
     if (templateStyle === 'classicOne') {
-        // Helper to guard IME composition for list inputs/textareas
+        // Helper to guard IME composition for list SmartInputs/textareas
         const listChange = (listName, idx, field) => (e) => {
             if (e.nativeEvent?.isComposing) return;
             onListChange(listName, idx, field, e.target.value);
@@ -2043,7 +2494,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 {!isExporting && (
                     <label className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow cursor-pointer">
                         Sửa ảnh
-                        <input type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
+                        <SmartInput type="file" accept="image/*" className="hidden" onChange={e => onAvatarChange?.(e.target.files?.[0])} />
                     </label>
                 )}
             </div>
@@ -2069,22 +2520,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div className="text-2xl font-extrabold italic text-gray-800">{data.fullName || 'Họ Tên'}</div>
                             ) : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ Tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 bg-transparent font-extrabold text-2xl italic" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ Tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 bg-transparent font-extrabold text-2xl italic" />
                             )}
                             <div className="text-sm text-gray-600 mt-1">
                                 {isExporting ? (
                                     <div>{data.appliedPosition || 'Vị trí ứng tuyển'}</div>
                                 ) : (
-                                    <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={onChange} placeholder="Vị trí ứng tuyển" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                             </div>
                             <div className="mt-2 text-[14px]">
-                                <div className="flex gap-2"><span className="font-semibold">Ngày sinh:</span> {isExporting ? (data.dob || 'DD/MM/YY') : (<input type="text" name="dob" value={data.dob} onChange={onChange} placeholder="DD/MM/YY" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
-                                <div className="flex gap-2"><span className="font-semibold">Giới tính:</span> {isExporting ? (data.gender || 'Nam/Nữ') : (<input type="text" name="gender" value={data.gender} onChange={onChange} placeholder="Nam/Nữ" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
-                                <div className="flex gap-2"><span className="font-semibold">Số điện thoại:</span> {isExporting ? (data.phone || '0123 456 789') : (<input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="0123 456 789" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
-                                <div className="flex gap-2"><span className="font-semibold">Email:</span> {isExporting ? (data.email || 'tencuaban@example.com') : (<input type="email" name="email" value={data.email} onChange={onChange} placeholder="tencuaban@example.com" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
-                                <div className="flex gap-2"><span className="font-semibold">Website:</span> {isExporting ? (data.website || 'facebook.com/TopCV.vn') : (<input type="text" name="website" value={data.website} onChange={onChange} placeholder="facebook.com/TopCV.vn" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
-                                <div className="flex gap-2"><span className="font-semibold">Địa chỉ:</span> {isExporting ? (data.address || 'Quận A, thành phố Hà Nội') : (<input type="text" name="address" value={data.address} onChange={onChange} placeholder="Quận A, thành phố Hà Nội" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Ngày sinh:</span> {isExporting ? (data.dob || 'DD/MM/YY') : (<SmartInput type="text" name="dob" value={data.dob} onChange={onChange} placeholder="DD/MM/YY" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Giới tính:</span> {isExporting ? (data.gender || 'Nam/Nữ') : (<SmartInput type="text" name="gender" value={data.gender} onChange={onChange} placeholder="Nam/Nữ" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Số điện thoại:</span> {isExporting ? (data.phone || '0123 456 789') : (<SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="0123 456 789" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Email:</span> {isExporting ? (data.email || 'tencuaban@example.com') : (<SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="tencuaban@example.com" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Website:</span> {isExporting ? (data.website || 'facebook.com/TopCV.vn') : (<SmartInput type="text" name="website" value={data.website} onChange={onChange} placeholder="facebook.com/TopCV.vn" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
+                                <div className="flex gap-2"><span className="font-semibold">Địa chỉ:</span> {isExporting ? (data.address || 'Quận A, thành phố Hà Nội') : (<SmartInput type="text" name="address" value={data.address} onChange={onChange} placeholder="Quận A, thành phố Hà Nội" className="flex-1 bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" />)}</div>
                             </div>
                         </div>
                     </div>
@@ -2093,12 +2544,22 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <Title>Mục tiêu nghề nghiệp</Title>
                 <HeavyRule />
                 <div className="pl-20">
-                    {isExporting ? (
-                        <div className="text-sm text-gray-700 whitespace-pre-line mb-4">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
-                    ) : (
-                        <input type="text" name="summary" value={data.summary} onChange={onChange} placeholder="Mục tiêu nghề nghiệp của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm mb-4" />
-                    )}
-                </div>
+  {isExporting ? (
+    <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-4">
+      {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+    </div>
+  ) : (
+    <SmartInput
+      type="textarea"
+      name="summary"
+      value={data.summary}
+      onChange={onChange}
+      placeholder="Mục tiêu nghề nghiệp của bạn"
+      className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm mb-4 whitespace-pre-wrap break-words"
+    />
+  )}
+</div>
+
 
                 {/* Học vấn */}
                 <Title>Học vấn</Title>
@@ -2111,7 +2572,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-bold text-gray-900 text-[15px]">{edu.school || 'Tên trường học'}</div>
                                 ) : (
-                                    <input type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm font-semibold" />
+                                    <SmartInput type="text" value={edu.school} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm font-semibold" />
                                 )}
                             </div>
                             {/* Chi tiết */}
@@ -2119,16 +2580,16 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="text-gray-600">{edu.time || 'Thời gian (ví dụ: 2016 - 2020)'}</div>
                                 ) : (
-                                    <input type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Thời gian (ví dụ: 2016 - 2020)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" value={edu.time} onChange={listChange('educationList', idx, 'time')} placeholder="Thời gian (ví dụ: 2016 - 2020)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                                 {isExporting ? (
                                     <div className="mt-1"><span className="font-semibold text-gray-800">Chuyên ngành:</span> <span className="font-semibold text-gray-800">{edu.major || 'Ngành học / Môn học'}</span></div>
                                 ) : (
-                                    <input type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                    <SmartInput type="text" value={edu.major} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
                                 )}
                                 {/* Xếp loại / GPA (edit) */}
                                 {!isExporting && (
-                                    <input type="text" value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Xếp loại / GPA" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                    <SmartInput type="text" value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Xếp loại / GPA" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
                                 )}
                                 {isExporting ? (
                                     <ul className="list-disc pl-6 text-gray-800 space-y-1 mt-1">
@@ -2136,7 +2597,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {(edu.note || '').split('\n').map((l, i) => l.trim() ? (<li key={i}>{l}</li>) : null)}
                                     </ul>
                                 ) : (
-                                    <input type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Ghi chú, môn học liên quan, thành tích nổi bật..." className="w-full outline-none border-b border-gray-200 focus:border-gray-600 mt-1" />
+                                    <SmartInput type="text" value={edu.note} onChange={listChange('educationList', idx, 'note')} placeholder="Ghi chú, môn học liên quan, thành tích nổi bật..." className="w-full outline-none border-b border-gray-200 focus:border-gray-600 mt-1" />
                                 )}
                             </div>
                         </div>
@@ -2155,7 +2616,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold text-gray-700">{exp.company || 'Tên tổ chức'}</div>
                                 ) : (
-                                    <input type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="text" value={exp.company} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                             {/* Thời gian */}
@@ -2163,7 +2624,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div>{exp.time || 'Thời gian (ví dụ: 03/2022 - 02/2025)'}</div>
                                 ) : (
-                                    <input type="text" value={exp.time} onChange={listChange('experienceList', idx, 'time')} placeholder="Thời gian (ví dụ: 03/2022 - 02/2025)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" value={exp.time} onChange={listChange('experienceList', idx, 'time')} placeholder="Thời gian (ví dụ: 03/2022 - 02/2025)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                             </div>
                             {/* Vị trí */}
@@ -2171,7 +2632,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold">{exp.position || 'Vị trí của bạn'}</div>
                                 ) : (
-                                    <input type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                    <SmartInput type="text" value={exp.position} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                 )}
                             </div>
                             {/* Mô tả */}
@@ -2181,7 +2642,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {(exp.details || '').split('\n').map((l, i) => l.trim() ? (<li key={i}>{l}</li>) : null)}
                                     </ul>
                                 ) : (
-                                    <input type="text" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
+                                    <SmartInput type="text" value={exp.details} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
                                 )}
                             </div>
                         </div>
@@ -2200,7 +2661,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold text-gray-700">{act.org || 'Tên tổ chức'}</div>
                                 ) : (
-                                    <input type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="text" value={act.org} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                             {/* Thời gian */}
@@ -2208,7 +2669,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div>{act.time || 'Thời gian (ví dụ: 08/2016 - 08/2018)'}</div>
                                 ) : (
-                                    <input type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Thời gian (ví dụ: 08/2016 - 08/2018)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" value={act.time} onChange={listChange('activityList', idx, 'time')} placeholder="Thời gian (ví dụ: 08/2016 - 08/2018)" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                             </div>
                             {/* Vai trò */}
@@ -2216,7 +2677,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold">{act.role || 'Vị trí của bạn'}</div>
                                 ) : (
-                                    <input type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
+                                    <SmartInput type="text" value={act.role} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold" />
                                 )}
                             </div>
                             {/* Mô tả */}
@@ -2226,7 +2687,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         {(act.details || '').split('\n').map((l, i) => l.trim() ? (<li key={i}>{l}</li>) : null)}
                                     </ul>
                                 ) : (
-                                    <input type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
+                                    <SmartInput type="text" value={act.details} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm" />
                                 )}
                             </div>
                         </div>
@@ -2245,7 +2706,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold text-gray-700">{c.name || 'Tên chứng chỉ'}</div>
                                 ) : (
-                                    <input type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="text" value={c.name} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                             {/* Thời gian */}
@@ -2253,7 +2714,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div>{c.time || 'Thời gian'}</div>
                                 ) : (
-                                    <input type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" value={c.time} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                             </div>
                         </div>
@@ -2272,7 +2733,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold text-gray-700">{a.title || 'Tên giải thưởng'}</div>
                                 ) : (
-                                    <input type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="text" value={a.title} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                             {/* Thời gian */}
@@ -2280,7 +2741,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div>{a.time || 'Thời gian'}</div>
                                 ) : (
-                                    <input type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                    <SmartInput type="text" value={a.time} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
                                 )}
                             </div>
                         </div>
@@ -2299,7 +2760,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="font-semibold text-gray-700">{s.name || 'Tên kỹ năng'}</div>
                                 ) : (
-                                    <input type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="text" value={s.name} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                             {/* Mô tả kỹ năng */}
@@ -2307,7 +2768,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 {isExporting ? (
                                     <div className="text-sm text-gray-700 whitespace-pre-line">{s.description || 'Mô tả kỹ năng'}</div>
                                 ) : (
-                                    <input type="text" value={s.description} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
+                                    <SmartInput type="textarea" value={s.description} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm" />
                                 )}
                             </div>
                         </div>
@@ -2319,6 +2780,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             </div>
         );
     }
+    ///
     if (templateStyle === 'sidebar') {
         return (
             <div className="bg-white w-full max-w-[900px] mx-auto border border-gray-200 rounded overflow-hidden shadow" style={{ fontFamily: 'Inter, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
@@ -2330,29 +2792,38 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div className="font-extrabold text-lg">{data.fullName || 'Họ và tên'}</div>
                             ) : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 font-extrabold text-lg" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 font-extrabold text-lg" />
                             )}
                             <div className="text-xs text-gray-600 mt-1">
                                 {isExporting ? (
                                     <span>{data.email || 'Email'}</span>
                                 ) : (
-                                    <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-xs" />
+                                    <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-xs" />
                                 )}
                             </div>
                             <div className="text-xs text-gray-600 mt-1">
                                 {isExporting ? (
                                     <span>{data.phone || 'Số điện thoại'}</span>
                                 ) : (
-                                    <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-xs" />
+                                    <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="w-full text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-xs" />
                                 )}
                             </div>
                         </div>
                         <div>
                             <div className="uppercase text-xs font-bold text-gray-700 tracking-wider mb-1">Mục tiêu</div>
                             {isExporting ? (
-                                <div className="text-sm text-gray-700 whitespace-pre-line">{data.summary}</div>
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                                    {data.summary || "Tóm tắt, mục tiêu nghề nghiệp"}
+                                </div>
                             ) : (
-                                <textarea name="summary" value={data.summary} onChange={onChange} rows={6} placeholder="Tóm tắt, mục tiêu nghề nghiệp" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-sm" />
+                                <textarea
+                                    name="summary"
+                                    value={data.summary}
+                                    onChange={onChange}
+                                    rows={6}
+                                    placeholder="Tóm tắt, mục tiêu nghề nghiệp"
+                                    className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 text-sm whitespace-pre-wrap break-words resize-none"
+                                />
                             )}
                         </div>
                     </aside>
@@ -2363,8 +2834,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{exp.time}</span><span className="w-2/3 inline-block text-right">{exp.company}</span></>) : (
-                                            <><input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                                <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                            <><SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                                <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (
@@ -2374,8 +2845,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
-                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" placeholder="Mô tả, thành tích..." /></li>))}
+                                            <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
+                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" placeholder="Mô tả, thành tích..." /></li>))}
                                                 <li><button type="button" className="text-xs text-gray-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
                                         </>
@@ -2390,15 +2861,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{edu.time}</span><span className="w-2/3 inline-block text-right">{edu.school}</span></>) : (
-                                            <><input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                                <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                            <><SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                                <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                            <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                            <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
                                         </>
                                     )}
                                     {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -2411,14 +2882,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{act.time}</span><span className="w-2/3 inline-block text-right">{act.org}</span></>) : (
-                                            <><input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                                <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                            <><SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                                <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}>{line}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
-                                            <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" placeholder="Mô tả hoạt động, thành tích..." /></li>))}
+                                            <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
+                                            <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" placeholder="Mô tả hoạt động, thành tích..." /></li>))}
                                                 <li><button type="button" className="text-xs text-gray-700 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
                                         </>
@@ -2438,13 +2909,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[820px] mx-auto p-8 border border-gray-200 rounded shadow-sm" style={{ fontFamily: 'Poppins, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="mb-6">
                     <div className="text-2xl font-bold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 font-bold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full bg-transparent outline-none border-b border-gray-300 focus:border-gray-600 font-bold text-2xl" />
                     )}</div>
                     <div className="text-sm text-gray-600 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-4">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-600" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-600" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-600" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-600" />
                             </div>
                         )}
                     </div>
@@ -2461,14 +2932,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-4">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{exp.time}</span><span>{exp.company}</span></>) : (
-                                    <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                        <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                    <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                        <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                 <>
-                                    <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold" />
-                                    <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}
+                                    <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold" />
+                                    <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}
                                         <li><button type="button" className="text-xs text-gray-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                     </ul>
                                 </>
@@ -2483,15 +2954,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-4">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{edu.time}</span><span>{edu.school}</span></>) : (
-                                    <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                        <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                    <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                        <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                 <>
-                                    <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                    <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                    <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                    <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                    <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                    <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
                                 </>
                             )}
                             {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -2504,14 +2975,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-4">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{act.time}</span><span>{act.org}</span></>) : (
-                                    <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                        <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                    <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                        <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                 <>
-                                    <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
-                                    <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}
+                                    <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold mt-1" />
+                                    <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}
                                         <li><button type="button" className="text-xs text-gray-700 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                     </ul>
                                 </>
@@ -2529,13 +3000,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[900px] mx-auto border border-blue-200 rounded shadow overflow-hidden" style={{ fontFamily: 'Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-6">
                     <div className="text-2xl font-extrabold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/70 focus:border-white w-full font-extrabold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/70 focus:border-white w-full font-extrabold text-2xl" />
                     )}</div>
                     <div className="opacity-90 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-4">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/70 focus:border-white" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/70 focus:border-white" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/70 focus:border-white" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/70 focus:border-white" />
                             </div>
                         )}
                     </div>
@@ -2547,14 +3018,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{exp.time}</span><span className="w-2/3 inline-block text-right">{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-blue-600" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-blue-600" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-blue-600" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-blue-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 font-bold mt-1" />
-                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-blue-600" placeholder="Mô tả..." /></li>))}
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 font-bold mt-1" />
+                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-blue-600" placeholder="Mô tả..." /></li>))}
                                                 <li><button type="button" className="text-xs text-blue-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
                                         </>
@@ -2568,15 +3039,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{edu.time}</span><span className="w-2/3 inline-block text-right">{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-blue-600" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-blue-600" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-blue-600" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-blue-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 mt-1" />
                                         </>
                                     )}
                                 </Box>
@@ -2593,9 +3064,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <Section title="Hoạt động">
                             {data.activityList?.map((act, idx) => (
                                 <Box key={idx}>
-                                    <div className="text-xs text-gray-500">{isExporting ? act.time : (<input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 text-xs" />)}</div>
-                                    <div className="font-semibold">{isExporting ? act.org : (<input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-full outline-none border-b border-gray-300 focus:border-blue-600" />)}</div>
-                                    <div className="text-sm">{isExporting ? act.role : (<input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-blue-600" />)}</div>
+                                    <div className="text-xs text-gray-500">{isExporting ? act.time : (<SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-full outline-none border-b border-gray-300 focus:border-blue-600 text-xs" />)}</div>
+                                    <div className="font-semibold">{isExporting ? act.org : (<SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-full outline-none border-b border-gray-300 focus:border-blue-600" />)}</div>
+                                    <div className="text-sm">{isExporting ? act.role : (<SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-blue-600" />)}</div>
                                 </Box>
                             ))}
                             {!isExporting && <button type="button" className="text-xs text-blue-700 underline" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>}
@@ -2612,13 +3083,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {isExporting ? (
                         <div className="text-3xl font-extrabold text-fuchsia-700">{data.fullName || 'Họ và tên'}</div>
                     ) : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent text-3xl font-extrabold text-fuchsia-700" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent text-3xl font-extrabold text-fuchsia-700" />
                     )}
                     <div className="text-fuchsia-600 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} | {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-4">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 bg-transparent" />
                             </div>
                         )}
                     </div>
@@ -2635,14 +3106,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span>{act.time}</span><span>{act.org}</span></>) : (
-                                            <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
-                                                <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
+                                            <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
+                                                <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 font-bold mt-1" />
-                                            <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></li>))}
+                                            <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 font-bold mt-1" />
+                                            <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></li>))}
                                                 <li><button type="button" className="text-xs text-fuchsia-700 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
                                         </>
@@ -2658,14 +3129,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span>{exp.time}</span><span>{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 font-bold mt-1" />
-                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></li>))}
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 font-bold mt-1" />
+                                            <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></li>))}
                                                 <li><button type="button" className="text-xs text-fuchsia-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
                                         </>
@@ -2679,15 +3150,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span>{edu.time}</span><span>{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-fuchsia-300 focus:border-fuchsia-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-fuchsia-300 focus:border-fuchsia-600 mt-1" />
                                         </>
                                     )}
                                 </Box>
@@ -2704,10 +3175,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[880px] mx-auto p-8 border border-gray-200 rounded shadow" style={{ fontFamily: 'Inter, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="mb-6">
                     <div className="text-2xl font-extrabold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-extrabold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-extrabold text-2xl" />
                     )}</div>
                     <div className="text-sm text-gray-600 mt-1">{isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
-                        <div className="flex gap-4"><input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-gray-300 focus:border-gray-700" /><input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-gray-300 focus:border-gray-700" /></div>
+                        <div className="flex gap-4"><SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-gray-300 focus:border-gray-700" /><SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-gray-300 focus:border-gray-700" /></div>
                     )}</div>
                 </div>
                 <Section title="Kinh nghiệm & Học vấn">
@@ -2726,11 +3197,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div className="flex justify-between font-semibold">
                                     {isExporting ? (<><span className="text-sm text-gray-600">{item.time}</span><span>{item.type === 'exp' ? item.company : item.school}</span></>) : (
                                         <>
-                                            <input type="text" value={item.time} onChange={e => {
+                                            <SmartInput type="text" value={item.time} onChange={e => {
                                                 if (item.type === 'exp') onListChange('experienceList', item.idx, 'time', e.target.value);
                                                 else onListChange('educationList', item.idx, 'time', e.target.value);
                                             }} placeholder={item.type === 'exp' ? "03/2022 - 02/2025" : "2016 - 2020"} className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700 text-sm text-gray-700" />
-                                            <input type="text" value={item.type === 'exp' ? item.company : item.school} onChange={e => {
+                                            <SmartInput type="text" value={item.type === 'exp' ? item.company : item.school} onChange={e => {
                                                 if (item.type === 'exp') onListChange('experienceList', item.idx, 'company', e.target.value);
                                                 else onListChange('educationList', item.idx, 'school', e.target.value);
                                             }} placeholder={item.type === 'exp' ? "Tên công ty..." : "Tên trường..."} className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" />
@@ -2746,9 +3217,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" value={item.position} onChange={e => onListChange('experienceList', item.idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold" />
+                                                <SmartInput type="text" value={item.position} onChange={e => onListChange('experienceList', item.idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold" />
                                                 <ul className="list-disc ml-5 mt-1">{(item.details || '').split('\n').map((line, i) => (
-                                                    <li key={i}><input type="text" value={line} onChange={e => { const lines = (item.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', item.idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
+                                                    <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (item.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', item.idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
                                                 ))}
                                                     <li><button type="button" className="text-xs text-gray-700 underline" onClick={() => onListChange('experienceList', item.idx, 'details', (item.details ? item.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                                 </ul>
@@ -2761,9 +3232,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" value={item.major} onChange={e => onListChange('educationList', item.idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
-                                                <input type="text" value={item.result} onChange={e => onListChange('educationList', item.idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
-                                                <input type="text" value={item.note} onChange={e => onListChange('educationList', item.idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                                <SmartInput type="text" value={item.major} onChange={e => onListChange('educationList', item.idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={item.result} onChange={e => onListChange('educationList', item.idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                                <SmartInput type="text" value={item.note} onChange={e => onListChange('educationList', item.idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
                                             </>
                                         )
                                     )}
@@ -2777,12 +3248,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <Box key={idx}>
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{act.time}</span><span>{act.org}</span></>) : (
-                                    <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
-                                        <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
+                                    <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
+                                        <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
-                                <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
+                                <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
                             )}
                         </Box>
                     ))}
@@ -2796,13 +3267,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[780px] mx-auto p-6 border border-gray-200 rounded shadow" style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px', lineHeight: 1.4 }}>
                 <div className="flex justify-between items-end mb-4">
                     <div className="text-xl font-bold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold text-xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold text-xl" />
                     )}</div>
                     <div className="text-xs text-gray-600">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-3">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-gray-300 focus:border-gray-600" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-gray-300 focus:border-gray-600" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="outline-none border-b border-gray-300 focus:border-gray-600" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="outline-none border-b border-gray-300 focus:border-gray-600" />
                             </div>
                         )}
                     </div>
@@ -2814,14 +3285,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="mb-3">
                                     <div className="flex justify-between text-sm font-semibold">
                                         {isExporting ? (<><span>{exp.time}</span><span>{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold" />
-                                            <ul className="list-disc ml-5">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}</ul>
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 font-bold" />
+                                            <ul className="list-disc ml-5">{(exp.details || '').split('\n').map((line, i) => (<li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-600" /></li>))}</ul>
                                             {!isExporting && <button type="button" className="text-xs text-gray-700 underline mt-1" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button>}
                                         </>
                                     )}
@@ -2836,15 +3307,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <div key={idx} className="mb-3">
                                     <div className="flex justify-between text-sm font-semibold">
                                         {isExporting ? (<><span>{edu.time}</span><span>{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-600" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-600 mt-1" />
                                         </>
                                     )}
                                 </div>
@@ -2867,11 +3338,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[820px] mx-auto p-8 border border-gray-300" style={{ fontFamily: 'Georgia, Times New Roman, serif', fontSize: '15px' }}>
                 <div className="mb-2 text-3xl font-bold tracking-tight">
                     {isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-3xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-3xl" />
                     )}
                 </div>
                 <div className="text-sm text-gray-700 mb-4">{isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
-                    <div className="flex gap-4"><input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" /><input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" /></div>
+                    <div className="flex gap-4"><SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
+                        <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" /></div>
                 )}</div>
                 <div className="border-t border-gray-400 my-2" />
                 <Section title="Tóm tắt">
@@ -2884,15 +3356,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-3">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{edu.time}</span><span>{edu.school}</span></>) : (
-                                    <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
+                                    <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                 <>
-                                    <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
-                                    <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
-                                    <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
+                                    <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
+                                    <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
+                                    <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 mt-1" />
                                 </>
                             )}
                         </div>
@@ -2904,15 +3376,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-3">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{exp.time}</span><span>{exp.company}</span></>) : (
-                                    <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
+                                    <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                 <>
-                                    <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
+                                    <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
                                     <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (
-                                        <li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
+                                        <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
                                     ))}
                                         <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                     </ul>
@@ -2927,15 +3399,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="mb-3">
                             <div className="flex justify-between font-semibold">
                                 {isExporting ? (<><span>{act.time}</span><span>{act.org}</span></>) : (
-                                    <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
-                                        <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
+                                    <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-400 focus:border-gray-700" />
+                                        <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-400 focus:border-gray-700" /></>
                                 )}
                             </div>
                             {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                 <>
-                                    <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
+                                    <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-400 focus:border-gray-700 font-bold mt-1" />
                                     <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (
-                                        <li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
+                                        <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-400 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
                                     ))}
                                         <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                     </ul>
@@ -2955,12 +3427,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <div className="text-center mb-6">
                     <div className="text-4xl font-extrabold tracking-tight">
                         {isExporting ? (data.fullName || 'Họ và tên') : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full max-w-[520px] mx-auto text-center border-b border-gray-300 focus:border-gray-700 outline-none bg-transparent font-extrabold text-4xl" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full max-w-[520px] mx-auto text-center border-b border-gray-300 focus:border-gray-700 outline-none bg-transparent font-extrabold text-4xl" />
                         )}
                     </div>
                     <div className="text-sm text-gray-600 mt-1" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
-                            <div className="flex justify-center gap-4"><input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" /><input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" /></div>
+                            <div className="flex justify-center gap-4"><SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" /><SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-700" /></div>
                         )}
                     </div>
                 </div>
@@ -2976,15 +3448,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{edu.time}</span><span className="w-2/3 inline-block text-right">{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1" />
                                         </>
                                     )}
                                 </Box>
@@ -2998,15 +3470,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{exp.time}</span><span className="w-2/3 inline-block text-right">{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
                                             <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (
-                                                <li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
+                                                <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả, thành tích..." /></li>
                                             ))}
                                                 <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
@@ -3021,15 +3493,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{act.time}</span><span className="w-2/3 inline-block text-right">{act.org}</span></>) : (
-                                            <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
-                                                <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
+                                            <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-gray-300 focus:border-gray-700" />
+                                                <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-gray-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
+                                            <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-bold mt-1" />
                                             <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (
-                                                <li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả hoạt động, thành tích..." /></li>
+                                                <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-gray-700" placeholder="Mô tả hoạt động, thành tích..." /></li>
                                             ))}
                                                 <li><button type="button" className="text-xs text-gray-800 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
@@ -3051,12 +3523,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-7">
                     <div className="text-3xl font-extrabold">
                         {isExporting ? (data.fullName || 'Họ và tên') : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/70 focus:border-white w-full font-extrabold text-3xl" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/70 focus:border-white w-full font-extrabold text-3xl" />
                         )}
                     </div>
                     <div className="opacity-90 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
-                            <div className="flex gap-4 items-center"><input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/70 focus:border-white" /><input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/70 focus:border-white" /></div>
+                            <div className="flex gap-4 items-center"><SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/70 focus:border-white" /><SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/70 focus:border-white" /></div>
                         )}
                     </div>
                 </div>
@@ -3067,15 +3539,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{exp.time}</span><span className="w-2/3 inline-block text-right">{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-indigo-600" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-indigo-600" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-gray-300 focus:border-indigo-600" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-indigo-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 font-bold mt-1" />
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 font-bold mt-1" />
                                             <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (
-                                                <li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-indigo-600" placeholder="Mô tả, thành tích..." /></li>
+                                                <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-gray-300 focus:border-indigo-600" placeholder="Mô tả, thành tích..." /></li>
                                             ))}
                                                 <li><button type="button" className="text-xs text-indigo-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
@@ -3090,15 +3562,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{edu.time}</span><span className="w-2/3 inline-block text-right">{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-indigo-600" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-indigo-600" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-gray-300 focus:border-indigo-600" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-gray-300 focus:border-indigo-600" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 mt-1" />
                                         </>
                                     )}
                                 </Box>
@@ -3115,9 +3587,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <Section title="Hoạt động">
                             {data.activityList?.map((act, idx) => (
                                 <Box key={idx}>
-                                    <div className="text-xs text-gray-500">{isExporting ? act.time : (<input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 text-xs" />)}</div>
-                                    <div className="font-semibold">{isExporting ? act.org : (<input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-full outline-none border-b border-gray-300 focus:border-indigo-600" />)}</div>
-                                    <div className="text-sm">{isExporting ? act.role : (<input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 text-sm" />)}</div>
+                                    <div className="text-xs text-gray-500">{isExporting ? act.time : (<SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 text-xs" />)}</div>
+                                    <div className="font-semibold">{isExporting ? act.org : (<SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-full outline-none border-b border-gray-300 focus:border-indigo-600" />)}</div>
+                                    <div className="text-sm">{isExporting ? act.role : (<SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-gray-300 focus:border-indigo-600 text-sm" />)}</div>
                                 </Box>
                             ))}
                             {!isExporting && <button type="button" className="text-xs text-indigo-700 underline" onClick={() => onAddList('activityList', { time: '', org: '', role: '', details: '' })}>+ Thêm hoạt động</button>}
@@ -3133,10 +3605,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[820px] mx-auto p-8 border border-teal-200 rounded" style={{ fontFamily: 'Inter, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="mb-4">
                     <div className="text-2xl font-extrabold text-teal-700">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 bg-transparent font-extrabold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 bg-transparent font-extrabold text-2xl" />
                     )}</div>
                     <div className="text-sm text-teal-700 mt-1">{isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
-                        <div className="flex gap-4"><input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-teal-300 focus:border-teal-700" /><input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-teal-300 focus:border-teal-700" /></div>
+                        <div className="flex gap-4"><SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-teal-300 focus:border-teal-700" /><SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-teal-300 focus:border-teal-700" /></div>
                     )}</div>
                 </div>
                 <Section title="Mục tiêu/Định hướng">
@@ -3151,15 +3623,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{edu.time}</span><span className="w-2/3 inline-block text-right">{edu.school}</span></>) : (
-                                            <><input type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
-                                                <input type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
+                                            <><SmartInput type="text" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} placeholder="2016 - 2020" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
+                                                <SmartInput type="text" value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} placeholder="Tên trường..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div>{edu.major}</div><div>{edu.result}</div><div>{edu.note}</div></>) : (
                                         <>
-                                            <input type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
-                                            <input type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
-                                            <input type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
+                                            <SmartInput type="text" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} placeholder="Chuyên ngành" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
+                                            <SmartInput type="text" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} placeholder="Kết quả/Thành tích" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
+                                            <SmartInput type="text" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} placeholder="Ghi chú" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 mt-1" />
                                         </>
                                     )}
                                     {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3174,15 +3646,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{act.time}</span><span className="w-2/3 inline-block text-right">{act.org}</span></>) : (
-                                            <><input type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
-                                                <input type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
+                                            <><SmartInput type="text" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} placeholder="08/2016 - 08/2018" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
+                                                <SmartInput type="text" value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} placeholder="Tên tổ chức..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{act.role}</div><ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 font-bold mt-1" />
+                                            <SmartInput type="text" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} placeholder="Vai trò" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 font-bold mt-1" />
                                             <ul className="list-disc ml-5 mt-1">{(act.details || '').split('\n').map((line, i) => (
-                                                <li key={i}><input type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-teal-300 focus:border-teal-700" placeholder="Mô tả hoạt động, thành tích..." /></li>
+                                                <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (act.details || '').split('\n'); lines[i] = e.target.value; onListChange('activityList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-teal-300 focus:border-teal-700" placeholder="Mô tả hoạt động, thành tích..." /></li>
                                             ))}
                                                 <li><button type="button" className="text-xs text-teal-700 underline" onClick={() => onListChange('activityList', idx, 'details', (act.details ? act.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
@@ -3198,15 +3670,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 <Box key={idx}>
                                     <div className="flex justify-between font-semibold">
                                         {isExporting ? (<><span className="w-1/3 inline-block">{exp.time}</span><span className="w-2/3 inline-block text-right">{exp.company}</span></>) : (
-                                            <><input type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
-                                                <input type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
+                                            <><SmartInput type="text" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} placeholder="03/2022 - 02/2025" className="w-1/3 outline-none border-b border-teal-300 focus:border-teal-700" />
+                                                <SmartInput type="text" value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} placeholder="Tên công ty..." className="w-2/3 text-right outline-none border-b border-teal-300 focus:border-teal-700" /></>
                                         )}
                                     </div>
                                     {isExporting ? (<><div className="font-bold">{exp.position}</div><ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((l, i) => (<li key={i}>{l}</li>))}</ul></>) : (
                                         <>
-                                            <input type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 font-bold mt-1" />
+                                            <SmartInput type="text" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} placeholder="Vị trí" className="w-full outline-none border-b border-teal-300 focus:border-teal-700 font-bold mt-1" />
                                             <ul className="list-disc ml-5 mt-1">{(exp.details || '').split('\n').map((line, i) => (
-                                                <li key={i}><input type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-teal-300 focus:border-teal-700" placeholder="Mô tả, thành tích..." /></li>
+                                                <li key={i}><SmartInput type="text" value={line} onChange={e => { const lines = (exp.details || '').split('\n'); lines[i] = e.target.value; onListChange('experienceList', idx, 'details', lines.join('\n')); }} className="w-full outline-none border-b border-teal-300 focus:border-teal-700" placeholder="Mô tả, thành tích..." /></li>
                                             ))}
                                                 <li><button type="button" className="text-xs text-teal-700 underline" onClick={() => onListChange('experienceList', idx, 'details', (exp.details ? exp.details + '\n' : '\n'))}>+ Thêm dòng</button></li>
                                             </ul>
@@ -3233,25 +3705,34 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {isExporting ? (
                             <div className="font-bold text-lg mb-2 text-primary-700">{data.fullName || 'Họ và tên'}</div>
                         ) : (
-                            <input type="text" name="fullName" placeholder="Họ và tên" value={data.fullName} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none font-bold text-lg text-center bg-transparent mb-2" />
+                            <SmartInput type="text" name="fullName" placeholder="Họ và tên" value={data.fullName} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none font-bold text-lg text-center bg-transparent mb-2" />
                         )}
                         {isExporting ? (
                             <div className="text-xs text-gray-500 mb-1">{data.email || 'Email'}</div>
                         ) : (
-                            <input type="email" name="email" placeholder="Email" value={data.email} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent mb-1 text-center" />
+                            <SmartInput type="email" name="email" placeholder="Email" value={data.email} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent mb-1 text-center" />
                         )}
                         {isExporting ? (
                             <div className="text-xs text-gray-500 mb-1">{data.phone || 'Số điện thoại'}</div>
                         ) : (
-                            <input type="text" name="phone" placeholder="Số điện thoại" value={data.phone} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent mb-1 text-center" />
+                            <SmartInput type="text" name="phone" placeholder="Số điện thoại" value={data.phone} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent mb-1 text-center" />
                         )}
                     </div>
                     <div className="mt-6 w-full">
                         <div className="uppercase font-bold text-xs text-primary-600 mb-1">Mục tiêu nghề nghiệp</div>
                         {isExporting ? (
-                            <div className="text-xs text-gray-700 whitespace-pre-line">{data.summary || 'Mục tiêu nghề nghiệp của bạn...'}</div>
+                            <div className="text-xs text-gray-700 whitespace-pre-wrap">
+                                {data.summary || 'Mục tiêu nghề nghiệp của bạn...'}
+                            </div>
                         ) : (
-                            <textarea name="summary" placeholder="Mục tiêu nghề nghiệp của bạn..." value={data.summary} onChange={onChange} className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent" rows={4} />
+                            <textarea
+                                name="summary"
+                                placeholder="Mục tiêu nghề nghiệp của bạn..."
+                                value={data.summary}
+                                onChange={onChange}
+                                className="w-full border-b border-primary-300 focus:border-primary-500 outline-none text-xs text-gray-700 bg-transparent whitespace-pre-wrap break-words resize-none"
+                                rows={4}
+                            />
                         )}
                     </div>
                 </div>
@@ -3268,8 +3749,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                            <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                            <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                            <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                         </>
                                     )}
                                 </div>
@@ -3281,9 +3762,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                        <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                        <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                        <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                        <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                        <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
                                     </>
                                 )}
                                 {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3302,8 +3783,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                            <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                            <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                            <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                         </>
                                     )}
                                 </div>
@@ -3318,11 +3799,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                        <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                         <ul className="list-disc ml-5 mt-1">
                                             {(exp.details || '').split('\n').map((line, i) => (
                                                 <li key={i}>
-                                                    <input type="text" value={line} onChange={e => {
+                                                    <SmartInput type="text" value={line} onChange={e => {
                                                         const lines = (exp.details || '').split('\n');
                                                         lines[i] = e.target.value;
                                                         onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -3353,8 +3834,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                            <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                            <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                            <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                         </>
                                     )}
                                 </div>
@@ -3369,11 +3850,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                        <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                         <ul className="list-disc ml-5 mt-1">
                                             {(act.details || '').split('\n').map((line, i) => (
                                                 <li key={i}>
-                                                    <input type="text" value={line} onChange={e => {
+                                                    <SmartInput type="text" value={line} onChange={e => {
                                                         const lines = (act.details || '').split('\n');
                                                         lines[i] = e.target.value;
                                                         onListChange('activityList', idx, 'details', lines.join('\n'));
@@ -3403,15 +3884,15 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[900px] mx-auto border border-gray-200 rounded shadow overflow-hidden" style={{ fontFamily: 'Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="bg-primary-700 text-white p-6">
                     <div className="text-2xl font-extrabold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/60 focus:border-white w-full font-extrabold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="bg-transparent outline-none border-b border-white/60 focus:border-white w-full font-extrabold text-2xl" />
                     )}</div>
                     <div className="opacity-90 mt-1">
                         {isExporting ? (
                             <span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>
                         ) : (
                             <div className="flex gap-4 items-center">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/60 focus:border-white" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/60 focus:border-white" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-white/60 focus:border-white" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-white/60 focus:border-white" />
                             </div>
                         )}
                     </div>
@@ -3437,8 +3918,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3453,11 +3934,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                            <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                             <ul className="list-disc ml-5 mt-1">
                                                 {(exp.details || '').split('\n').map((line, i) => (
                                                     <li key={i}>
-                                                        <input type="text" value={line} onChange={e => {
+                                                        <SmartInput type="text" value={line} onChange={e => {
                                                             const lines = (exp.details || '').split('\n');
                                                             lines[i] = e.target.value;
                                                             onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -3488,8 +3969,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3501,9 +3982,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
                                         </>
                                     )}
                                     {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3522,8 +4003,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3538,11 +4019,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                            <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                             <ul className="list-disc ml-5 mt-1">
                                                 {(act.details || '').split('\n').map((line, i) => (
                                                     <li key={i}>
-                                                        <input type="text" value={line} onChange={e => {
+                                                        <SmartInput type="text" value={line} onChange={e => {
                                                             const lines = (act.details || '').split('\n');
                                                             lines[i] = e.target.value;
                                                             onListChange('activityList', idx, 'details', lines.join('\n'));
@@ -3574,14 +4055,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <div className="mb-6 border-b-2 border-gray-800 pb-3">
                     <div className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'JetBrains Mono, Menlo, Consolas, monospace' }}>
                         {isExporting ? (data.fullName || 'Họ và tên') : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="outline-none border-b border-gray-300 focus:border-gray-800 bg-transparent w-full font-extrabold text-2xl" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="outline-none border-b border-gray-300 focus:border-gray-800 bg-transparent w-full font-extrabold text-2xl" />
                         )}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-4 items-center">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-800" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-800" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-800" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-300 focus:border-gray-800" />
                             </div>
                         )}
                     </div>
@@ -3605,9 +4086,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full text-xs" />
-                                        <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full font-semibold" />
-                                        <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full text-sm" />
+                                        <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full text-xs" />
+                                        <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full font-semibold" />
+                                        <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full text-sm" />
                                     </>
                                 )}
                             </div>
@@ -3626,8 +4107,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3642,11 +4123,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1 font-bold" />
+                                            <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1 font-bold" />
                                             <ul className="list-disc ml-5 mt-1">
                                                 {(exp.details || '').split('\n').map((line, i) => (
                                                     <li key={i}>
-                                                        <input type="text" value={line} onChange={e => {
+                                                        <SmartInput type="text" value={line} onChange={e => {
                                                             const lines = (exp.details || '').split('\n');
                                                             lines[i] = e.target.value;
                                                             onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -3677,8 +4158,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3690,9 +4171,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-gray-800 outline-none w-full mt-1" />
                                         </>
                                     )}
                                     {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3711,13 +4192,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <div className="bg-white w-full max-w-[820px] mx-auto border border-gray-300 rounded p-8" style={{ fontFamily: 'Calibri, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="mb-4">
                     <div className="text-2xl font-bold">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-2xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-gray-400 focus:border-gray-700 outline-none bg-transparent font-bold text-2xl" />
                     )}</div>
                     <div className="text-sm text-gray-600">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex gap-4 items-center">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-gray-400 focus:border-gray-700" />
                             </div>
                         )}
                     </div>
@@ -3725,9 +4206,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <Section title="Mục tiêu nghề nghiệp">
                     <Box>
                         {isExporting ? (
-                            <div className="whitespace-pre-line">{data.summary}</div>
+                            <div className="whitespace-pre-wrap text-sm text-gray-800">
+                                {data.summary || "Định hướng nghề nghiệp, chứng chỉ liên quan đến kế toán, tài chính"}
+                            </div>
                         ) : (
-                            <textarea name="summary" value={data.summary} onChange={onChange} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none" rows={3} placeholder="Định hướng nghề nghiệp, chứng chỉ liên quan đến kế toán, tài chính" />
+                            <textarea
+                                name="summary"
+                                value={data.summary}
+                                onChange={onChange}
+                                className="w-full border-b border-gray-400 focus:border-gray-700 outline-none text-sm bg-transparent whitespace-pre-wrap break-words resize-none"
+                                rows={3}
+                                placeholder="Định hướng nghề nghiệp, chứng chỉ liên quan đến kế toán, tài chính"
+                            />
                         )}
                     </Box>
                 </Section>
@@ -3735,16 +4225,16 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {data.experienceList?.map((exp, idx) => (
                         <div key={idx} className="grid grid-cols-5 gap-4 items-start mb-4">
                             <div className="col-span-1 text-sm text-gray-600">{isExporting ? exp.time : (
-                                <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none" />
+                                <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none" />
                             )}</div>
                             <div className="col-span-4">
                                 <div className="font-semibold flex justify-between">
                                     <span>{isExporting ? exp.company : (
-                                        <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="w-2/3 border-b border-gray-400 focus:border-gray-700 outline-none" />
+                                        <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="w-2/3 border-b border-gray-400 focus:border-gray-700 outline-none" />
                                     )}</span>
                                 </div>
                                 <div className="font-bold mt-1">{isExporting ? exp.position : (
-                                    <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none font-bold" />
+                                    <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none font-bold" />
                                 )}</div>
                                 {isExporting ? (
                                     <ul className="list-disc ml-5 mt-1">
@@ -3754,7 +4244,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     <ul className="list-disc ml-5 mt-1">
                                         {(exp.details || '').split('\n').map((line, i) => (
                                             <li key={i}>
-                                                <input type="text" value={line} onChange={e => {
+                                                <SmartInput type="text" value={line} onChange={e => {
                                                     const lines = (exp.details || '').split('\n');
                                                     lines[i] = e.target.value;
                                                     onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -3776,12 +4266,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     {data.educationList?.map((edu, idx) => (
                         <div key={idx} className="grid grid-cols-5 gap-4 items-start mb-4">
                             <div className="col-span-1 text-sm text-gray-600">{isExporting ? edu.time : (
-                                <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none" />
+                                <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none" />
                             )}</div>
                             <div className="col-span-4">
                                 <div className="font-semibold flex justify-between">
                                     <span>{isExporting ? edu.school : (
-                                        <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="w-2/3 border-b border-gray-400 focus:border-gray-700 outline-none" />
+                                        <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="w-2/3 border-b border-gray-400 focus:border-gray-700 outline-none" />
                                     )}</span>
                                 </div>
                                 {isExporting ? (
@@ -3792,9 +4282,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                     </>
                                 ) : (
                                     <>
-                                        <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
-                                        <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
-                                        <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
+                                        <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
+                                        <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
+                                        <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="w-full border-b border-gray-400 focus:border-gray-700 outline-none mt-1" />
                                     </>
                                 )}
                                 {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3805,20 +4295,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 </Section>
             </div>
         );
-    }
+    };
     if (templateStyle === 'fresher') {
         // Ưu tiên học vấn & mục tiêu, bố cục sáng sủa, căn giữa tiêu đề
         return (
             <div className="bg-white w-full max-w-[820px] mx-auto border border-blue-200 rounded-xl p-8 shadow" style={{ fontFamily: 'Poppins, Segoe UI, Arial, sans-serif', fontSize: '15px' }}>
                 <div className="text-center mb-6">
                     <div className="text-3xl font-extrabold text-blue-700">{isExporting ? (data.fullName || 'Họ và tên') : (
-                        <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full max-w-[480px] mx-auto text-center border-b border-blue-400 focus:border-blue-700 outline-none bg-transparent font-extrabold text-3xl" />
+                        <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full max-w-[480px] mx-auto text-center border-b border-blue-400 focus:border-blue-700 outline-none bg-transparent font-extrabold text-3xl" />
                     )}</div>
                     <div className="text-sm text-blue-600 mt-1">
                         {isExporting ? (<span>{data.email || 'Email'} • {data.phone || 'Số điện thoại'}</span>) : (
                             <div className="flex justify-center gap-4">
-                                <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-blue-300 focus:border-blue-700" />
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-blue-300 focus:border-blue-700" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-blue-300 focus:border-blue-700" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-blue-300 focus:border-blue-700" />
                             </div>
                         )}
                     </div>
@@ -3826,9 +4316,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <Section title="Mục tiêu nghề nghiệp">
                     <Box>
                         {isExporting ? (
-                            <div className="whitespace-pre-line">{data.summary}</div>
+                            <div className="whitespace-pre-wrap text-sm text-gray-800">
+                                {data.summary || "Định hướng học hỏi, mục tiêu ngắn hạn khi mới ra trường"}
+                            </div>
                         ) : (
-                            <textarea name="summary" value={data.summary} onChange={onChange} className="w-full border-b border-blue-300 focus:border-blue-700 outline-none" rows={4} placeholder="Định hướng học hỏi, mục tiêu ngắn hạn khi mới ra trường" />
+                            <textarea
+                                name="summary"
+                                value={data.summary}
+                                onChange={onChange}
+                                className="w-full border-b border-blue-300 focus:border-blue-700 outline-none text-sm bg-transparent whitespace-pre-wrap break-words resize-none"
+                                rows={4}
+                                placeholder="Định hướng học hỏi, mục tiêu ngắn hạn khi mới ra trường"
+                            />
                         )}
                     </Box>
                 </Section>
@@ -3845,8 +4344,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3858,9 +4357,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
-                                            <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
+                                            <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1" />
                                         </>
                                     )}
                                     {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -3881,8 +4380,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3897,11 +4396,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1 font-bold" />
+                                            <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1 font-bold" />
                                             <ul className="list-disc ml-5 mt-1">
                                                 {(exp.details || '').split('\n').map((line, i) => (
                                                     <li key={i}>
-                                                        <input type="text" value={line} onChange={e => {
+                                                        <SmartInput type="text" value={line} onChange={e => {
                                                             const lines = (exp.details || '').split('\n');
                                                             lines[i] = e.target.value;
                                                             onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -3932,8 +4431,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                             </>
                                         ) : (
                                             <>
-                                                <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
-                                                <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
+                                                <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-1/3" />
+                                                <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-2/3 text-right" />
                                             </>
                                         )}
                                     </div>
@@ -3948,11 +4447,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                         </>
                                     ) : (
                                         <>
-                                            <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1 font-bold" />
+                                            <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-blue-300 focus:border-blue-700 outline-none w-full mt-1 font-bold" />
                                             <ul className="list-disc ml-5 mt-1">
                                                 {(act.details || '').split('\n').map((line, i) => (
                                                     <li key={i}>
-                                                        <input type="text" value={line} onChange={e => {
+                                                        <SmartInput type="text" value={line} onChange={e => {
                                                             const lines = (act.details || '').split('\n');
                                                             lines[i] = e.target.value;
                                                             onListChange('activityList', idx, 'details', lines.join('\n'));
@@ -3989,23 +4488,32 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         {isExporting ? (
                             <div className="text-3xl font-extrabold text-pink-700 mb-1">{data.fullName || 'Họ và tên'}</div>
                         ) : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-pink-300 focus:border-pink-600 outline-none bg-transparent text-3xl font-extrabold text-pink-700 mb-1" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} placeholder="Họ và tên" className="w-full border-b border-pink-300 focus:border-pink-600 outline-none bg-transparent text-3xl font-extrabold text-pink-700 mb-1" />
                         )}
                         <div className="text-lg text-pink-600 mb-1">
                             {isExporting ? (
                                 <span>{data.email || 'Email'} | {data.phone || 'Số điện thoại'}</span>
                             ) : (
                                 <div className="flex gap-4">
-                                    <input type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-pink-300 focus:border-pink-600" />
-                                    <input type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-pink-300 focus:border-pink-600" />
+                                    <SmartInput type="email" name="email" value={data.email} onChange={onChange} placeholder="Email" className="bg-transparent outline-none border-b border-pink-300 focus:border-pink-600" />
+                                    <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} placeholder="Số điện thoại" className="bg-transparent outline-none border-b border-pink-300 focus:border-pink-600" />
                                 </div>
                             )}
                         </div>
                         <div className="text-base text-gray-700 italic">
                             {isExporting ? (
-                                <span>{data.summary || 'Mục tiêu nghề nghiệp...'}</span>
+                                <div className="whitespace-pre-wrap">
+                                    {data.summary || 'Mục tiêu nghề nghiệp...'}
+                                </div>
                             ) : (
-                                <textarea name="summary" value={data.summary} onChange={onChange} rows={3} placeholder="Mục tiêu nghề nghiệp..." className="w-full bg-transparent outline-none border-b border-pink-300 focus:border-pink-600" />
+                                <textarea
+                                    name="summary"
+                                    value={data.summary}
+                                    onChange={onChange}
+                                    rows={3}
+                                    placeholder="Mục tiêu nghề nghiệp..."
+                                    className="w-full bg-transparent outline-none border-b border-pink-300 focus:border-pink-600 text-base text-gray-700 italic whitespace-pre-wrap break-words resize-none"
+                                />
                             )}
                         </div>
                     </div>
@@ -4016,12 +4524,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {data.educationList && data.educationList.length > 0 && data.educationList.map((edu, idx) => (
                                 <Box key={idx}>
                                     <div className="font-semibold">
-                                        <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
-                                        <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
+                                        <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
+                                        <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
                                     </div>
-                                    <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
-                                    <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
-                                    <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
+                                    <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
+                                    <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
+                                    <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1" />
                                     {data.educationList.length > 1 && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
                                 </Box>
                             ))}
@@ -4031,14 +4539,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {data.activityList && data.activityList.length > 0 && data.activityList.map((act, idx) => (
                                 <Box key={idx}>
                                     <div className="font-semibold">
-                                        <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
-                                        <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
+                                        <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
+                                        <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
                                     </div>
-                                    <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1 font-bold" />
+                                    <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1 font-bold" />
                                     <ul className="list-disc ml-5 mt-1">
                                         {(act.details || '').split('\n').map((line, i) => (
                                             <li key={i}>
-                                                <input type="text" value={line} onChange={e => {
+                                                <SmartInput type="text" value={line} onChange={e => {
                                                     const lines = (act.details || '').split('\n');
                                                     lines[i] = e.target.value;
                                                     onListChange('activityList', idx, 'details', lines.join('\n'));
@@ -4062,14 +4570,14 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {data.experienceList && data.experienceList.length > 0 && data.experienceList.map((exp, idx) => (
                                 <Box key={idx}>
                                     <div className="font-semibold">
-                                        <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
-                                        <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
+                                        <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-1/3" />
+                                        <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-2/3 text-right" />
                                     </div>
-                                    <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1 font-bold" />
+                                    <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-pink-300 focus:border-pink-500 outline-none w-full mt-1 font-bold" />
                                     <ul className="list-disc ml-5 mt-1">
                                         {(exp.details || '').split('\n').map((line, i) => (
                                             <li key={i}>
-                                                <input type="text" value={line} onChange={e => {
+                                                <SmartInput type="text" value={line} onChange={e => {
                                                     const lines = (exp.details || '').split('\n');
                                                     lines[i] = e.target.value;
                                                     onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -4120,12 +4628,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <div className="text-center mb-6">
                     <div className="italic text-2xl font-semibold text-gray-700">
                         {isExporting ? (data.fullName || 'Họ Tên') : (
-                            <input type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full max-w-[520px] mx-auto text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-2xl font-semibold" />
+                            <SmartInput type="text" name="fullName" value={data.fullName} onChange={safeChange} placeholder="Họ Tên" className="w-full max-w-[520px] mx-auto text-center bg-transparent outline-none border-b border-gray-300 focus:border-gray-700 italic text-2xl font-semibold" />
                         )}
                     </div>
                     <div className="italic text-gray-600 mt-1">
                         {isExporting ? (data.appliedPosition || 'Vị trí ứng tuyển') : (
-                            <input type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full max-w-[360px] mx-auto text-center bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
+                            <SmartInput type="text" name="appliedPosition" value={data.appliedPosition} onChange={safeChange} placeholder="Vị trí ứng tuyển" className="w-full max-w-[360px] mx-auto text-center bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 italic" />
                         )}
                     </div>
                     {/* Liên hệ dạng 1 dòng có dấu chấm ngăn cách */}
@@ -4142,13 +4650,13 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             </>
                         ) : (
                             <>
-                                <input type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={safeChange} placeholder="0123 456 789" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 <span>•</span>
-                                <input type="email" name="email" value={data.email} onChange={safeChange} placeholder="email@example.com" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={safeChange} placeholder="email@example.com" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 <span>•</span>
-                                <input type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <SmartInput type="text" name="website" value={data.website} onChange={safeChange} placeholder="facebook.com/TopCV.vn" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 <span>•</span>
-                                <input type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                <SmartInput type="text" name="address" value={data.address} onChange={safeChange} placeholder="Quận A, thành phố Hà Nội" className="bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                             </>
                         )}
                     </div>
@@ -4158,9 +4666,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                 <SectionHeader>Mục tiêu nghề nghiệp</SectionHeader>
                 <div className="text-gray-700 mb-3">
                     {isExporting ? (
-                        <div className="whitespace-pre-wrap">{data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}</div>
+                        <div className="whitespace-pre-wrap">
+                            {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                        </div>
                     ) : (
-                        <input type="text" name="summary" value={data.summary} onChange={safeChange} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                        <SmartInput
+                            type="textarea"
+                            name="summary"
+                            value={data.summary}
+                            onChange={safeChange}
+                            placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                            className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 whitespace-pre-wrap break-words resize-none text-sm"
+                        />
                     )}
                 </div>
 
@@ -4171,20 +4688,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="pb-2 border-b border-gray-200">
                             <Row
                                 left={isExporting ? (edu.school || 'Tên trường học') : (
-                                    <input value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={edu.school || ''} onChange={listChange('educationList', idx, 'school')} placeholder="Tên trường học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                                 right={isExporting ? (edu.time || 'Bắt đầu  -  Kết thúc') : (
-                                    <input value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                    <SmartInput value={edu.time || ''} onChange={listChange('educationList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                 )}
                             />
                             <div className="mt-1 text-gray-700">
                                 {isExporting ? (edu.major || 'Ngành học / Môn học') : (
-                                    <input value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={edu.major || ''} onChange={listChange('educationList', idx, 'major')} placeholder="Ngành học / Môn học" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                             </div>
                             <div className="mt-1 text-gray-600">
                                 {isExporting ? (edu.result || edu.note || 'Mô tả quá trình học hoặc thành tích của bạn') : (
-                                    <input value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                    <SmartInput value={edu.result || ''} onChange={listChange('educationList', idx, 'result')} placeholder="Mô tả quá trình học hoặc thành tích của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                 )}
                             </div>
                             {!isExporting && data.educationList?.length > 1 && (
@@ -4204,20 +4721,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="pb-2 border-b border-gray-200">
                             <Row
                                 left={isExporting ? (exp.company || 'Tên công ty') : (
-                                    <input value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={exp.company || ''} onChange={listChange('experienceList', idx, 'company')} placeholder="Tên công ty" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                                 right={isExporting ? (exp.time || 'Bắt đầu  -  Kết thúc') : (
-                                    <input value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                    <SmartInput value={exp.time || ''} onChange={listChange('experienceList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                 )}
                             />
                             <div className="mt-1 text-gray-800 font-semibold">
                                 {isExporting ? (exp.position || 'Vị trí công việc') : (
-                                    <input value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
+                                    <SmartInput value={exp.position || ''} onChange={listChange('experienceList', idx, 'position')} placeholder="Vị trí công việc" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
                                 )}
                             </div>
                             <div className="mt-1 text-gray-600">
                                 {isExporting ? (exp.details || 'Mô tả kinh nghiệm làm việc của bạn') : (
-                                    <input value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                    <SmartInput type="textarea" value={exp.details || ''} onChange={listChange('experienceList', idx, 'details')} placeholder="Mô tả kinh nghiệm làm việc của bạn" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                 )}
                             </div>
                             {!isExporting && data.experienceList?.length > 1 && (
@@ -4237,12 +4754,12 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="flex items-baseline gap-4 pb-2 border-b border-gray-200">
                             <div className="w-1/3 text-gray-800">
                                 {isExporting ? (s.name || 'Tên kỹ năng') : (
-                                    <input value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={s.name || ''} onChange={listChange('skillsList', idx, 'name')} placeholder="Tên kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                             </div>
                             <div className="flex-1 text-gray-600">
                                 {isExporting ? (s.description || 'Mô tả kỹ năng') : (
-                                    <input value={s.description || ''} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                    <SmartInput value={s.description || ''} onChange={listChange('skillsList', idx, 'description')} placeholder="Mô tả kỹ năng" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                 )}
                             </div>
                             {!isExporting && data.skillsList?.length > 1 && (
@@ -4262,20 +4779,20 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="pb-2 border-b border-gray-200">
                             <Row
                                 left={isExporting ? (act.org || 'Tên tổ chức') : (
-                                    <input value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={act.org || ''} onChange={listChange('activityList', idx, 'org')} placeholder="Tên tổ chức" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                                 right={isExporting ? (act.time || 'Bắt đầu  -  Kết thúc') : (
-                                    <input value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                    <SmartInput value={act.time || ''} onChange={listChange('activityList', idx, 'time')} placeholder="Bắt đầu  -  Kết thúc" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                 )}
                             />
                             <div className="mt-1 text-gray-800 font-semibold">
                                 {isExporting ? (act.role || 'Vị trí của bạn') : (
-                                    <input value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
+                                    <SmartInput value={act.role || ''} onChange={listChange('activityList', idx, 'role')} placeholder="Vị trí của bạn" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 font-semibold" />
                                 )}
                             </div>
                             <div className="mt-1 text-gray-600">
                                 {isExporting ? (act.details || 'Mô tả hoạt động') : (
-                                    <input value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
+                                    <SmartInput value={act.details || ''} onChange={listChange('activityList', idx, 'details')} placeholder="Mô tả hoạt động" className="w-full bg-transparent outline-none border-b border-gray-100 focus:border-gray-500" />
                                 )}
                             </div>
                             {!isExporting && data.activityList?.length > 1 && (
@@ -4295,10 +4812,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="pb-2 border-b border-gray-200">
                             <Row
                                 left={isExporting ? (c.name || 'Tên chứng chỉ') : (
-                                    <input value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={c.name || ''} onChange={listChange('certificatesList', idx, 'name')} placeholder="Tên chứng chỉ" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                                 right={isExporting ? (c.time || 'Thời gian') : (
-                                    <input value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                    <SmartInput value={c.time || ''} onChange={listChange('certificatesList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                 )}
                             />
                             {!isExporting && data.certificatesList?.length > 1 && (
@@ -4318,10 +4835,10 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                         <div key={idx} className="pb-2 border-b border-gray-200">
                             <Row
                                 left={isExporting ? (a.title || 'Tên giải thưởng') : (
-                                    <input value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
+                                    <SmartInput value={a.title || ''} onChange={listChange('awardsList', idx, 'title')} placeholder="Tên giải thưởng" className="w-full bg-transparent outline-none border-b border-gray-200 focus:border-gray-600" />
                                 )}
                                 right={isExporting ? (a.time || 'Thời gian') : (
-                                    <input value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
+                                    <SmartInput value={a.time || ''} onChange={listChange('awardsList', idx, 'time')} placeholder="Thời gian" className="w-40 bg-transparent outline-none border-b border-gray-200 focus:border-gray-600 text-right italic" />
                                 )}
                             />
                             {!isExporting && data.awardsList?.length > 1 && (
@@ -4349,7 +4866,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div className="font-bold text-lg">{data.fullName}</div>
                             ) : (
-                                <input type="text" name="fullName" value={data.fullName} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none font-bold text-lg" />
+                                <SmartInput type="text" name="fullName" value={data.fullName} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none font-bold text-lg" />
                             )}
                         </div>
                         <div>
@@ -4357,7 +4874,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div>{data.email}</div>
                             ) : (
-                                <input type="email" name="email" value={data.email} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none" />
+                                <SmartInput type="email" name="email" value={data.email} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none" />
                             )}
                         </div>
                         <div>
@@ -4365,7 +4882,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             {isExporting ? (
                                 <div>{data.phone}</div>
                             ) : (
-                                <input type="text" name="phone" value={data.phone} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none" />
+                                <SmartInput type="text" name="phone" value={data.phone} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none" />
                             )}
                         </div>
                     </div>
@@ -4374,9 +4891,18 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
             <Section title="Mục tiêu nghề nghiệp">
                 <Box>
                     {isExporting ? (
-                        <div className="whitespace-pre-line">{data.summary}</div>
+                        <div className="whitespace-pre-wrap break-words text-sm text-gray-800">
+                            {data.summary || 'Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn'}
+                        </div>
                     ) : (
-                        <textarea name="summary" value={data.summary} onChange={onChange} className="w-full border-b border-gray-300 focus:border-primary-500 outline-none" rows={2} placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn" />
+                        <textarea
+                            name="summary"
+                            value={data.summary}
+                            onChange={onChange}
+                            className="w-full border-b border-gray-300 focus:border-primary-500 outline-none break-words resize-none text-sm text-gray-800 bg-transparent"
+                            rows={3}
+                            placeholder="Mục tiêu nghề nghiệp của bạn, bao gồm mục tiêu ngắn hạn và dài hạn"
+                        />
                     )}
                 </Box>
             </Section>
@@ -4391,8 +4917,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                    <input type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                    <SmartInput type="text" placeholder="2016 - 2020" value={edu.time} onChange={e => onListChange('educationList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                    <SmartInput type="text" placeholder="Tên trường..." value={edu.school} onChange={e => onListChange('educationList', idx, 'school', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                 </>
                             )}
                         </div>
@@ -4404,9 +4930,9 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             </>
                         ) : (
                             <>
-                                <input type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                <input type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
-                                <input type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                <SmartInput type="text" placeholder="Chuyên ngành" value={edu.major} onChange={e => onListChange('educationList', idx, 'major', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                <SmartInput type="text" placeholder="Kết quả/Thành tích" value={edu.result} onChange={e => onListChange('educationList', idx, 'result', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
+                                <SmartInput type="text" placeholder="Ghi chú" value={edu.note} onChange={e => onListChange('educationList', idx, 'note', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1" />
                             </>
                         )}
                         {data.educationList.length > 1 && !isExporting && <button type="button" className="text-xs text-red-500 underline mt-1" onClick={() => onRemoveList('educationList', idx)}>Xóa</button>}
@@ -4425,8 +4951,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                    <input type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                    <SmartInput type="text" placeholder="03/2022 - 02/2025" value={exp.time} onChange={e => onListChange('experienceList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                    <SmartInput type="text" placeholder="Tên công ty..." value={exp.company} onChange={e => onListChange('experienceList', idx, 'company', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                 </>
                             )}
                         </div>
@@ -4441,11 +4967,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             </>
                         ) : (
                             <>
-                                <input type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                <SmartInput type="text" placeholder="Vị trí" value={exp.position} onChange={e => onListChange('experienceList', idx, 'position', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                 <ul className="list-disc ml-5 mt-1">
                                     {(exp.details || '').split('\n').map((line, i) => (
                                         <li key={i}>
-                                            <input type="text" value={line} onChange={e => {
+                                            <SmartInput type="text" value={line} onChange={e => {
                                                 const lines = (exp.details || '').split('\n');
                                                 lines[i] = e.target.value;
                                                 onListChange('experienceList', idx, 'details', lines.join('\n'));
@@ -4476,8 +5002,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 </>
                             ) : (
                                 <>
-                                    <input type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
-                                    <input type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
+                                    <SmartInput type="text" placeholder="08/2016 - 08/2018" value={act.time} onChange={e => onListChange('activityList', idx, 'time', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-1/3" />
+                                    <SmartInput type="text" placeholder="Tên tổ chức..." value={act.org} onChange={e => onListChange('activityList', idx, 'org', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-2/3 text-right" />
                                 </>
                             )}
                         </div>
@@ -4492,11 +5018,11 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             </>
                         ) : (
                             <>
-                                <input type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
+                                <SmartInput type="text" placeholder="Vai trò" value={act.role} onChange={e => onListChange('activityList', idx, 'role', e.target.value)} className="border-b border-gray-300 focus:border-primary-500 outline-none w-full mt-1 font-bold" />
                                 <ul className="list-disc ml-5 mt-1">
                                     {(act.details || '').split('\n').map((line, i) => (
                                         <li key={i}>
-                                            <input type="text" value={line} onChange={e => {
+                                            <SmartInput type="text" value={line} onChange={e => {
                                                 const lines = (act.details || '').split('\n');
                                                 lines[i] = e.target.value;
                                                 onListChange('activityList', idx, 'details', lines.join('\n'));

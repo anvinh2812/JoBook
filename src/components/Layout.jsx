@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserDropdown from './UserDropdown';
 
+
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
