@@ -89,6 +89,15 @@ const Layout = ({ children }) => {
                       >
                         Quản lý CV
                       </Link>
+                      <Link
+                        to="/recommendations"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/recommendations')
+                          ? 'text-primary-600 bg-primary-50'
+                          : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                      >
+                        Gợi ý phù hợp
+                      </Link>
                     </>
                   )}
                   <Link
