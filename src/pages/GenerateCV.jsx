@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import CVPreview from "../components/CVPreview"; // Hiển thị template CV
 import { cvsAPI } from "../services/api";
 import notify from "../utils/notify";
+import html2pdf from "html2pdf.js";
 
 const GenerateCV = () => {
     const location = useLocation();
@@ -48,6 +49,7 @@ const GenerateCV = () => {
     const handleInputChange = (e) => {
         setFormInput({ ...formInput, [e.target.name]: e.target.value });
     };
+
 
     const handleAddList = (field) => {
         setFormData((prev) => ({
@@ -164,9 +166,22 @@ const GenerateCV = () => {
         setIsExporting(true);
 
         try {
-            const node = cvRef.current;
+            // ✅ Clone node CV
+            const exportNode = cvRef.current.cloneNode(true);
 
-            const canvas = await html2canvas(node, {
+            // ✅ Wrapper ép chuẩn A4 (210mm ~ 794px ở 96dpi)
+            const wrapper = document.createElement("div");
+            wrapper.style.width = "794px";
+            wrapper.style.padding = "20px";
+            wrapper.style.background = "#fff";
+            wrapper.style.overflow = "visible"; // tránh cắt text
+            wrapper.style.fontSize = "14px"; // đồng bộ font
+            wrapper.style.lineHeight = "1.5"; // chống dính chữ
+            wrapper.appendChild(exportNode);
+            document.body.appendChild(wrapper);
+
+            // ✅ Render canvas
+            const canvas = await html2canvas(wrapper, {
                 scale: 2,
                 useCORS: true,
                 backgroundColor: "#fff",
@@ -182,14 +197,22 @@ const GenerateCV = () => {
                                 style[prop] = fallback;
                             }
                         };
-
                         fix("backgroundColor", "#ffffff");
                         fix("color", "#111827");
                         fix("borderColor", "#e5e7eb");
+
+                        style.wordBreak = "break-word";
+                        style.overflowWrap = "break-word";
+                        style.whiteSpace = "pre-wrap";
+                        style.lineHeight = cs.lineHeight || "1.5";
+                        style.fontSize = cs.fontSize || "14px";
                     });
                 },
             });
 
+            document.body.removeChild(wrapper);
+
+            // ✅ Xuất PDF chuẩn A4
             const pdf = new jsPDF("p", "mm", "a4");
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
@@ -197,19 +220,20 @@ const GenerateCV = () => {
             const imgWidth = pageWidth;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            const pageHeightPx = (canvas.width * pageHeight) / pageWidth;
-
-            let renderedHeight = 0;
-            while (renderedHeight < canvas.height) {
+            let y = 0;
+            while (y < canvas.height) {
                 const pageCanvas = document.createElement("canvas");
                 pageCanvas.width = canvas.width;
-                pageCanvas.height = Math.min(pageHeightPx, canvas.height - renderedHeight);
+                pageCanvas.height = Math.min(
+                    canvas.height - y,
+                    (canvas.width * pageHeight) / pageWidth
+                );
 
                 const ctx = pageCanvas.getContext("2d");
                 ctx.drawImage(
                     canvas,
                     0,
-                    renderedHeight,
+                    y,
                     canvas.width,
                     pageCanvas.height,
                     0,
@@ -221,36 +245,39 @@ const GenerateCV = () => {
                 const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
                 const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width;
 
-                if (renderedHeight > 0) pdf.addPage();
+                if (y > 0) pdf.addPage();
                 pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
 
-                renderedHeight += pageHeightPx;
+                y += pageCanvas.height;
             }
 
-            // ✅ Xuất file về máy
-            pdf.save("cv.pdf");
+            // ✅ Đặt tên file
+            const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
 
-            // ✅ Upload lên server
+            // Hiển thị Save dialog
+            pdf.save(fileName);
+
+            // ✅ Upload lên server song song (chỉ chạy nếu muốn)
             const pdfBlob = pdf.output("blob");
-            const formData = new FormData();
-            formData.append("cv", pdfBlob, "cv.pdf");
+            const formDataUpload = new FormData();
+            formDataUpload.append("cv", pdfBlob, fileName);
 
             try {
-                await cvsAPI.uploadCV(formData);
+                await cvsAPI.uploadCV(formDataUpload);
                 notify.success("Đã lưu CV vào hệ thống");
-                // Sau khi upload thành công → báo hiệu cho MyCVs reload
                 window.dispatchEvent(new Event("cv-updated"));
             } catch (err) {
                 const msg = err?.response?.data?.message || "Lưu CV thất bại!";
                 notify.error(msg);
             }
-
         } catch (err) {
             console.error("❌ Export PDF error:", err);
         } finally {
             setIsExporting(false);
         }
     };
+
+
 
     return (
         <div className="min-h-screen bg-white px-4 sm:px-8 py-6">
@@ -349,13 +376,20 @@ const GenerateCV = () => {
                             <CVPreview
                                 data={formData}
                                 templateStyle={selectedTemplate?.style}
-                                isExporting={isExporting}
-                                isFormMode={true}
+                                isExporting={isExporting}   // ✅ Quan trọng
+                                isFormMode={!isExporting}   // ✅ Tắt input khi export
                                 onChange={(field, value) =>
                                     setFormData((prev) => ({ ...prev, [field]: value }))
                                 }
                                 onAddList={handleAddList}
+                                onAvatarChange={(file) => {
+                                    if (file) {
+                                        const url = URL.createObjectURL(file);
+                                        setFormData((prev) => ({ ...prev, avatar: url }));
+                                    }
+                                }}
                             />
+
                         </div>
                     </div>
                 </div>

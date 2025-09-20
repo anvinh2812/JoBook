@@ -10,27 +10,36 @@ const CVViewerModal = ({ cvUrl, onClose }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (containerRef.current) {
-      // Lấy chiều rộng container để scale PDF
-      setPageWidth(containerRef.current.offsetWidth - 40); // trừ padding
-    }
-
-    const handleResize = () => {
+    const updateSize = () => {
       if (containerRef.current) {
-        setPageWidth(containerRef.current.offsetWidth - 40);
+        const baseWidth = containerRef.current.offsetWidth - 20; // giảm padding
+
+        if (window.innerWidth >= 1024) {
+          // Laptop/Desktop: khoảng 85% modal
+          setPageWidth(baseWidth * 0.85);
+        } else if (window.innerWidth >= 768) {
+          // Tablet: khoảng 90%
+          setPageWidth(baseWidth * 0.9);
+        } else {
+          // Mobile: gần full
+          setPageWidth(baseWidth * 0.95);
+        }
       }
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   if (!cvUrl) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-[90%] h-[90%] flex flex-col">
+      {/* Modal box */}
+      <div className="bg-white rounded-lg shadow-lg w-[95%] h-[90%] md:w-[85%] lg:w-[70%] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-3 border-b">
           <h2 className="text-lg font-semibold">Xem CV</h2>
           <button
             className="text-gray-500 hover:text-gray-700"
@@ -41,7 +50,10 @@ const CVViewerModal = ({ cvUrl, onClose }) => {
         </div>
 
         {/* Nội dung PDF */}
-        <div ref={containerRef} className="flex-1 overflow-auto p-4">
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-auto p-2 flex justify-center items-start"
+        >
           <Document
             file={cvUrl}
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -51,7 +63,8 @@ const CVViewerModal = ({ cvUrl, onClose }) => {
               <Page
                 key={`page_${index + 1}`}
                 pageNumber={index + 1}
-                width={pageWidth} // fit theo container
+                width={pageWidth}
+                className="mx-auto"
               />
             ))}
           </Document>
