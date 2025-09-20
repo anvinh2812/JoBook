@@ -16,6 +16,7 @@ import Applications from './pages/Applications';
 import CreateCV from './pages/CreateCV';
 import AdminCompanies from './pages/AdminCompanies';
 import CompanyRegister from './pages/CompanyRegister';
+import Recommendations from './pages/Recommendations';
 
 import FloatingChatbotButton from './components/FloatingChatbotButton';
 import { Toaster } from 'react-hot-toast';
@@ -114,6 +115,14 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <Applications />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/recommendations" element={
+          <ProtectedRoute>
+            <Layout>
+              <Recommendations />
             </Layout>
           </ProtectedRoute>
         } />

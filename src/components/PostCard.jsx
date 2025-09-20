@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReadMore from './ReadMore';
 import { Link } from 'react-router-dom';
 
-const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, showCompanyName = false }) => {
+const PostCard = ({ post, currentUser = {}, onApply = () => { }, onViewCV = () => { }, onEdit = () => { }, onDelete = () => { }, showCompanyName = false }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -31,13 +31,38 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
   const canApply = () => {
     return post.post_type === 'find_candidate' &&
       !isExpired &&
-      currentUser.account_type === 'candidate' &&
-      post.user_id !== currentUser.id;
+      currentUser?.account_type === 'candidate' &&
+      post.user_id !== currentUser?.id;
   };
 
   const canViewCV = () => {
     return post.post_type === 'find_job' && post.cv_file_url;
   };
+
+  // Highlighting support: wrap matched tokens with yellow background
+  const buildHighlightedNodes = (src, terms) => {
+    if (!src || !Array.isArray(terms) || terms.length === 0) return src;
+    const escaped = terms
+      .map(t => (t || '').trim())
+      .filter(t => t.length > 0)
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (escaped.length === 0) return src;
+    escaped.sort((a, b) => b.length - a.length);
+    const rx = new RegExp(`(${escaped.join('|')})`, 'gi');
+    try {
+      const parts = String(src).split(rx);
+      return parts.map((part, idx) => (
+        idx % 2 === 1
+          ? <mark key={idx} className="bg-yellow-200 text-gray-900 rounded px-0.5">{part}</mark>
+          : <React.Fragment key={idx}>{part}</React.Fragment>
+      ));
+    } catch {
+      return src;
+    }
+  };
+
+  const getHighlightedDescription = () => buildHighlightedNodes(post?.description || '', post?.highlights || []);
+  const getHighlightedTitle = () => buildHighlightedNodes(post?.title || '', post?.highlights || []);
 
   return (
     <div id={`post-${post.id}`} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -107,9 +132,9 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
       {/* Content */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {post.title}
+          {getHighlightedTitle()}
         </h2>
-        <ReadMore text={post.description} lines={5} className="text-gray-700" scrollTargetId={`post-${post.id}`} />
+        <ReadMore text={getHighlightedDescription()} lines={5} className="text-gray-700" scrollTargetId={`post-${post.id}`} />
       </div>
 
       {/* Actions */}
@@ -136,7 +161,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
         </div>
 
         {/* Post actions for own posts */}
-        {post.user_id === currentUser.id && (
+        {currentUser?.id && post.user_id === currentUser.id && (
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
