@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import PostCard from '../components/PostCard';
 import ApplyModal from '../components/ApplyModal';
 import { toast } from 'react-hot-toast';
+import notify from '../utils/notify';
 import CVTextModal from '../components/CVTextModal';
 
 const Skeleton = () => (
@@ -41,10 +42,10 @@ export default function Recommendations() {
         applicationsAPI.apply({ post_id, cv_id })
       );
       setAppliedPostIds(ids => [...ids, post_id]);
-      toast.success('Nộp CV thành công!');
+      notify.success('Nộp CV thành công!');
       setShowApply(false);
     } catch (e) {
-      toast.error(e?.response?.data?.message || 'Nộp CV thất bại');
+      notify.error(e, 'Nộp CV thất bại');
     }
   };
 
@@ -73,9 +74,9 @@ export default function Recommendations() {
           return;
         }
 
-  setLoading(true);
-  // Clear posts immediately so old highlights don't linger when switching CV
-  setPosts([]);
+        setLoading(true);
+        // Clear posts immediately so old highlights don't linger when switching CV
+        setPosts([]);
         const { data } = await recommendationsAPI.get(targetCvId);
         setCv(data.cv);
         setCvSummary(data.cvSummary || '');
@@ -145,7 +146,7 @@ export default function Recommendations() {
                 currentUser={user}
                 onApply={() => {
                   if (hasApplied(p.id)) {
-                    toast('Bạn đã ứng tuyển vào bài này rồi', { icon: 'ℹ️' });
+                    notify.info('Bạn đã ứng tuyển vào bài này rồi');
                     return;
                   }
                   handleApply(p);
@@ -160,14 +161,14 @@ export default function Recommendations() {
             </div>
           ))
         )}
-      {/* Apply Modal */}
-      {showApply && applyPost && (
-        <ApplyModal
-          post={applyPost}
-          onClose={() => setShowApply(false)}
-          onSubmit={handleSubmitApply}
-        />
-      )}
+        {/* Apply Modal */}
+        {showApply && applyPost && (
+          <ApplyModal
+            post={applyPost}
+            onClose={() => setShowApply(false)}
+            onSubmit={handleSubmitApply}
+          />
+        )}
       </div>
 
       {/* CV Content Modal */}
