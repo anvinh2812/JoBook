@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReadMore from './ReadMore';
 import { Link } from 'react-router-dom';
 
-const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, showCompanyName = false }) => {
+const PostCard = ({ post, currentUser = {}, onApply = () => { }, onViewCV = () => { }, onEdit = () => { }, onDelete = () => { }, showCompanyName = false }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -14,27 +14,54 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
     });
   };
 
-  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && new Date(post.created_at) < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000));
+  // Consider expired only when current time is after end_at. Don't treat "not yet started" as expired.
+  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && post.start_at && post.end_at ? (new Date() > new Date(post.end_at)) : false);
 
   const daysLeft = (() => {
     if (post.post_type !== 'find_candidate') return null;
-    const created = new Date(post.created_at).getTime();
-    const deadline = created + 10 * 24 * 60 * 60 * 1000;
-    const msLeft = deadline - Date.now();
-    if (msLeft <= 0) return 0;
+    if (!post.end_at) return null;
+    const now = Date.now();
+    const end = new Date(post.end_at).getTime();
+    if (end <= now) return 0;
+    const msLeft = end - now;
     return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
   })();
 
   const canApply = () => {
     return post.post_type === 'find_candidate' &&
       !isExpired &&
-      currentUser.account_type === 'candidate' &&
-      post.user_id !== currentUser.id;
+      currentUser?.account_type === 'candidate' &&
+      post.user_id !== currentUser?.id;
   };
 
   const canViewCV = () => {
     return post.post_type === 'find_job' && post.cv_file_url;
   };
+
+  // Highlighting support: wrap matched tokens with yellow background
+  const buildHighlightedNodes = (src, terms) => {
+    if (!src || !Array.isArray(terms) || terms.length === 0) return src;
+    const escaped = terms
+      .map(t => (t || '').trim())
+      .filter(t => t.length > 0)
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (escaped.length === 0) return src;
+    escaped.sort((a, b) => b.length - a.length);
+    const rx = new RegExp(`(${escaped.join('|')})`, 'gi');
+    try {
+      const parts = String(src).split(rx);
+      return parts.map((part, idx) => (
+        idx % 2 === 1
+          ? <mark key={idx} className="bg-yellow-200 text-gray-900 rounded px-0.5">{part}</mark>
+          : <React.Fragment key={idx}>{part}</React.Fragment>
+      ));
+    } catch {
+      return src;
+    }
+  };
+
+  const getHighlightedDescription = () => buildHighlightedNodes(post?.description || '', post?.highlights || []);
+  const getHighlightedTitle = () => buildHighlightedNodes(post?.title || '', post?.highlights || []);
 
   return (
     <div id={`post-${post.id}`} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -96,7 +123,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
           }`}>
           {post.post_type === 'find_job' ? '🔍 Tìm việc làm' : (isExpired ? '⏳ Tuyển dụng (Hết hạn)' : '👥 Tuyển dụng')}
         </span>
-        {post.post_type === 'find_candidate' && !isExpired && typeof daysLeft === 'number' && (
+        {post.post_type === 'find_candidate' && typeof daysLeft === 'number' && (
           <span className="ml-2 text-xs text-gray-500">Còn {daysLeft} ngày</span>
         )}
       </div>
@@ -104,9 +131,9 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
       {/* Content */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {post.title}
+          {getHighlightedTitle()}
         </h2>
-        <ReadMore text={post.description} lines={5} className="text-gray-700" scrollTargetId={`post-${post.id}`} />
+        <ReadMore text={getHighlightedDescription()} lines={5} className="text-gray-700" scrollTargetId={`post-${post.id}`} />
       </div>
 
       {/* Actions */}
@@ -133,7 +160,7 @@ const PostCard = ({ post, currentUser, onApply, onViewCV, onEdit, onDelete, show
         </div>
 
         {/* Post actions for own posts */}
-        {post.user_id === currentUser.id && (
+        {currentUser?.id && post.user_id === currentUser.id && (
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}

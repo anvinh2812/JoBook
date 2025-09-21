@@ -61,15 +61,18 @@ const Layout = ({ children }) => {
                   >
                     Tìm người dùng
                   </Link>
-                  <Link
-                    to="/create-post"
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-post')
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                  >
-                    {user?.account_type === 'candidate' ? 'Đăng bài tìm việc' : 'Đăng bài tuyển dụng'}
-                  </Link>
+                  {/* Hide the create-post link for candidate users */}
+                  {user?.account_type !== 'candidate' && (
+                    <Link
+                      to="/create-post"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/create-post')
+                        ? 'text-primary-600 bg-primary-50'
+                        : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                      {user?.account_type === 'candidate' ? 'Đăng bài tìm việc' : 'Đăng bài tuyển dụng'}
+                    </Link>
+                  )}
                   {user?.account_type === 'candidate' && (
                     <>
                       <Link
@@ -89,6 +92,15 @@ const Layout = ({ children }) => {
                           }`}
                       >
                         Quản lý CV
+                      </Link>
+                      <Link
+                        to="/recommendations"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/recommendations')
+                          ? 'text-primary-600 bg-primary-50'
+                          : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                      >
+                        Gợi ý phù hợp
                       </Link>
                     </>
                   )}

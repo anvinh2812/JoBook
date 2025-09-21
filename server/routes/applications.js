@@ -16,7 +16,7 @@ router.post('/', authenticateToken, async (req, res) => {
     
     // Check if post exists and is find_candidate type
     const postResult = await pool.query(
-      'SELECT id, post_type, user_id, created_at FROM posts WHERE id = $1',
+      'SELECT id, post_type, user_id, start_at, end_at FROM posts WHERE id = $1',
       [post_id]
     );
     
@@ -30,8 +30,9 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Can only apply to find_candidate posts' });
     }
 
-    // Disallow applying if the job post is expired (10 days after created_at)
-    const isExpired = post.created_at < new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+    // Disallow applying if outside the valid window [start_at, end_at]
+    const now = new Date();
+    const isExpired = !(post.start_at && post.end_at) || now < new Date(post.start_at) || now > new Date(post.end_at);
     if (isExpired) {
       return res.status(400).json({ message: 'This job post has expired and no longer accepts applications' });
     }

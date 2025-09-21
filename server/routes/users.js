@@ -156,8 +156,24 @@ router.get('/', authenticateToken, async (req, res) => {
   const countResult = await pool.query(`SELECT COUNT(*)::int AS total FROM users ${baseWhere}`, whereParams);
     const total = countResult.rows[0]?.total || 0;
 
-    // page data
-    const dataQuery = `SELECT id, full_name, email, account_type, bio, avatar_url FROM users ${baseWhere} ORDER BY full_name LIMIT $${whereParams.length + 1} OFFSET $${whereParams.length + 2}`;
+    // page data (include company info when available); qualify columns to avoid ambiguity
+    const whereForData = baseWhere
+      .replace(/\baccount_type\b/g, 'u.account_type')
+      .replace(/\bfull_name\b/g, 'u.full_name')
+      .replace(/\bemail\b/g, 'u.email')
+      .replace(/\bcompany_id\b/g, 'u.company_id');
+
+    const dataQuery = `
+      SELECT u.id, u.full_name, u.email, u.account_type, u.bio, u.avatar_url,
+             u.company_id,
+             c.name AS company_name,
+             c.logo_url AS company_logo_url
+      FROM users u
+      LEFT JOIN companies c ON c.id = u.company_id
+      ${whereForData}
+      ORDER BY u.full_name
+      LIMIT $${whereParams.length + 1} OFFSET $${whereParams.length + 2}
+    `;
     const dataParams = [...whereParams, limitNum, offset];
     const result = await pool.query(dataQuery, dataParams);
     res.json({ users: result.rows, total });
