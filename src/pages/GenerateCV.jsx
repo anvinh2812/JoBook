@@ -69,7 +69,7 @@ const GenerateCV = () => {
         setIsGenerating(true);
 
         try {
-            const res = await fetch("/api/gemini/generate-cv", {
+            const res = await fetch(`${__API_BASE_URL__}/gemini/generate-cv`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const ChatBotModal = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
-  const [expanded, setExpanded] = useState({}); // key: index, value: boolean
+  const [expanded, setExpanded] = useState({});
   const [input, setInput] = useState('');
 
   const sendMessage = async () => {
@@ -16,7 +16,7 @@ const ChatBotModal = ({ onClose }) => {
     setInput('');
 
     try {
-      const res = await axios.post('http://localhost:5001/api/gemini/chat', { prompt: input });
+      const res = await axios.post(`${__API_BASE_URL__}/gemini/chat`, { prompt: input });
       const reply = res.data.response || 'Xin lỗi, hiện tại trợ lý AI đang gặp sự cố. Bạn thử hỏi lại sau nhé!';
       const links = Array.isArray(res.data.links) ? res.data.links : [];
 
@@ -31,7 +31,6 @@ const ChatBotModal = ({ onClose }) => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-blue-600 text-white">
         <div className="flex items-center space-x-2">
-          {/* <img src="/logo.png" alt="JoBook Logo" className="w-6 h-6 rounded-full" /> */}
           <span className="font-semibold">Trợ lý AI JoBook</span>
         </div>
         <button onClick={onClose}>
@@ -44,10 +43,11 @@ const ChatBotModal = ({ onClose }) => {
         {messages.map((msg, i) => (
           <div key={i} className={`max-w-[80%] ${msg.sender === 'user' ? 'ml-auto' : 'mr-auto'}`}>
             <div
-              className={`px-3 py-2 rounded-lg text-sm ${msg.sender === 'user'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-900'
-                }`}
+              className={`px-3 py-2 rounded-lg text-sm ${
+                msg.sender === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-900'
+              }`}
             >
               {msg.text}
             </div>

@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const API_BASE_URL = '/api';
+// Lấy từ vite.config.js (define)
+const API_BASE_URL = __API_BASE_URL__;
+
+console.log('🔗 API_BASE_URL =', API_BASE_URL); // Debug
 
 const api = axios.create({
   baseURL: API_BASE_URL,
