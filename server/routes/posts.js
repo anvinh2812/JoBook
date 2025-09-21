@@ -26,7 +26,7 @@ router.get('/', authenticateToken, async (req, res) => {
           WHEN p.post_type = 'find_candidate' 
             THEN (
               p.start_at IS NOT NULL AND p.end_at IS NOT NULL AND 
-              (CURRENT_TIMESTAMP < p.start_at OR CURRENT_TIMESTAMP > p.end_at)
+              (CURRENT_TIMESTAMP > p.end_at)
             )
           ELSE false
         END AS is_expired
@@ -58,8 +58,8 @@ router.get('/', authenticateToken, async (req, res) => {
     
     query += ` ORDER BY 
       -- Non-expired posts first (for recruitment posts, based on start/end period)
-      CASE 
-        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP < p.start_at OR CURRENT_TIMESTAMP > p.end_at) THEN 1
+        CASE 
+        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP > p.end_at) THEN 1
         ELSE 0
       END ASC,
       -- Then priority for following authors
@@ -100,7 +100,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
           WHEN p.post_type = 'find_candidate' 
             THEN (
               p.start_at IS NOT NULL AND p.end_at IS NOT NULL AND 
-              (CURRENT_TIMESTAMP < p.start_at OR CURRENT_TIMESTAMP > p.end_at)
+              (CURRENT_TIMESTAMP > p.end_at)
             )
           ELSE false
         END AS is_expired
@@ -120,7 +120,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
     
     query += ` ORDER BY 
       CASE 
-        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP < p.start_at OR CURRENT_TIMESTAMP > p.end_at) THEN 1
+        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP > p.end_at) THEN 1
         ELSE 0
       END ASC,
       p.created_at DESC`;

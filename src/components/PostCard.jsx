@@ -14,16 +14,15 @@ const PostCard = ({ post, currentUser = {}, onApply = () => { }, onViewCV = () =
     });
   };
 
-  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && post.start_at && post.end_at ? (new Date() < new Date(post.start_at) || new Date() > new Date(post.end_at)) : false);
+  // Consider expired only when current time is after end_at. Don't treat "not yet started" as expired.
+  const isExpired = !!post.is_expired || (post.post_type === 'find_candidate' && post.start_at && post.end_at ? (new Date() > new Date(post.end_at)) : false);
 
   const daysLeft = (() => {
     if (post.post_type !== 'find_candidate') return null;
-    if (!post.start_at || !post.end_at) return null;
+    if (!post.end_at) return null;
     const now = Date.now();
-    const start = new Date(post.start_at).getTime();
     const end = new Date(post.end_at).getTime();
-    if (now < start) return null; // chưa bắt đầu => không hiển thị "Còn X ngày"
-    if (now >= end) return 0; // hết hạn
+    if (end <= now) return 0;
     const msLeft = end - now;
     return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
   })();
@@ -124,7 +123,7 @@ const PostCard = ({ post, currentUser = {}, onApply = () => { }, onViewCV = () =
           }`}>
           {post.post_type === 'find_job' ? '🔍 Tìm việc làm' : (isExpired ? '⏳ Tuyển dụng (Hết hạn)' : '👥 Tuyển dụng')}
         </span>
-        {post.post_type === 'find_candidate' && !isExpired && typeof daysLeft === 'number' && (
+        {post.post_type === 'find_candidate' && typeof daysLeft === 'number' && (
           <span className="ml-2 text-xs text-gray-500">Còn {daysLeft} ngày</span>
         )}
       </div>
