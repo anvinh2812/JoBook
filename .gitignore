@@ -7,57 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Crash reports
-report.*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
 node_modules
 dist
 dist-ssr
 *.local
-
-# Vite/Tooling caches
-.vite
-.cache
-.parcel-cache
-.eslintcache
-.stylelintcache
-.turbo
-
-# Test & coverage
-coverage
-.nyc_output
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
-Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment files (secrets)
+# Environment files
 .env
-.env.*
-!.env.example
-!.env.local.example
-!.env.development.example
-!.env.production.example
-
-# Package manager files
-*.tgz
-.pnp*
-.npmrc
-
-# Uploads and generated assets (keep folder only)
-server/uploads/**
-!server/uploads/.gitkeep

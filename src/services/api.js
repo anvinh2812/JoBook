@@ -109,9 +109,4 @@ export const companiesAPI = {
   },
 };
 
-// Recommendations API
-export const recommendationsAPI = {
-  get: (cvId) => api.get('/recommendations', { params: { cvId } }),
-};
-
 export default api;

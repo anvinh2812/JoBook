@@ -7,10 +7,7 @@ import notify from '../utils/notify';
 const SearchUsers = () => {
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  // Account type filter: 'candidate' | 'company' | 'same_company'
-  // Default is set after reading current user to avoid a brief "all" fetch
-  const [accountTypeFilter, setAccountTypeFilter] = useState('');
-  const [filterInitialized, setFilterInitialized] = useState(false);
+  const [accountTypeFilter, setAccountTypeFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   // Pagination (10 per page)
   const [page, setPage] = useState(1);
@@ -21,28 +18,15 @@ const SearchUsers = () => {
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const { user: currentUser } = useAuth();
 
-  // Initialize default filter based on current user's role
   useEffect(() => {
-    if (!filterInitialized && currentUser) {
-      const defaultFilter = currentUser.account_type === 'candidate' ? 'company' : 'candidate';
-      setAccountTypeFilter(defaultFilter);
-      setFilterInitialized(true);
-      setPage(1);
-    }
-  }, [currentUser, filterInitialized]);
-
-  useEffect(() => {
-    if (!filterInitialized) return;
     setPage(1);
-  }, [accountTypeFilter, filterInitialized]);
+  }, [accountTypeFilter]);
 
   useEffect(() => {
-    if (!filterInitialized) return;
     fetchUsers();
-  }, [accountTypeFilter, page, filterInitialized]);
+  }, [accountTypeFilter, page]);
 
   useEffect(() => {
-    if (!filterInitialized) return;
     const delayedSearch = setTimeout(() => {
       // When search changes, reset to first page; if already on page 1, fetch now
       if (page === 1) {
@@ -53,7 +37,7 @@ const SearchUsers = () => {
     }, 500);
 
     return () => clearTimeout(delayedSearch);
-  }, [searchQuery, filterInitialized]);
+  }, [searchQuery]);
 
   const fetchUsers = async () => {
     try {
@@ -167,14 +151,18 @@ const SearchUsers = () => {
             />
           </div>
 
-          {/* Account Type Filter: allow switching between Candidate and Company for all users (no "Tất cả") */}
+          {/* Account Type Filter */}
           <select
             value={accountTypeFilter}
             onChange={(e) => setAccountTypeFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
           >
+            <option value="all">Tất cả</option>
             <option value="candidate">Ứng viên</option>
             <option value="company">Doanh nghiệp</option>
+            {currentUser?.account_type === 'company' && (
+              <option value="same_company">Cùng công ty</option>
+            )}
           </select>
         </div>
       </div>
@@ -196,73 +184,49 @@ const SearchUsers = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
             {users.map((user) => (
-              <div key={user.id} className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200">
+              <div key={user.id} className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow">
                 {/* User Info */}
-                <div className="flex items-center space-x-5 mb-5">
-                  {(() => {
-                    const isCompany = user.account_type === 'company';
-                    // Always show company branding (logo/name) for company accounts
-                    const showCompanyBrand = isCompany;
-                    const logo = showCompanyBrand ? (user.company_logo_url || user.avatar_url) : user.avatar_url;
-                    const altText = showCompanyBrand ? (user.company_name || user.full_name || 'Doanh nghiệp') : (user.full_name || 'Người dùng');
-                    const placeholderChar = (showCompanyBrand ? (user.company_name || '') : (user.full_name || ''))?.charAt(0)?.toUpperCase();
-                    return logo ? (
-                      <img
-                        src={logo}
-                        alt={altText}
-                        className="h-16 w-16 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-xl font-medium text-gray-700">{placeholderChar}</span>
-                      </div>
-                    );
-                  })()}
+                <div className="flex items-center space-x-4 mb-4">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.full_name}
+                      className="h-16 w-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-xl font-medium text-gray-700">
+                        {user.full_name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex-1">
-                    {(() => {
-                      const isCompany = user.account_type === 'company';
-                      // Always show company branding (logo/name) for company accounts
-                      const showCompanyBrand = isCompany;
-                      return (
-                        <>
-                          <h3
-                            className={`text-xl font-semibold mb-2 ${showCompanyBrand ? 'text-rose-600' : 'text-gray-900'}`}
-                          >
-                            {showCompanyBrand ? (user.company_name || '(Chưa có tên công ty)') : (user.full_name)}
-                          </h3>
-                          {showCompanyBrand && user.full_name && (
-                            <div className="text-[15px] text-gray-700 mb-2 leading-relaxed">
-                              Người đại diện: <span className="font-medium">{user.full_name}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium ${getAccountTypeBadgeColor(user.account_type)}`}>
-                              {getAccountTypeText(user.account_type)}
-                            </span>
-                          </div>
-                        </>
-                      );
-                    })()}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {user.full_name}
+                    </h3>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAccountTypeBadgeColor(user.account_type)}`}>
+                      {getAccountTypeText(user.account_type)}
+                    </span>
                   </div>
                 </div>
 
                 {/* Bio */}
                 {user.bio && (
-                  <p className="text-gray-600 text-[15px] leading-loose mb-6 line-clamp-3">
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {user.bio}
                   </p>
                 )}
 
                 {/* Actions */}
-                <div className="flex space-x-3 mt-4">
+                <div className="flex space-x-3">
                   <Link
                     to={`/users/${user.id}`}
                     className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-primary-700 text-center"
                   >
-                    {(currentUser?.account_type === 'candidate' && user.account_type === 'company') ? 'Xem bài tuyển dụng' : 'Xem hồ sơ'}
+                    Xem hồ sơ
                   </Link>
 
                   {followingUsers.has(user.id) ? (

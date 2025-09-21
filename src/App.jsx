@@ -17,14 +17,12 @@ import CreateCV from './pages/CreateCV';
 import GenerateCV from './pages/GenerateCV';
 import AdminCompanies from './pages/AdminCompanies';
 import CompanyRegister from './pages/CompanyRegister';
-import Recommendations from './pages/Recommendations';
 // 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 
 import FloatingChatbotButton from './components/FloatingChatbotButton';
-import { Toaster } from 'react-hot-toast';
 
 // Component to handle routing based on auth status
 const AppRoutes = () => {
@@ -133,14 +131,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } />
 
-        <Route path="/recommendations" element={
-          <ProtectedRoute>
-            <Layout>
-              <Recommendations />
-            </Layout>
-          </ProtectedRoute>
-        } />
-
         <Route path="/admin/companies" element={
           <ProtectedRoute>
             <Layout>
@@ -155,8 +145,6 @@ const AppRoutes = () => {
 
       {/* ✅ Nút chatbot chỉ hiện khi user đăng nhập */}
       {user && <FloatingChatbotButton />}
-      {/* Global toast container */}
-      <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
     </>
   );
 };

@@ -7,7 +7,7 @@ const router = express.Router();
 // Get all posts (with user info and following status)
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { page = 1, limit = 10, type, start_date, end_date } = req.query;
+    const { page = 1, limit = 10, type } = req.query;
     const offset = (page - 1) * limit;
     
     let query = `
@@ -23,11 +23,7 @@ router.get('/', authenticateToken, async (req, res) => {
         c.file_url as cv_file_url,
         CASE WHEN f.follower_id IS NOT NULL THEN true ELSE false END as is_following_author,
         CASE 
-          WHEN p.post_type = 'find_candidate' 
-            THEN (
-              p.start_at IS NOT NULL AND p.end_at IS NOT NULL AND 
-              (CURRENT_TIMESTAMP > p.end_at)
-            )
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
           ELSE false
         END AS is_expired
       FROM posts p
@@ -38,28 +34,16 @@ router.get('/', authenticateToken, async (req, res) => {
     `;
     
     const params = [req.user.id];
-    const conditions = [];
+    
     if (type) {
-      conditions.push(`p.post_type = $${params.length + 1}`);
+      query += ` WHERE p.post_type = $${params.length + 1}`;
       params.push(type);
-    }
-    if (start_date) {
-      conditions.push(`p.created_at >= $${params.length + 1}::date`);
-      params.push(start_date);
-    }
-    if (end_date) {
-      // less than next day to include the full end date
-      conditions.push(`p.created_at < ($${params.length + 1}::date + INTERVAL '1 day')`);
-      params.push(end_date);
-    }
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(' AND ');
     }
     
     query += ` ORDER BY 
-      -- Non-expired posts first (for recruitment posts, based on start/end period)
-        CASE 
-        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP > p.end_at) THEN 1
+      -- Non-expired posts first
+      CASE 
+        WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN 1
         ELSE 0
       END ASC,
       -- Then priority for following authors
@@ -97,11 +81,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
   c.name as cv_name,
         c.file_url as cv_file_url,
         CASE 
-          WHEN p.post_type = 'find_candidate' 
-            THEN (
-              p.start_at IS NOT NULL AND p.end_at IS NOT NULL AND 
-              (CURRENT_TIMESTAMP > p.end_at)
-            )
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
           ELSE false
         END AS is_expired
       FROM posts p
@@ -120,7 +100,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
     
     query += ` ORDER BY 
       CASE 
-        WHEN p.post_type = 'find_candidate' AND (p.start_at IS NOT NULL AND p.end_at IS NOT NULL) AND (CURRENT_TIMESTAMP > p.end_at) THEN 1
+        WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN 1
         ELSE 0
       END ASC,
       p.created_at DESC`;
@@ -136,7 +116,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
 // Create post
 router.post('/', authenticateToken, async (req, res) => {
   try {
-  const { post_type, title, description, attached_cv_id, start_at, end_at } = req.body;
+  const { post_type, title, description, attached_cv_id } = req.body;
     
     // Validate post type with account type
     if (post_type === 'find_job' && req.user.account_type !== 'candidate') {
@@ -174,25 +154,8 @@ router.post('/', authenticateToken, async (req, res) => {
       if (!req.user.company_id) {
         return res.status(400).json({ message: 'Your account is not linked to a company' });
       }
-      // start_at is the moment the post is created (server time). User only selects end_at.
-      if (start_at) {
-        return res.status(400).json({ message: 'Không thể tự đặt ngày bắt đầu. Ngày bắt đầu sẽ tính từ lúc đăng.' });
-      }
-      if (!end_at) {
-        return res.status(400).json({ message: 'Vui lòng chọn ngày kết thúc' });
-      }
-      const now = new Date();
-      const endDate = new Date(end_at);
-      if (isNaN(endDate.getTime())) {
-        return res.status(400).json({ message: 'Thời gian không hợp lệ' });
-      }
-      if (endDate <= now) {
-        return res.status(400).json({ message: 'Ngày kết thúc phải sau thời điểm hiện tại' });
-      }
-
-      // Use CURRENT_TIMESTAMP for start_at
-      insertQuery = 'INSERT INTO posts (user_id, post_type, title, description, attached_cv_id, company_id, start_at, end_at) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, $7) RETURNING *';
-      params = [req.user.id, post_type, title, description, attachedId, req.user.company_id, end_at];
+      insertQuery = 'INSERT INTO posts (user_id, post_type, title, description, attached_cv_id, company_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+      params = [req.user.id, post_type, title, description, attachedId, req.user.company_id];
     }
 
     const result = await pool.query(insertQuery, params);
@@ -207,7 +170,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Update post
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-  const { title, description, attached_cv_id, start_at, end_at } = req.body;
+  const { title, description, attached_cv_id } = req.body;
     const postId = req.params.id;
     
     // Check if user owns the post
@@ -242,30 +205,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
       }
     }
     
-    // Base update (without period change)
-    let updateQuery = 'UPDATE posts SET title = $1, description = $2, attached_cv_id = $3 WHERE id = $4 AND user_id = $5 RETURNING *';
-    let updateParams = [title, description, attachedId, postId, req.user.id];
-
-    // Companies can only adjust end_at; start_at is fixed at creation time
-    if (post.post_type === 'find_candidate') {
-      if (start_at) {
-        return res.status(400).json({ message: 'Không thể sửa ngày bắt đầu' });
-      }
-      if (end_at) {
-        const endDate = new Date(end_at);
-        if (isNaN(endDate.getTime())) {
-          return res.status(400).json({ message: 'Thời gian không hợp lệ' });
-        }
-        const startDate = new Date(post.start_at);
-        if (endDate <= startDate) {
-          return res.status(400).json({ message: 'Ngày kết thúc phải sau ngày bắt đầu' });
-        }
-        updateQuery = 'UPDATE posts SET title = $1, description = $2, attached_cv_id = $3, end_at = $6 WHERE id = $4 AND user_id = $5 RETURNING *';
-        updateParams = [title, description, attachedId, postId, req.user.id, end_at];
-      }
-    }
-
-    const result = await pool.query(updateQuery, updateParams);
+    const result = await pool.query(
+      'UPDATE posts SET title = $1, description = $2, attached_cv_id = $3 WHERE id = $4 AND user_id = $5 RETURNING *',
+      [title, description, attachedId, postId, req.user.id]
+    );
     
     res.json({ post: result.rows[0] });
   } catch (error) {
@@ -289,11 +232,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   c.name as cv_name,
         c.file_url as cv_file_url,
         CASE 
-          WHEN p.post_type = 'find_candidate' 
-            THEN (
-              p.start_at IS NOT NULL AND p.end_at IS NOT NULL AND 
-              (CURRENT_TIMESTAMP < p.start_at OR CURRENT_TIMESTAMP > p.end_at)
-            )
+          WHEN p.post_type = 'find_candidate' AND p.created_at < (CURRENT_TIMESTAMP - INTERVAL '10 days') THEN true
           ELSE false
         END AS is_expired
       FROM posts p
