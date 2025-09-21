@@ -78,6 +78,18 @@ router.post('/upload', authenticateToken, (req, res) => {
       const rawName = (req.body?.name || path.parse(req.file.originalname).name || 'CV').toString();
       const name = rawName.substring(0, 150); // safety cap
 
+      // If client provided extracted plain text, save it as a sidecar .txt file next to the PDF
+      try {
+        if (req.body?.text) {
+          const txtName = path.parse(req.file.filename).name + '.txt';
+          const txtPath = path.join(__dirname, '../uploads/cvs', txtName);
+          // Write using utf8
+          fs.writeFileSync(txtPath, req.body.text, { encoding: 'utf8' });
+        }
+      } catch (e) {
+        console.warn('Failed to save CV sidecar text:', e?.message || e);
+      }
+
       const result = await pool.query(
         'INSERT INTO cvs (user_id, file_url, name, is_active) VALUES ($1, $2, $3, true) RETURNING *',
         [req.user.id, file_url, name]

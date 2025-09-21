@@ -217,13 +217,20 @@ router.get('/', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy file CV' });
     }
 
-    // Parse PDF (best-effort)
+    // Prefer plain text sidecar (saved during upload) to avoid parsing image-based PDFs.
     let cvText = '';
     try {
-      const data = await pdfParse(fs.readFileSync(filePath));
-      cvText = (data.text || '').replace(/\s+$/g, '').trim();
+      const base = path.parse(filePath).name; // cv-123-... (no ext)
+      const txtPath = path.join(path.dirname(filePath), base + '.txt');
+      if (fs.existsSync(txtPath)) {
+        cvText = fs.readFileSync(txtPath, { encoding: 'utf8' }).replace(/\s+$/g, '').trim();
+      } else {
+        // Parse PDF (best-effort)
+        const data = await pdfParse(fs.readFileSync(filePath));
+        cvText = (data.text || '').replace(/\s+$/g, '').trim();
+      }
     } catch (e) {
-      console.warn('PDF parse failed, fallback to empty text', e?.message);
+      console.warn('CV text extraction failed, fallback to empty text', e?.message);
       cvText = '';
     }
 

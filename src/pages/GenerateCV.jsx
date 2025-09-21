@@ -261,8 +261,29 @@ const GenerateCV = () => {
             // Append PDF file part (keep fileName for download convenience)
             formDataUpload.append("cv", pdfBlob, fileName);
             // Also send a separate UTF-8-safe `name` field so server doesn't rely on multipart filename encoding
-            // This avoids mojibake when the client's filename contains non-ASCII characters.
             formDataUpload.append("name", fileName);
+
+            // Also extract plain text from the preview DOM to help server/Gemini parsing.
+            // Some PDF exports (image-based) are hard to parse; sending plain text avoids that.
+            try {
+                const root = cvRef.current;
+                // Grab visible text content, preserving newlines for readability
+                const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+                let node;
+                let collected = '';
+                while ((node = walker.nextNode())) {
+                    const txt = node.nodeValue.replace(/\u00A0/g, ' ');
+                    if (txt && txt.trim()) {
+                        collected += txt + '\n';
+                    }
+                }
+                // Trim and limit size a bit
+                collected = collected.trim();
+                if (collected.length > 200000) collected = collected.slice(0, 200000) + '\n... (truncated)';
+                formDataUpload.append('text', collected);
+            } catch (e) {
+                console.warn('Could not extract text for upload:', e?.message || e);
+            }
 
             try {
                 await cvsAPI.uploadCV(formDataUpload);
