@@ -1,6 +1,6 @@
 import React from 'react';
 import SmartInput from "./SmartInput";
-
+import { useState, useEffect, useRef } from "react";
 
 const Section = ({ title, children }) => (
     <section className="mb-6">
@@ -16,10 +16,19 @@ const Box = ({ children }) => (
 );
 
 
+
+
 const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, templateStyle, isExporting, onAvatarChange }) => {
     console.log('[CVPreview] isExporting:', isExporting);
     console.log('[CVPreview] data:', data);
 
+    const [showEducation, setShowEducation] = useState(true);
+    const [showExperience, setShowExperience] = useState(true);
+    const [showActivity, setShowActivity] = useState(true);
+    const [showCertificates, setShowCertificates] = useState(true);
+    const [showAwards, setShowAwards] = useState(true);
+    const [showSkills, setShowSkills] = useState(true);
+    const [showProjects, setShowProjects] = useState(true);
     // Mẫu mới
     if (templateStyle === 'classicOne') {
         // Helper để gọi onListChange chuẩn
@@ -218,443 +227,792 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                     )}
                 </div>
 
-                {/* Học vấn */}
-                <Title>Học vấn</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.educationList || []).map((edu, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-bold text-gray-900 text-[15px]">
-                                    {edu.school || "Tên trường học"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={edu.school}
-                                    onChange={listChange("educationList", idx, "school")}
-                                    placeholder="Tên trường học"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm font-semibold"
-                                />
+                {/* ================= Học vấn ================= */}
+                {showEducation ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Học vấn</Title>
+                            {!isExporting && (
+                                <button
+                                    onClick={() => {
+                                        onChange("educationList", []);
+                                        setShowEducation(false);
+                                    }}
+                                    className="text-xs text-red-500 underline ml-2"
+                                >
+                                    🗑 Xóa Học vấn
+                                </button>
                             )}
+                        </div>
+                        <HeavyRule />
 
-                            {isExporting ? (
-                                <div className="text-gray-600">
-                                    {edu.time || "Thời gian (ví dụ: 2016 - 2020)"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={edu.time}
-                                    onChange={listChange("educationList", idx, "time")}
-                                    placeholder="Thời gian (ví dụ: 2016 - 2020)"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700"
-                                />
-                            )}
+                        <div className="pl-20">
+                            {(data.educationList || []).map((edu, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.educationList];
+                                                updated.splice(idx, 1);
+                                                onChange("educationList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
 
-                            {isExporting ? (
-                                <div className="mt-1 font-semibold text-gray-800">
-                                    {edu.major || "Ngành học / Môn học"}
+                                    {/* Trường học */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {edu.school || "Tên trường học"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={edu.school}
+                                            onChange={(val) => {
+                                                const updated = [...data.educationList];
+                                                updated[idx] = { ...updated[idx], school: val };
+                                                onChange("educationList", updated);
+                                            }}
+                                            placeholder="Tên trường học"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Thời gian */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {edu.time || "2016 - 2020"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={edu.time}
+                                            onChange={(val) => {
+                                                const updated = [...data.educationList];
+                                                updated[idx] = { ...updated[idx], time: val };
+                                                onChange("educationList", updated);
+                                            }}
+                                            placeholder="2016 - 2020"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
+
+                                    {/* Ngành học */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-1">
+                                            {edu.major || "Ngành học"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={edu.major}
+                                            onChange={(val) => {
+                                                const updated = [...data.educationList];
+                                                updated[idx] = { ...updated[idx], major: val };
+                                                onChange("educationList", updated);
+                                            }}
+                                            placeholder="Ngành học"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
                                 </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={edu.major}
-                                    onChange={listChange("educationList", idx, "major")}
-                                    placeholder="Ngành học / Môn học"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1"
-                                />
-                            )}
+                            ))}
 
                             {!isExporting && (
-                                <SmartInput
-                                    type="text"
-                                    value={edu.result || ""}
-                                    onChange={listChange("educationList", idx, "result")}
-                                    placeholder="Xếp loại / GPA"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 mt-1"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="text-gray-600 mt-1">{edu.note}</div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={edu.note}
-                                    onChange={listChange("educationList", idx, "note")}
-                                    placeholder="Ghi chú, môn học liên quan, thành tích nổi bật..."
-                                    className="w-full outline-none border-b border-gray-200 focus:border-gray-600 mt-1"
-                                />
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() =>
+                                        onAddList("educationList", {
+                                            time: "",
+                                            school: "",
+                                            major: "",
+                                            result: "",
+                                            note: "",
+                                        })
+                                    }
+                                >
+                                    + Thêm học vấn
+                                </button>
                             )}
                         </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("educationList", {
-                                    time: "",
-                                    school: "",
-                                    major: "",
-                                    result: "",
-                                    note: "",
-                                })
-                            }
-                        >
-                            + Thêm học vấn
-                        </button>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowEducation(true)}
+                            >
+                                + Thêm Học vấn
+                            </button>
+                        </div>
+                    )
+                )}
 
-                {/* Kinh nghiệm */}
-                <Title>Kinh nghiệm làm việc</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.experienceList || []).map((exp, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {exp.company || "Tên tổ chức"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={exp.company}
-                                    onChange={listChange("experienceList", idx, "company")}
-                                    placeholder="Tên tổ chức"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="text-sm text-gray-600 italic">
-                                    {exp.time || "Thời gian (ví dụ: 03/2022 - 02/2025)"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={exp.time}
-                                    onChange={listChange("experienceList", idx, "time")}
-                                    placeholder="Thời gian (ví dụ: 03/2022 - 02/2025)"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="font-semibold">{exp.position || "Vị trí của bạn"}</div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={exp.position}
-                                    onChange={listChange("experienceList", idx, "position")}
-                                    placeholder="Vị trí của bạn"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <ul className="list-disc pl-6 text-sm text-gray-800 space-y-1">
-                                    {(exp.details || "")
-                                        .split("\n")
-                                        .map((l, i) => (l.trim() ? <li key={i}>{l}</li> : null))}
-                                </ul>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={exp.details}
-                                    onChange={listChange("experienceList", idx, "details")}
-                                    placeholder="Mô tả kinh nghiệm làm việc của bạn"
-                                    className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm"
-                                />
+                {/* ================= Kinh nghiệm ================= */}
+                {showExperience ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Kinh nghiệm làm việc</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("experienceList", []);
+                                        setShowExperience(false);
+                                    }}
+                                >
+                                    🗑 Xóa Kinh nghiệm
+                                </button>
                             )}
                         </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("experienceList", {
-                                    time: "",
-                                    company: "",
-                                    position: "",
-                                    details: "",
-                                })
-                            }
-                        >
-                            + Thêm kinh nghiệm
-                        </button>
-                    )}
-                </div>
+                        <HeavyRule />
 
-                {/* Hoạt động */}
-                <Title>Hoạt động</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.activityList || []).map((act, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {act.org || "Tên tổ chức"}
+                        <div className="pl-20">
+                            {(data.experienceList || []).map((exp, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.experienceList];
+                                                updated.splice(idx, 1);
+                                                onChange("experienceList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên công ty / tổ chức */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {exp.company || "Tên tổ chức"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={exp.company}
+                                            onChange={(val) => {
+                                                const updated = [...data.experienceList];
+                                                updated[idx] = { ...updated[idx], company: val };
+                                                onChange("experienceList", updated);
+                                            }}
+                                            placeholder="Tên tổ chức"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Thời gian làm việc */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {exp.time || "03/2022 - 02/2025"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={exp.time}
+                                            onChange={(val) => {
+                                                const updated = [...data.experienceList];
+                                                updated[idx] = { ...updated[idx], time: val };
+                                                onChange("experienceList", updated);
+                                            }}
+                                            placeholder="03/2022 - 02/2025"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
+
+                                    {/* Vị trí / chức danh */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-1">
+                                            {exp.position || "Chức danh"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={exp.position}
+                                            onChange={(val) => {
+                                                const updated = [...data.experienceList];
+                                                updated[idx] = { ...updated[idx], position: val };
+                                                onChange("experienceList", updated);
+                                            }}
+                                            placeholder="Chức danh"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
                                 </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={act.org}
-                                    onChange={listChange("activityList", idx, "org")}
-                                    placeholder="Tên tổ chức"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="text-sm text-gray-600 italic">
-                                    {act.time || "Thời gian (ví dụ: 08/2016 - 08/2018)"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={act.time}
-                                    onChange={listChange("activityList", idx, "time")}
-                                    placeholder="Thời gian (ví dụ: 08/2016 - 08/2018)"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="font-semibold">{act.role || "Vị trí của bạn"}</div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={act.role}
-                                    onChange={listChange("activityList", idx, "role")}
-                                    placeholder="Vị trí của bạn"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 font-semibold"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <ul className="list-disc pl-6 text-sm text-gray-800 space-y-1">
-                                    {(act.details || "")
-                                        .split("\n")
-                                        .map((l, i) => (l.trim() ? <li key={i}>{l}</li> : null))}
-                                </ul>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={act.details}
-                                    onChange={listChange("activityList", idx, "details")}
-                                    placeholder="Mô tả hoạt động"
-                                    className="w-full outline-none border-b border-gray-200 focus:border-gray-600 text-sm"
-                                />
-                            )}
-                        </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("activityList", {
-                                    time: "",
-                                    org: "",
-                                    role: "",
-                                    details: "",
-                                })
-                            }
-                        >
-                            + Thêm hoạt động
-                        </button>
-                    )}
-                </div>
-
-                {/* Chứng chỉ */}
-                <Title>Chứng chỉ</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.certificatesList || []).map((c, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {c.name || "Tên chứng chỉ"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={c.name}
-                                    onChange={listChange("certificatesList", idx, "name")}
-                                    placeholder="Tên chứng chỉ"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="text-sm text-gray-600 italic">
-                                    {c.time || "Thời gian"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={c.time}
-                                    onChange={listChange("certificatesList", idx, "time")}
-                                    placeholder="Thời gian"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700"
-                                />
-                            )}
-                        </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("certificatesList", { time: "", name: "" })
-                            }
-                        >
-                            + Thêm chứng chỉ
-                        </button>
-                    )}
-                </div>
-
-                {/* Danh hiệu & Giải thưởng */}
-                <Title>Danh hiệu và Giải thưởng</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.awardsList || []).map((a, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {a.title || "Tên giải thưởng"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={a.title}
-                                    onChange={listChange("awardsList", idx, "title")}
-                                    placeholder="Tên giải thưởng"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
-
-                            {isExporting ? (
-                                <div className="text-sm text-gray-600 italic">
-                                    {a.time || "Thời gian"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={a.time}
-                                    onChange={listChange("awardsList", idx, "time")}
-                                    placeholder="Thời gian"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700"
-                                />
-                            )}
-                        </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("awardsList", { time: "", title: "" })
-                            }
-                        >
-                            + Thêm giải thưởng
-                        </button>
-                    )}
-                </div>
-
-                {/* Kỹ năng */}
-                <Title>Kỹ năng</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.skillsList || []).map((s, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {s.name || "Tên kỹ năng"}
-                                </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={s.name}
-                                    onChange={listChange("skillsList", idx, "name")}
-                                    placeholder="Tên kỹ năng"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
+                            ))}
 
                             {!isExporting && (
-                                <SmartInput
-                                    type="text"
-                                    value={s.description}
-                                    onChange={listChange("skillsList", idx, "description")}
-                                    placeholder="Mô tả chi tiết về kỹ năng"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm mt-1"
-                                />
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() =>
+                                        onAddList("experienceList", {
+                                            time: "",
+                                            company: "",
+                                            position: "",
+                                            details: "",
+                                        })
+                                    }
+                                >
+                                    + Thêm kinh nghiệm
+                                </button>
                             )}
                         </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("skillsList", { name: "", description: "" })
-                            }
-                        >
-                            + Thêm kỹ năng
-                        </button>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowExperience(true)}
+                            >
+                                + Thêm Kinh nghiệm
+                            </button>
+                        </div>
+                    )
+                )}
 
-                {/* Dự án */}
-                <Title>Dự án</Title>
-                <HeavyRule />
-                <div className="pl-20">
-                    {(data.projectsList || []).map((p, idx) => (
-                        <div key={idx} className="mb-3">
-                            {isExporting ? (
-                                <div className="font-semibold text-gray-700">
-                                    {p.name || "Tên dự án"}
+                {/* ================= Hoạt động ================= */}
+                {showActivity ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Hoạt động</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("activityList", []);
+                                        setShowActivity(false);
+                                    }}
+                                >
+                                    🗑 Xóa Hoạt động
+                                </button>
+                            )}
+                        </div>
+                        <HeavyRule />
+
+                        <div className="pl-20">
+                            {(data.activityList || []).map((act, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.activityList];
+                                                updated.splice(idx, 1);
+                                                onChange("activityList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên tổ chức */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {act.org || "Tên tổ chức"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={act.org}
+                                            onChange={(val) => {
+                                                const updated = [...data.activityList];
+                                                updated[idx] = { ...updated[idx], org: val };
+                                                onChange("activityList", updated);
+                                            }}
+                                            placeholder="Tên tổ chức"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Thời gian tham gia */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {act.time || "08/2016 - 08/2018"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={act.time}
+                                            onChange={(val) => {
+                                                const updated = [...data.activityList];
+                                                updated[idx] = { ...updated[idx], time: val };
+                                                onChange("activityList", updated);
+                                            }}
+                                            placeholder="08/2016 - 08/2018"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
+
+                                    {/* Vai trò */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-1">
+                                            {act.role || "Vai trò"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={act.role}
+                                            onChange={(val) => {
+                                                const updated = [...data.activityList];
+                                                updated[idx] = { ...updated[idx], role: val };
+                                                onChange("activityList", updated);
+                                            }}
+                                            placeholder="Vai trò"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
                                 </div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={p.name}
-                                    onChange={listChange("projectsList", idx, "name")}
-                                    placeholder="Tên dự án"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm"
-                                />
-                            )}
+                            ))}
 
-                            {isExporting ? (
-                                <div className="text-sm text-gray-600">{p.description}</div>
-                            ) : (
-                                <SmartInput
-                                    type="text"
-                                    value={p.description}
-                                    onChange={listChange("projectsList", idx, "description")}
-                                    placeholder="Mô tả dự án"
-                                    className="w-full outline-none border-b border-gray-300 focus:border-gray-700 text-sm mt-1"
-                                />
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() =>
+                                        onAddList("activityList", { time: "", org: "", role: "", details: "" })
+                                    }
+                                >
+                                    + Thêm hoạt động
+                                </button>
                             )}
                         </div>
-                    ))}
-                    {!isExporting && (
-                        <button
-                            type="button"
-                            className="text-xs text-gray-700 underline"
-                            onClick={() =>
-                                onAddList("projectsList", { name: "", description: "" })
-                            }
-                        >
-                            + Thêm dự án
-                        </button>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowActivity(true)}
+                            >
+                                + Thêm Hoạt động
+                            </button>
+                        </div>
+                    )
+                )}
+
+                {/* ================= Chứng chỉ ================= */}
+                {showCertificates ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Chứng chỉ</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("certificatesList", []);
+                                        setShowCertificates(false);
+                                    }}
+                                >
+                                    🗑 Xóa Chứng chỉ
+                                </button>
+                            )}
+                        </div>
+                        <HeavyRule />
+
+                        <div className="pl-20">
+                            {(data.certificatesList || []).map((c, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.certificatesList];
+                                                updated.splice(idx, 1);
+                                                onChange("certificatesList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên chứng chỉ */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {c.name || "Tên chứng chỉ"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={c.name}
+                                            onChange={(val) => {
+                                                const updated = [...data.certificatesList];
+                                                updated[idx] = { ...updated[idx], name: val };
+                                                onChange("certificatesList", updated);
+                                            }}
+                                            placeholder="Tên chứng chỉ"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Thời gian */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {c.time || "06/2022"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={c.time}
+                                            onChange={(val) => {
+                                                const updated = [...data.certificatesList];
+                                                updated[idx] = { ...updated[idx], time: val };
+                                                onChange("certificatesList", updated);
+                                            }}
+                                            placeholder="06/2022"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() => onAddList("certificatesList", { time: "", name: "" })}
+                                >
+                                    + Thêm chứng chỉ
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowCertificates(true)}
+                            >
+                                + Thêm Chứng chỉ
+                            </button>
+                        </div>
+                    )
+                )}
+
+                {/* ================= Giải thưởng ================= */}
+                {showAwards ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Danh hiệu & Giải thưởng</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("awardsList", []);
+                                        setShowAwards(false);
+                                    }}
+                                >
+                                    🗑 Xóa Giải thưởng
+                                </button>
+                            )}
+                        </div>
+                        <HeavyRule />
+
+                        <div className="pl-20">
+                            {(data.awardsList || []).map((a, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.awardsList];
+                                                updated.splice(idx, 1);
+                                                onChange("awardsList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên giải thưởng */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {a.title || "Tên giải thưởng"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={a.title}
+                                            onChange={(val) => {
+                                                const updated = [...data.awardsList];
+                                                updated[idx] = { ...updated[idx], title: val };
+                                                onChange("awardsList", updated);
+                                            }}
+                                            placeholder="Tên giải thưởng"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Thời gian */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {a.time || "2020"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={a.time}
+                                            onChange={(val) => {
+                                                const updated = [...data.awardsList];
+                                                updated[idx] = { ...updated[idx], time: val };
+                                                onChange("awardsList", updated);
+                                            }}
+                                            placeholder="2020"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() => onAddList("awardsList", { time: "", title: "" })}
+                                >
+                                    + Thêm giải thưởng
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowAwards(true)}
+                            >
+                                + Thêm Giải thưởng
+                            </button>
+                        </div>
+                    )
+                )}
+
+                {/* ================= Kỹ năng ================= */}
+                {showSkills ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Kỹ năng</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("skillsList", []);
+                                        setShowSkills(false);
+                                    }}
+                                >
+                                    🗑 Xóa Kỹ năng
+                                </button>
+                            )}
+                        </div>
+                        <HeavyRule />
+
+                        <div className="pl-20">
+                            {(data.skillsList || []).map((s, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.skillsList];
+                                                updated.splice(idx, 1);
+                                                onChange("skillsList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên kỹ năng */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {s.name || "Tên kỹ năng"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={s.name}
+                                            onChange={(val) => {
+                                                const updated = [...data.skillsList];
+                                                updated[idx] = { ...updated[idx], name: val };
+                                                onChange("skillsList", updated);
+                                            }}
+                                            placeholder="Tên kỹ năng"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Mô tả chi tiết */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {s.description || "Mô tả chi tiết"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={s.description}
+                                            onChange={(val) => {
+                                                const updated = [...data.skillsList];
+                                                updated[idx] = { ...updated[idx], description: val };
+                                                onChange("skillsList", updated);
+                                            }}
+                                            placeholder="Mô tả chi tiết"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm leading-normal"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() => onAddList("skillsList", { name: "", description: "" })}
+                                >
+                                    + Thêm kỹ năng
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowSkills(true)}
+                            >
+                                + Thêm Kỹ năng
+                            </button>
+                        </div>
+                    )
+                )}
+
+                {/* ================= Dự án ================= */}
+                {showProjects ? (
+                    <div className="relative mb-6">
+                        <div className="flex justify-between items-center">
+                            <Title>Dự án</Title>
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    onClick={() => {
+                                        onChange("projectsList", []);
+                                        setShowProjects(false);
+                                    }}
+                                >
+                                    🗑 Xóa Dự án
+                                </button>
+                            )}
+                        </div>
+                        <HeavyRule />
+
+                        <div className="pl-20">
+                            {(data.projectsList || []).map((p, idx) => (
+                                <div key={idx} className="mb-3 border p-2 rounded relative group">
+                                    {!isExporting && (
+                                        <button
+                                            type="button"
+                                            className="absolute top-1 right-1 text-xs text-red-500 hover:text-red-700"
+                                            onClick={() => {
+                                                const updated = [...data.projectsList];
+                                                updated.splice(idx, 1);
+                                                onChange("projectsList", updated);
+                                            }}
+                                        >
+                                            ✖
+                                        </button>
+                                    )}
+
+                                    {/* Tên dự án */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap break-words mb-1">
+                                            {p.name || "Tên dự án"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={p.name}
+                                            onChange={(val) => {
+                                                const updated = [...data.projectsList];
+                                                updated[idx] = { ...updated[idx], name: val };
+                                                onChange("projectsList", updated);
+                                            }}
+                                            placeholder="Tên dự án"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 text-sm leading-normal"
+                                        />
+                                    )}
+
+                                    {/* Mô tả dự án */}
+                                    {isExporting ? (
+                                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words mb-1">
+                                            {p.description || "Mô tả dự án"}
+                                        </div>
+                                    ) : (
+                                        <SmartInput
+                                            type="text"
+                                            value={p.description}
+                                            onChange={(val) => {
+                                                const updated = [...data.projectsList];
+                                                updated[idx] = { ...updated[idx], description: val };
+                                                onChange("projectsList", updated);
+                                            }}
+                                            placeholder="Mô tả dự án"
+                                            className="w-full px-2 py-1 border-b border-gray-300 focus:border-gray-700 mt-1 text-sm leading-normal"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+
+                            {!isExporting && (
+                                <button
+                                    type="button"
+                                    className="text-xs text-gray-700 underline"
+                                    onClick={() => onAddList("projectsList", { name: "", description: "" })}
+                                >
+                                    + Thêm dự án
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    !isExporting && (
+                        <div className="pl-20 mb-6">
+                            <button
+                                type="button"
+                                className="text-xs text-gray-700 underline"
+                                onClick={() => setShowProjects(true)}
+                            >
+                                + Thêm Dự án
+                            </button>
+                        </div>
+                    )
+                )}
             </div>
         );
     };

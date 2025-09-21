@@ -17,8 +17,14 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `cv-${uniqueSuffix}${path.extname(file.originalname)}`);
+    // Chuẩn hóa tên file để không lỗi font
+    const safeName = file.originalname
+      .normalize("NFC")                 // chuẩn Unicode (giữ dấu tiếng Việt chuẩn)
+      .replace(/\s+/g, "_")             // thay khoảng trắng = "_"
+      .replace(/[^a-zA-Z0-9._-]/g, ""); // bỏ ký tự đặc biệt
+
+    const uniqueSuffix = Date.now();
+    cb(null, `cv-${uniqueSuffix}-${safeName}`);
   }
 });
 
@@ -30,7 +36,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
@@ -45,7 +51,7 @@ router.get('/', authenticateToken, async (req, res) => {
       'SELECT * FROM cvs WHERE user_id = $1 ORDER BY created_at DESC',
       [req.user.id]
     );
-    
+
     res.json({ cvs: result.rows });
   } catch (error) {
     console.error('Get CVs error:', error);
@@ -74,9 +80,19 @@ router.post('/upload', authenticateToken, (req, res) => {
       }
 
       const file_url = `/uploads/cvs/${req.file.filename}`;
-      // Determine CV name: use provided name or fallback to original file name (without extension)
-      const rawName = (req.body?.name || path.parse(req.file.originalname).name || 'CV').toString();
-      const name = rawName.substring(0, 150); // safety cap
+
+      // Lấy tên gốc từ file hoặc body
+      let rawName = req.body?.name || path.parse(req.file.originalname).name || 'CV';
+
+      // Decode lại để giữ đúng tiếng Việt
+      try {
+        rawName = Buffer.from(rawName, 'latin1').toString('utf8');
+      } catch (e) {
+        console.warn("Decode name failed, fallback:", e);
+      }
+
+      // Cắt giới hạn chiều dài để tránh lỗi DB
+      const name = rawName.substring(0, 150);
 
       const result = await pool.query(
         'INSERT INTO cvs (user_id, file_url, name) VALUES ($1, $2, $3) RETURNING *',
@@ -101,11 +117,11 @@ router.patch('/:id/toggle', authenticateToken, async (req, res) => {
       'UPDATE cvs SET is_active = NOT is_active WHERE id = $1 AND user_id = $2 RETURNING *',
       [req.params.id, req.user.id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'CV not found' });
     }
-    
+
     res.json({ cv: result.rows[0] });
   } catch (error) {
     console.error('Toggle CV error:', error);
@@ -120,17 +136,17 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       'DELETE FROM cvs WHERE id = $1 AND user_id = $2 RETURNING file_url',
       [req.params.id, req.user.id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'CV not found' });
     }
-    
+
     // Delete file from filesystem
     const filePath = path.join(__dirname, '..', result.rows[0].file_url);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-    
+
     res.json({ message: 'CV deleted successfully' });
   } catch (error) {
     console.error('Delete CV error:', error);
@@ -165,13 +181,13 @@ router.patch('/:id/name', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'CV not found' });
     }
 
-    res.json({ 
+    res.json({
       message: 'CV renamed successfully',
       cv: result.rows[0]
     });
   } catch (error) {
-  console.error('Rename CV error:', error);
-  res.status(500).json({ message: 'Server error' });
+    console.error('Rename CV error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -182,17 +198,17 @@ router.get('/:id/file', authenticateToken, async (req, res) => {
       'SELECT file_url FROM cvs WHERE id = $1',
       [req.params.id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'CV not found' });
     }
-    
+
     const filePath = path.join(__dirname, '..', result.rows[0].file_url);
-    
+
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: 'File not found' });
     }
-    
+
     res.setHeader('Content-Type', 'application/pdf');
     res.sendFile(filePath);
   } catch (error) {
