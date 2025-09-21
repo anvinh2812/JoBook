@@ -161,119 +161,123 @@ const GenerateCV = () => {
     }, [formData]);
 
     const handleExportPDF = async () => {
-  if (!cvRef.current) return;
+        if (!cvRef.current) return;
 
-  setIsExporting(true);
+        setIsExporting(true);
 
-  // ⏳ Đợi 1 tick để React re-render với isExporting = true
-  await new Promise((resolve) => setTimeout(resolve, 100));
+        // ⏳ Đợi 1 tick để React re-render với isExporting = true
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-  try {
-    // ✅ Clone node CV (lúc này đã là <div>, không còn <input>)
-    const exportNode = cvRef.current.cloneNode(true);
+        try {
+            // ✅ Clone node CV (lúc này đã là <div>, không còn <input>)
+            const exportNode = cvRef.current.cloneNode(true);
 
-    const wrapper = document.createElement("div");
-    wrapper.style.width = "794px"; // A4
-    wrapper.style.padding = "20px";
-    wrapper.style.background = "#fff";
-    wrapper.style.overflow = "visible";
-    wrapper.style.fontSize = "14px";
-    wrapper.style.lineHeight = "1.5";
-    wrapper.appendChild(exportNode);
-    document.body.appendChild(wrapper);
+            const wrapper = document.createElement("div");
+            wrapper.style.width = "794px"; // A4
+            wrapper.style.padding = "20px";
+            wrapper.style.background = "#fff";
+            wrapper.style.overflow = "visible";
+            wrapper.style.fontSize = "14px";
+            wrapper.style.lineHeight = "1.5";
+            wrapper.appendChild(exportNode);
+            document.body.appendChild(wrapper);
 
-    const canvas = await html2canvas(wrapper, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#fff",
-      onclone: (clonedDoc) => {
-        const all = clonedDoc.querySelectorAll("*");
-        all.forEach((el) => {
-          const style = el.style;
-          const cs = clonedDoc.defaultView.getComputedStyle(el);
+            const canvas = await html2canvas(wrapper, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#fff",
+                onclone: (clonedDoc) => {
+                    const all = clonedDoc.querySelectorAll("*");
+                    all.forEach((el) => {
+                        const style = el.style;
+                        const cs = clonedDoc.defaultView.getComputedStyle(el);
 
-          const fix = (prop, fallback) => {
-            const v = cs[prop];
-            if (v && v.includes("oklch")) {
-              style[prop] = fallback;
+                        const fix = (prop, fallback) => {
+                            const v = cs[prop];
+                            if (v && v.includes("oklch")) {
+                                style[prop] = fallback;
+                            }
+                        };
+                        fix("backgroundColor", "#ffffff");
+                        fix("color", "#111827");
+                        fix("borderColor", "#e5e7eb");
+
+                        style.wordBreak = "break-word";
+                        style.overflowWrap = "break-word";
+                        style.whiteSpace = "pre-wrap";
+                        style.lineHeight = cs.lineHeight || "1.5";
+                        style.fontSize = cs.fontSize || "14px";
+                    });
+                },
+            });
+
+            document.body.removeChild(wrapper);
+
+            // ✅ Xuất PDF chuẩn A4
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let y = 0;
+            while (y < canvas.height) {
+                const pageCanvas = document.createElement("canvas");
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = Math.min(
+                    canvas.height - y,
+                    (canvas.width * pageHeight) / pageWidth
+                );
+
+                const ctx = pageCanvas.getContext("2d");
+                ctx.drawImage(
+                    canvas,
+                    0,
+                    y,
+                    canvas.width,
+                    pageCanvas.height,
+                    0,
+                    0,
+                    canvas.width,
+                    pageCanvas.height
+                );
+
+                const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+                const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width;
+
+                if (y > 0) pdf.addPage();
+                pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
+
+                y += pageCanvas.height;
             }
-          };
-          fix("backgroundColor", "#ffffff");
-          fix("color", "#111827");
-          fix("borderColor", "#e5e7eb");
 
-          style.wordBreak = "break-word";
-          style.overflowWrap = "break-word";
-          style.whiteSpace = "pre-wrap";
-          style.lineHeight = cs.lineHeight || "1.5";
-          style.fontSize = cs.fontSize || "14px";
-        });
-      },
-    });
+            const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
+            pdf.save(fileName);
 
-    document.body.removeChild(wrapper);
+            // ✅ Upload song song
+            const pdfBlob = pdf.output("blob");
+            const formDataUpload = new FormData();
+            // Append PDF file part (keep fileName for download convenience)
+            formDataUpload.append("cv", pdfBlob, fileName);
+            // Also send a separate UTF-8-safe `name` field so server doesn't rely on multipart filename encoding
+            // This avoids mojibake when the client's filename contains non-ASCII characters.
+            formDataUpload.append("name", fileName);
 
-    // ✅ Xuất PDF chuẩn A4
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let y = 0;
-    while (y < canvas.height) {
-      const pageCanvas = document.createElement("canvas");
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = Math.min(
-        canvas.height - y,
-        (canvas.width * pageHeight) / pageWidth
-      );
-
-      const ctx = pageCanvas.getContext("2d");
-      ctx.drawImage(
-        canvas,
-        0,
-        y,
-        canvas.width,
-        pageCanvas.height,
-        0,
-        0,
-        canvas.width,
-        pageCanvas.height
-      );
-
-      const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-      const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width;
-
-      if (y > 0) pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
-
-      y += pageCanvas.height;
-    }
-
-    const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
-    pdf.save(fileName);
-
-    // ✅ Upload song song
-    const pdfBlob = pdf.output("blob");
-    const formDataUpload = new FormData();
-    formDataUpload.append("cv", pdfBlob, fileName);
-
-    try {
-      await cvsAPI.uploadCV(formDataUpload);
-      notify.success("Đã lưu CV vào hệ thống");
-      window.dispatchEvent(new Event("cv-updated"));
-    } catch (err) {
-      const msg = err?.response?.data?.message || "Lưu CV thất bại!";
-      notify.error(msg);
-    }
-  } catch (err) {
-    console.error("❌ Export PDF error:", err);
-  } finally {
-    setIsExporting(false); // reset lại preview
-  }
-};
+            try {
+                await cvsAPI.uploadCV(formDataUpload);
+                notify.success("Đã lưu CV vào hệ thống");
+                window.dispatchEvent(new Event("cv-updated"));
+            } catch (err) {
+                const msg = err?.response?.data?.message || "Lưu CV thất bại!";
+                notify.error(msg);
+            }
+        } catch (err) {
+            console.error("❌ Export PDF error:", err);
+        } finally {
+            setIsExporting(false); // reset lại preview
+        }
+    };
 
     return (
         <div className="min-h-screen bg-white px-4 sm:px-8 py-6">

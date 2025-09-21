@@ -50,9 +50,7 @@ export const postsAPI = {
 // CVs API
 export const cvsAPI = {
   getCVs: () => api.get('/cvs'),
-  uploadCV: (formData) => api.post('/cvs/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  uploadCV: (formData) => api.post('/cvs/upload', formData),
   toggleCV: (id) => api.patch(`/cvs/${id}/toggle`),
   deleteCV: (id) => api.delete(`/cvs/${id}`),
   getCVFile: (id) => api.get(`/cvs/${id}/file`, { responseType: 'blob' }),
@@ -85,9 +83,7 @@ export const followsAPI = {
 export const usersAPI = {
   getUser: (id) => api.get(`/users/${id}`),
   updateProfile: (profileData) => api.patch('/users/profile', profileData),
-  uploadAvatar: (formData) => api.post('/users/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  uploadAvatar: (formData) => api.post('/users/avatar', formData),
   searchUsers: (params) => api.get('/users', { params }),
 };
 
@@ -103,9 +99,7 @@ export const companiesAPI = {
   uploadLogo: (file) => {
     const formData = new FormData();
     formData.append('logo', file);
-    return api.post('/companies/upload-logo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    return api.post('/companies/upload-logo', formData);
   },
 };
 
