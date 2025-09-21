@@ -1,31 +1,73 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const CVViewerModal = ({ cvUrl, onClose }) => {
+  const [numPages, setNumPages] = useState(null);
+  const [pageWidth, setPageWidth] = useState(0);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const baseWidth = containerRef.current.offsetWidth - 20; // giảm padding
+
+        if (window.innerWidth >= 1024) {
+          // Laptop/Desktop: khoảng 85% modal
+          setPageWidth(baseWidth * 0.85);
+        } else if (window.innerWidth >= 768) {
+          // Tablet: khoảng 90%
+          setPageWidth(baseWidth * 0.9);
+        } else {
+          // Mobile: gần full
+          setPageWidth(baseWidth * 0.95);
+        }
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  if (!cvUrl) return null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden flex flex-col w-[70vw] h-[95vh]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {/* Modal box */}
+      <div className="bg-white rounded-lg shadow-lg w-[95%] h-[90%] md:w-[85%] lg:w-[70%] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <h3 className="text-base font-semibold text-gray-900">Xem CV</h3>
+        <div className="flex justify-between items-center p-3 border-b">
+          <h2 className="text-lg font-semibold">Xem CV</h2>
           <button
+            className="text-gray-500 hover:text-gray-700"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="Đóng"
-            title="Đóng"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-h-0">
-          <iframe
-            src={cvUrl}
-            className="w-full h-full"
-            title="CV Viewer"
-          />
+        {/* Nội dung PDF */}
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-auto p-2 flex justify-center items-start"
+        >
+          <Document
+            file={cvUrl}
+            onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+            onLoadError={(err) => console.error("PDF load error:", err)}
+          >
+            {Array.from(new Array(numPages), (el, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={pageWidth}
+                className="mx-auto"
+              />
+            ))}
+          </Document>
         </div>
       </div>
     </div>
