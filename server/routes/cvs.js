@@ -95,7 +95,7 @@ router.post('/upload', authenticateToken, (req, res) => {
       const name = rawName.substring(0, 150);
 
       const result = await pool.query(
-        'INSERT INTO cvs (user_id, file_url, name) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO cvs (user_id, file_url, name, is_active) VALUES ($1, $2, $3, true) RETURNING *',
         [req.user.id, file_url, name]
       );
 

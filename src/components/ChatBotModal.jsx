@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import axios from 'axios';
 
 const ChatBotModal = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
+  const [expanded, setExpanded] = useState({}); // key: index, value: boolean
   const [input, setInput] = useState('');
 
   const sendMessage = async () => {
@@ -16,8 +18,9 @@ const ChatBotModal = ({ onClose }) => {
     try {
       const res = await axios.post('http://localhost:5001/api/gemini/chat', { prompt: input });
       const reply = res.data.response || 'Xin lỗi, hiện tại trợ lý AI đang gặp sự cố. Bạn thử hỏi lại sau nhé!';
+      const links = Array.isArray(res.data.links) ? res.data.links : [];
 
-      setMessages([...newMessages, { sender: 'ai', text: reply }]);
+      setMessages([...newMessages, { sender: 'ai', text: reply, links }]);
     } catch (err) {
       setMessages([...newMessages, { sender: 'ai', text: 'Xin lỗi, hiện tại trợ lý AI đang gặp sự cố. Bạn thử hỏi lại sau nhé!' }]);
     }
@@ -39,14 +42,38 @@ const ChatBotModal = ({ onClose }) => {
       {/* Chat messages */}
       <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${msg.sender === 'user'
-              ? 'ml-auto bg-blue-500 text-white'
-              : 'mr-auto bg-gray-100 text-gray-900'
-              }`}
-          >
-            {msg.text}
+          <div key={i} className={`max-w-[80%] ${msg.sender === 'user' ? 'ml-auto' : 'mr-auto'}`}>
+            <div
+              className={`px-3 py-2 rounded-lg text-sm ${msg.sender === 'user'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-900'
+                }`}
+            >
+              {msg.text}
+            </div>
+            {msg.sender === 'ai' && Array.isArray(msg.links) && msg.links.length > 0 && (
+              <div className="mt-2">
+                <button
+                  onClick={() => setExpanded((prev) => ({ ...prev, [i]: !prev[i] }))}
+                  className="text-xs text-gray-600 hover:text-gray-900 underline"
+                >
+                  {expanded[i] ? 'Ẩn đường dẫn' : `Hiện ${msg.links.length} đường dẫn`}
+                </button>
+                {expanded[i] && (
+                  <div className="mt-2 grid grid-cols-1 gap-1">
+                    {msg.links.map((l, idx) => (
+                      <Link
+                        key={`${l.type}-${idx}-${l.href}`}
+                        to={l.href}
+                        className="text-sm text-blue-600 hover:underline truncate"
+                      >
+                        {l.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
