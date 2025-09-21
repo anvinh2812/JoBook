@@ -14,9 +14,14 @@ import Profile from './pages/Profile';
 import MyCVs from './pages/MyCVs';
 import Applications from './pages/Applications';
 import CreateCV from './pages/CreateCV';
+import GenerateCV from './pages/GenerateCV';
 import AdminCompanies from './pages/AdminCompanies';
 import CompanyRegister from './pages/CompanyRegister';
 import Recommendations from './pages/Recommendations';
+// 
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
 
 import FloatingChatbotButton from './components/FloatingChatbotButton';
 import { Toaster } from 'react-hot-toast';
@@ -107,6 +112,15 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <CreateCV />
+            </Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* /trang tạo cv = ai */}
+        <Route path="/generate-cv" element={
+          <ProtectedRoute>
+            <Layout>
+              <GenerateCV />
             </Layout>
           </ProtectedRoute>
         } />

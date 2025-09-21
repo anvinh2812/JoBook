@@ -32,6 +32,7 @@ app.use('/api/gemini', require('./routes/gemini'));
 // Recommendations (CV-based post suggestions)
 app.use('/api/recommendations', require('./routes/recommendations'));
 
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

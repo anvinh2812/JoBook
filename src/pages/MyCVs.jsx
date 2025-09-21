@@ -126,9 +126,11 @@ const MyCVs = () => {
   const handleViewCV = async (cvId) => {
     try {
       const response = await cvsAPI.getCVFile(cvId);
+      // Tạo Blob với đúng MIME type PDF
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      setCvUrl(url);
+
+      setCvUrl(url);   // truyền cho Modal
       setShowCVModal(true);
     } catch (error) {
       console.error('Error viewing CV:', error);
