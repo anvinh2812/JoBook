@@ -154,10 +154,12 @@ function buildHighlightTerms(cvBase, postText) {
   // roles and techs intersection
   const roleMatch = Array.from(extractRoles(cvBase)).filter(r => extractRoles(postText).has(r));
   const techMatch = Array.from(extractTech(cvBase)).filter(t => extractTech(postText).has(t));
-  // If cross-domain, skip role token highlights to avoid misleading marks (e.g., highlighting "mobile" for a web CV)
-  if (!(famCV && famPost && famCV !== famPost)) {
-    roleMatch.forEach(r => terms.add(r));
-  }
+  // Include role token highlights. Previously we skipped role highlights when CV and post
+  // appeared to belong to different role families to avoid misleading marks (e.g.,
+  // highlighting "mobile" for a web CV). That caused some expected highlights to be
+  // omitted (e.g. "Mobile" in titles). Keep role highlights but rely on the overall
+  // ranking logic to penalize cross-domain matches instead of hiding highlights.
+  roleMatch.forEach(r => terms.add(r));
   // Always allow tech matches — they are useful even across domains but keep count modest via overall slice below
   techMatch.forEach(t => terms.add(t));
   // education keywords in post
@@ -272,33 +274,26 @@ router.get('/', authenticateToken, async (req, res) => {
     );
     const posts = postsRes.rows;
 
-  // Use Gemini to summarize CV and rank posts (Pro/Pro-Exp for better quality; fall back to flash if set)
-  const model = genAI.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL, generationConfig });
-
-    const systemHint = `Bạn là trợ lý gợi ý việc làm. Dựa vào nội dung CV và hồ sơ ứng viên, hãy:
-1) Tóm tắt CV ngắn gọn (3-6 gạch đầu dòng) nêu bật kỹ năng, kinh nghiệm, vị trí mong muốn (nếu thấy), công nghệ chính, cấp độ.
-2) Đọc kỹ nội dung từng bài đăng tuyển dụng (đặc biệt post_type='find_candidate'). Đánh giá độ phù hợp so với CV theo thang 0-100.
-  - ƯU TIÊN THEO THỨ TỰ: (a) Vị trí/cấp độ (Intern/Junior/Mid/Senior/Lead), (b) Ngôn ngữ/kỹ thuật & framework chính, (c) Số năm kinh nghiệm yêu cầu, (d) Học vấn (BSc/MSc/PhD), (e) Trình độ tiếng Anh.
-  - Các tiêu chí khác (lĩnh vực sản phẩm, địa điểm/remote) là phụ.
-  - Phạt điểm mạnh cho bài đăng đã hết hạn (is_expired=true) hoặc không liên quan.
-  - Nếu lĩnh vực/bộ phận (role family) KHÔNG trùng (ví dụ: CV định hướng Web nhưng bài thuộc Embedded/Firmware), HÃY GIỚI HẠN điểm TỐI ĐA ở mức 40-50, và nêu rõ lý do khác lĩnh vực.
-  - Nêu rõ lý do (reason) 1-2 câu, chỉ dựa trên chi tiết thực sự có trong CV và bài đăng, ưu tiên đề cập các mục ở trên (ví dụ: vị trí, kỹ thuật, năm kinh nghiệm, học vấn, tiếng Anh), và nhấn mạnh khác lĩnh vực nếu có.
-3) Trả về JSON THUẦN với schema chính xác:
-  { "summary": string,
-    "scores": Array<{ "post_id": number, "score": number, "reason": string }> }
-Không kèm markdown, không bọc bằng \`\`\`.
-Nếu dữ liệu thiếu, hãy ước lượng cẩn trọng và ghi rõ trong reason.`;
-
+    // Prepare a lightweight posts summary for the LLM prompt to avoid sending full objects
+    // postsLite includes only id, title, company, and short description to keep prompt size manageable
     const postsLite = posts.map(p => ({
       id: p.id,
-      post_type: p.post_type,
       title: p.title,
-      description: p.description,
-      company_name: p.company_name || '',
-      start_at: p.start_at,
-      end_at: p.end_at,
-      is_expired: p.is_expired
+      company: (p.company_name || ''),
+      type: p.post_type || 'unknown',
+      short: ((p.title || '') + ' - ' + (p.description || '')).slice(0, 500)
     }));
+
+  // Use Gemini to summarize CV and rank posts (Pro/Pro-Exp for better quality; fall back to flash if set)
+  const model = genAI.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL, generationConfig });
+  // Load prompt text from external file to avoid embedding large template literals here
+  let systemHint = '';
+  try {
+    systemHint = fs.readFileSync(path.join(__dirname, '..', 'prompts', 'recommendations_prompt.txt'), 'utf8');
+  } catch (e) {
+    console.warn('Failed to load recommendations prompt, falling back to compact default', e?.message);
+    systemHint = 'You are a job recommendation assistant. Summarize CV and score posts. Return JSON {summary, scores}.';
+  }
 
     const gemPrompt = `CV name: ${cv.name}\nỨng viên: ${user.full_name || ''} - ${user.email || ''}\nĐịa chỉ: ${user.address || ''}\nBio: ${truncate(user.bio || '', 1000)}\n\n--- Trích nội dung CV (có thể đã cắt bớt) ---\n${truncate(cvText, 8000)}\n\n--- Danh sách bài đăng (chỉ thông tin quan trọng) ---\n${truncate(JSON.stringify(postsLite), 8000)}\n`;
 
@@ -323,6 +318,22 @@ Nếu dữ liệu thiếu, hãy ước lượng cẩn trọng và ghi rõ trong 
       }
       cvSummary = String(json.summary || '').trim();
       scores = Array.isArray(json.scores) ? json.scores : [];
+      // Normalize highlights from Gemini if provided: ensure array of short, lowercase, deduped tokens
+      scores = scores.map(s => {
+        const out = { ...s };
+        if (Array.isArray(s.highlights)) {
+          try {
+            const norm = Array.from(new Set(s.highlights
+              .map(h => (String(h || '')).trim().toLowerCase())
+              .filter(h => h.length >= 2 && h.length <= 80)
+            ));
+            out.highlights = norm.slice(0, 12);
+          } catch {
+            out.highlights = [];
+          }
+        }
+        return out;
+      });
     } catch (e) {
       console.error('Gemini ranking failed:', e?.message);
       // Fallback: naive keyword score by overlap of keywords
@@ -394,7 +405,7 @@ Nếu dữ liệu thiếu, hãy ước lượng cẩn trọng và ghi rõ trong 
       cvSummary = 'Không tạo được tóm tắt bằng Gemini. Hiển thị gợi ý theo phương pháp dự phòng.';
     }
 
-    // Merge scores back to posts, apply small heuristics, and sort
+    // Merge scores back to posts, apply small heuristics, title-based boosting, and sort
     const scoreMap = new Map(scores.map(s => [s.post_id, s]));
     const ranked = posts
       .map(p => {
@@ -404,6 +415,26 @@ Nếu dữ liệu thiếu, hãy ước lượng cẩn trọng và ghi rõ trong 
         const postText = ((p.title || '') + ' ' + (p.description || ''));
         const famCV = detectRoleFamily(cvBase);
         const famPost = detectRoleFamily(postText);
+        // Title-based boosting: if the post title contains tokens from CV name or primary roles,
+        // give a small but meaningful boost so a 'web dev' CV surfaces posts titled 'web'/'website'.
+        try {
+          const cvNameTokens = Array.from(new Set((cv.name || '').toLowerCase().split(/[^a-zA-Z0-9]+/).filter(Boolean)));
+          const cvRoleTokens = Array.from(extractRoles(cvBase));
+          const title = (p.title || '').toLowerCase();
+          // exact token match in title gives stronger boost
+          let titleBoost = 0;
+          for (const t of cvNameTokens) if (t && title.includes(t)) titleBoost += 8;
+          for (const r of cvRoleTokens) if (r && title.includes(r)) titleBoost += 10;
+          // Cap the title boost to avoid overwhelming other signals
+          titleBoost = Math.min(30, titleBoost);
+          sc += titleBoost;
+          if (titleBoost > 0) {
+            rs = rs ? rs + ' | ' : '';
+            rs += `Tiêu đề bài viết khớp với CV (boost +${titleBoost})`;
+          }
+        } catch (_) {
+          // noop
+        }
         // If LLM returned empty reason, enrich with simple matcher
         if (!rs) {
           const cvRoles = extractRoles(cvBase);
@@ -442,7 +473,27 @@ Nếu dữ liệu thiếu, hãy ước lượng cẩn trọng và ghi rõ trong 
           rs += 'Bài đăng đã hết hạn -> trừ điểm';
         }
         sc = Math.max(0, Math.min(100, Math.round(sc)));
-        const highlights = buildHighlightTerms(cvBase, postText);
+        // Prefer highlights suggested by Gemini (if present in scores), otherwise fallback
+        const llmEntry = scoreMap.get(p.id) || {};
+        let highlights = Array.isArray(llmEntry.highlights) && llmEntry.highlights.length > 0
+          ? llmEntry.highlights
+          : buildHighlightTerms(cvBase, postText);
+        // Ensure final normalization/dedupe and safe length
+        highlights = Array.from(new Set((highlights || []).map(h => (String(h || '')).trim()))).filter(h => h.length >= 1);
+        // If CV and post role families differ, remove role tokens from highlights to avoid misleading highlights
+        try {
+          const famCVbase = detectRoleFamily(cvBase);
+          const famPostbase = detectRoleFamily(postText);
+          if (famCVbase && famPostbase && famCVbase !== famPostbase) {
+            const roleSet = extractRoles(postText); // tokens present in post
+            // Filter out tokens that are role tokens (intersection with ROLE_TOKENS normalized)
+            highlights = highlights.filter(h => !roleSet.has(h.toLowerCase()));
+          }
+        } catch (_) {
+          // noop
+        }
+        highlights = highlights.slice(0, 12);
+
         return { ...p, relevance: sc, reason: rs, highlights };
       })
       .sort((a, b) => (b.relevance - a.relevance));

@@ -93,6 +93,24 @@ export default function Recommendations() {
     load();
   }, [cvId, user, setSearchParams]);
 
+  // Re-fetch recommendations when user opens the CV modal to ensure highlights
+  // are freshly computed for the CV being read (helps when highlights depend on CV context).
+  useEffect(() => {
+    if (!showCV || !cvId || user?.account_type !== 'candidate') return;
+    const refresh = async () => {
+      try {
+        const { data } = await recommendationsAPI.get(cvId);
+        setCv(data.cv);
+        setCvSummary(data.cvSummary || '');
+        setCvText(data.cvText || '');
+        setPosts((data.posts || []).slice().sort((a, b) => (b.relevance - a.relevance)));
+      } catch (e) {
+        console.error('Failed to refresh recommendations on CV view', e);
+      }
+    };
+    refresh();
+  }, [showCV, cvId, user]);
+
   const handleSwitchCV = (e) => {
     const newId = e.target.value;
     if (newId) setSearchParams({ cvId: newId });
