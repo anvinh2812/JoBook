@@ -27,6 +27,9 @@ export default defineConfig({
   define: {
     __API_BASE_URL__: JSON.stringify(
       isProd ? 'https://api.jobook.io.vn/api' : '/api'
+    ),
+    __UPLOAD_BASE_URL__: JSON.stringify(
+      isProd ? 'https://api.jobook.io.vn/uploads' : '/uploads'
     )
   },
   build: {

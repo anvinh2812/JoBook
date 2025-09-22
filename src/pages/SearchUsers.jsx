@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { usersAPI, followsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import notify from '../utils/notify';
+import { getAvatarUrl } from "../config";
 
 const SearchUsers = () => {
   const [users, setUsers] = useState([]);
@@ -205,20 +206,26 @@ const SearchUsers = () => {
                     const isCompany = user.account_type === 'company';
                     // Always show company branding (logo/name) for company accounts
                     const showCompanyBrand = isCompany;
-                    const logo = showCompanyBrand ? (user.company_logo_url || user.avatar_url) : user.avatar_url;
+                    const logoPath = showCompanyBrand
+  ? (user.company_logo_url || user.avatar_url)
+  : user.avatar_url;
+
+const logo = getAvatarUrl(logoPath);
                     const altText = showCompanyBrand ? (user.company_name || user.full_name || 'Doanh nghiệp') : (user.full_name || 'Người dùng');
                     const placeholderChar = (showCompanyBrand ? (user.company_name || '') : (user.full_name || ''))?.charAt(0)?.toUpperCase();
                     return logo ? (
-                      <img
-                        src={logo}
-                        alt={altText}
-                        className="h-16 w-16 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-xl font-medium text-gray-700">{placeholderChar}</span>
-                      </div>
-                    );
+  <img
+    src={logo}
+    alt={altText}
+    className="h-16 w-16 rounded-full object-cover"
+  />
+) : (
+  <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+    <span className="text-xl font-medium text-gray-700">
+      {placeholderChar}
+    </span>
+  </div>
+);
                   })()}
 
                   <div className="flex-1">
