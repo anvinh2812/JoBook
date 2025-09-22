@@ -28,5 +28,13 @@ export default defineConfig({
     __API_BASE_URL__: JSON.stringify(
       isProd ? 'https://api.jobook.io.vn/api' : '/api'
     )
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      }
+    },
+    assetsInclude: ['**/*.pdf', '**/*.worker.js'], // đảm bảo worker/pdf được giữ lại
   }
 })

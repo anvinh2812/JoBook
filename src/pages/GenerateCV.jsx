@@ -261,10 +261,10 @@ const GenerateCV = () => {
             const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
             pdf.save(fileName);
 
-    // ✅ Upload song song
-    const pdfBlob = pdf.output("blob");
-    const formDataUpload = new FormData();
-    formDataUpload.append("cv", pdfBlob, fileName);
+            // ✅ Upload song song
+            const pdfBlob = pdf.output("blob");
+            const formDataUpload = new FormData();
+            formDataUpload.append("cv", pdfBlob, fileName);
 
             try {
                 await cvsAPI.uploadCV(formDataUpload);

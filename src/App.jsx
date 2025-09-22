@@ -21,7 +21,7 @@ import Recommendations from './pages/Recommendations';
 // 
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-
+import CVViewerModal from "./components/CVViewerModal";
 
 import FloatingChatbotButton from './components/FloatingChatbotButton';
 import { Toaster } from 'react-hot-toast';
