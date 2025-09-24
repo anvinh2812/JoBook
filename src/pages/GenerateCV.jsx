@@ -208,14 +208,22 @@ const GenerateCV = () => {
                         fix("color", "#111827");
                         fix("borderColor", "#e5e7eb");
 
-                        style.wordBreak = "break-word";
-                        style.overflowWrap = "break-word";
-                        style.whiteSpace = "pre-wrap";
+                        		style.wordBreak = "break-word";
+                        		style.overflowWrap = "break-word";
+                        		style.whiteSpace = "pre-wrap";
+                        		// Prevent templates that apply wide letter/word spacing from
+                        		// producing spaced-out characters in extracted text.
+                        		style.letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? 'normal' : (style.letterSpacing || 'normal');
+                        		style.wordSpacing = cs.wordSpacing && cs.wordSpacing !== 'normal' ? 'normal' : (style.wordSpacing || 'normal');
                         style.lineHeight = cs.lineHeight || "1.5";
                         style.fontSize = cs.fontSize || "14px";
                     });
                 },
             });
+
+            // Capture plain-text representation so server (and AI) can read the content
+            // and save it as a .txt sidecar next to the PDF (server supports req.body.text)
+            const plainText = wrapper.innerText || '';
 
             document.body.removeChild(wrapper);
 
@@ -258,22 +266,77 @@ const GenerateCV = () => {
                 y += pageCanvas.height;
             }
 
-            const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
-            pdf.save(fileName);
+                        const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
+                        // Save the visual (image) PDF for the user
+                        pdf.save(fileName);
 
-            // ✅ Upload song song
-            const pdfBlob = pdf.output("blob");
-            const formDataUpload = new FormData();
-            formDataUpload.append("cv", pdfBlob, fileName);
+                                    // Normalize plain text to remove extra spaces/letter spacing that come from
+                                    // the template rendering (avoids outputs like "A n g   V i n h").
+                                    const normalizePlainText = (text) => {
+                                        if (!text) return '';
+                                        // Normalize line endings and trim
+                                        let t = text.replace(/\r/g, '').trim();
 
-            try {
-                await cvsAPI.uploadCV(formDataUpload);
-                notify.success("Đã lưu CV vào hệ thống");
-                window.dispatchEvent(new Event("cv-updated"));
-            } catch (err) {
-                const msg = err?.response?.data?.message || "Lưu CV thất bại!";
-                notify.error(msg);
-            }
+                                        // Collapse multiple spaces into one (preserve newlines for readability)
+                                        t = t.split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n');
+
+                                        // Fix sequences of single-letter tokens (e.g. "A n g V i n h") into words.
+                                        // Heuristic: if there are consecutive single-character letter tokens, join them.
+                                        try {
+                                            const letterRe = /\p{L}/u;
+                                            t = t.split('\n').map(line => {
+                                                const tokens = line.split(' ');
+                                                const out = [];
+                                                let acc = [];
+                                                for (const tok of tokens) {
+                                                    if (tok.length === 1 && letterRe.test(tok)) {
+                                                        acc.push(tok);
+                                                    } else {
+                                                        if (acc.length > 0) {
+                                                            out.push(acc.join(''));
+                                                            acc = [];
+                                                        }
+                                                        out.push(tok);
+                                                    }
+                                                }
+                                                if (acc.length > 0) out.push(acc.join(''));
+                                                return out.join(' ');
+                                            }).join('\n');
+                                        } catch (e) {
+                                            // If Unicode property escapes not supported, fallback to simpler collapse
+                                            t = t.replace(/(\b\w\b\s?){2,}/g, s => s.replace(/\s/g, ''));
+                                        }
+
+                                        return t;
+                                    };
+
+                                    const normalizedText = normalizePlainText(plainText);
+
+                                    // Upload the visual PDF (so user gets the same visual layout) and send
+                                    // normalized plain text as `text` so the server saves a .txt sidecar.
+                                    try {
+                                        // Get PDF blob (visual)
+                                        let pdfBlob = pdf.output('blob');
+                                        // Ensure proper mimetype
+                                        try {
+                                            pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
+                                        } catch (e) {
+                                            // ignore, use existing blob
+                                        }
+
+                                        const formDataUpload = new FormData();
+                                        formDataUpload.append('cv', pdfBlob, fileName);
+                                        formDataUpload.append('text', normalizedText);
+
+                                        await cvsAPI.uploadCV(formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                        notify.success('Đã lưu CV vào hệ thống');
+                                        window.dispatchEvent(new Event('cv-updated'));
+                                    } catch (err) {
+                                        console.error('Upload error (visual PDF + text sidecar):', err);
+                                        console.error('Response data:', err?.response?.data);
+                                        const msg = err?.response?.data?.message || 'Lưu CV thất bại!';
+                                        notify.error(msg);
+                                    }
         } catch (err) {
             console.error("❌ Export PDF error:", err);
         } finally {
