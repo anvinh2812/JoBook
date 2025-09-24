@@ -9,7 +9,7 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-  let { full_name, email, password, account_type, bio, code, address } = req.body;
+    let { full_name, email, password, account_type, bio, code, address } = req.body;
 
     // Normalize and validate account type
     const allowedTypes = ['candidate', 'company'];
@@ -55,8 +55,8 @@ router.post('/register', async (req, res) => {
     }
 
     // Build dynamic insert to include company_id when present
-  const fields = ['full_name', 'email', 'password_hash', 'account_type', 'bio', 'address'];
-  const values = [full_name, email, password_hash, account_type, bio || '', address || null];
+    const fields = ['full_name', 'email', 'password_hash', 'account_type', 'bio', 'address'];
+    const values = [full_name, email, password_hash, account_type, bio || '', address || null];
     if (companyId) {
       fields.push('company_id');
       values.push(companyId);
@@ -72,7 +72,7 @@ router.post('/register', async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-  { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -84,10 +84,10 @@ router.post('/register', async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
-  account_type: user.account_type,
-  bio: user.bio,
-  address: user.address,
-  company_id: user.company_id || null,
+        account_type: user.account_type,
+        bio: user.bio,
+        address: user.address,
+        company_id: user.company_id || null,
         created_at: user.created_at
       }
     });
@@ -134,11 +134,11 @@ router.post('/login', async (req, res) => {
         id: user.id,
         full_name: user.full_name,
         email: user.email,
-  account_type: user.account_type,
-  bio: user.bio,
-  address: user.address,
-  avatar_url: user.avatar_url,
-  company_id: user.company_id || null
+        account_type: user.account_type,
+        bio: user.bio,
+        address: user.address,
+        avatar_url: user.avatar_url,
+        company_id: user.company_id || null
       }
     });
   } catch (error) {

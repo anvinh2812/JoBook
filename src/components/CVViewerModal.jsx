@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+// ✅ Chỉ rõ worker nằm trong thư mục public
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.js";
 
 const CVViewerModal = ({ cvUrl, onClose }) => {
   const [numPages, setNumPages] = useState(null);
@@ -12,16 +12,13 @@ const CVViewerModal = ({ cvUrl, onClose }) => {
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        const baseWidth = containerRef.current.offsetWidth - 20; // giảm padding
+        const baseWidth = containerRef.current.offsetWidth - 20;
 
         if (window.innerWidth >= 1024) {
-          // Laptop/Desktop: khoảng 85% modal
           setPageWidth(baseWidth * 0.85);
         } else if (window.innerWidth >= 768) {
-          // Tablet: khoảng 90%
           setPageWidth(baseWidth * 0.9);
         } else {
-          // Mobile: gần full
           setPageWidth(baseWidth * 0.95);
         }
       }
@@ -36,24 +33,15 @@ const CVViewerModal = ({ cvUrl, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      {/* Modal box */}
       <div className="bg-white rounded-lg shadow-lg w-[95%] h-[90%] md:w-[85%] lg:w-[70%] flex flex-col">
-        {/* Header */}
         <div className="flex justify-between items-center p-3 border-b">
           <h2 className="text-lg font-semibold">Xem CV</h2>
-          <button
-            className="text-gray-500 hover:text-gray-700"
-            onClick={onClose}
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
 
-        {/* Nội dung PDF */}
-        <div
-          ref={containerRef}
-          className="flex-1 overflow-auto p-2 flex justify-center items-start"
-        >
+        <div ref={containerRef} className="flex-1 overflow-auto p-2 flex justify-center items-start">
           <Document
             file={cvUrl}
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}

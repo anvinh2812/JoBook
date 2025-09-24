@@ -1,11 +1,13 @@
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+// src/services/api.js
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = __API_BASE_URL__; // <-- lấy từ vite.config.js
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
+
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {

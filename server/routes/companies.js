@@ -14,46 +14,50 @@ const requireAdmin = (req, res, next) => {
 	next();
 };
 
-	// Configure multer for company logo uploads
-	const logoStorage = multer.diskStorage({
-		destination: (req, file, cb) => {
-			const uploadDir = path.join(__dirname, '../uploads/companies');
-			if (!fs.existsSync(uploadDir)) {
-				fs.mkdirSync(uploadDir, { recursive: true });
-			}
-			cb(null, uploadDir);
-		},
-		filename: (req, file, cb) => {
-			const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-			cb(null, `logo-${uniqueSuffix}${path.extname(file.originalname)}`);
-		},
-	});
-
-	const imageFileFilter = (req, file, cb) => {
-		const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-		if (allowed.includes(file.mimetype)) cb(null, true);
-		else cb(new Error('Only image files (png, jpg, jpeg, webp) are allowed for logo'), false);
-	};
-
-	const uploadLogo = multer({
-		storage: logoStorage,
-		fileFilter: imageFileFilter,
-		limits: { fileSize: 3 * 1024 * 1024 }, // 3MB
-	});
-
-	// Upload company logo (public)
-	router.post('/upload-logo', uploadLogo.single('logo'), async (req, res) => {
-		try {
-			if (!req.file) {
-				return res.status(400).json({ message: 'No logo file uploaded' });
-			}
-			const file_url = `/uploads/companies/${req.file.filename}`;
-			return res.status(201).json({ message: 'Logo uploaded', file_url });
-		} catch (err) {
-			console.error('Upload logo error:', err);
-			return res.status(500).json({ message: 'Server error' });
+// Configure multer for company logo uploads
+const logoStorage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		const uploadDir = path.join(__dirname, '../uploads/companies');
+		if (!fs.existsSync(uploadDir)) {
+			fs.mkdirSync(uploadDir, { recursive: true });
 		}
-	});
+		cb(null, uploadDir);
+	},
+	filename: (req, file, cb) => {
+		const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+		cb(null, `logo-${uniqueSuffix}${path.extname(file.originalname)}`);
+	},
+});
+
+const imageFileFilter = (req, file, cb) => {
+	const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+	if (allowed.includes(file.mimetype)) cb(null, true);
+	else cb(new Error('Only image files (png, jpg, jpeg, webp) are allowed for logo'), false);
+};
+
+const uploadLogo = multer({
+	storage: logoStorage,
+	fileFilter: imageFileFilter,
+	limits: { fileSize: 3 * 1024 * 1024 }, // 3MB
+});
+
+// Upload company logo (public)
+router.post('/upload-logo', uploadLogo.single('logo'), async (req, res) => {
+	try {
+		if (!req.file) {
+			return res.status(400).json({ message: 'No logo file uploaded' });
+		}
+
+		// Lấy SERVER_URL từ env, fallback localhost khi dev
+		const serverUrl = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5001}`;
+		const file_url = `${serverUrl}/uploads/companies/${req.file.filename}`;
+
+		return res.status(201).json({ message: 'Logo uploaded', file_url });
+	} catch (err) {
+		console.error('Upload logo error:', err);
+		return res.status(500).json({ message: 'Server error' });
+	}
+});
 
 // Helper: generate 10-digit numeric tax code
 function randomDigits(length = 10) {
@@ -195,10 +199,10 @@ router.patch('/:id/review', authenticateToken, requireAdmin, async (req, res) =>
 	try {
 		const { id } = req.params;
 		const { status, review_note } = req.body;
-		if (!['accepted','rejected','pending'].includes(status)) {
+		if (!['accepted', 'rejected', 'pending'].includes(status)) {
 			return res.status(400).json({ message: 'Invalid status' });
 		}
-	const { rows } = await pool.query(
+		const { rows } = await pool.query(
 			`UPDATE companies
 			 SET status = $1,
 					 reviewed_by_user_id = $2,

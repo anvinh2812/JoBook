@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { companiesAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { getAvatarUrl } from "../config";
 
 const AdminCompanies = () => {
     const { user } = useAuth();
@@ -390,10 +391,27 @@ const AdminCompanies = () => {
                                 {editState.editing && selected.status === 'accepted' ? (
                                     <div className="space-y-2">
                                         {(editState.newLogoPreview || editState.form.logo_url) && (
-                                            <img src={editState.newLogoPreview || editState.form.logo_url} alt="logo" className="h-12 w-12 object-cover rounded border" />
+                                            <img
+                                                src={
+                                                    editState.newLogoPreview || getAvatarUrl(editState.form.logo_url)
+                                                }
+                                                alt="logo"
+                                                className="h-12 w-12 object-cover rounded border"
+                                            />
                                         )}
-                                        <label className={`inline-flex items-center gap-2 px-3 py-2 border rounded bg-white ${editState.uploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 00-2 2v8a2 2 0 002 2h3.5a1.5 1.5 0 100-3H5V6h10v2.5a1.5 1.5 0 003 0V5a2 2 0 00-2-2H4z" /><path d="M16 13a1 1 0 00-1-1h-3V9a1 1 0 10-2 0v3H7a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 001-1z" /></svg>
+                                        <label
+                                            className={`inline-flex items-center gap-2 px-3 py-2 border rounded bg-white ${editState.uploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-5 w-5 text-gray-600"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path d="M4 3a2 2 0 00-2 2v8a2 2 0 002 2h3.5a1.5 1.5 0 100-3H5V6h10v2.5a1.5 1.5 0 003 0V5a2 2 0 00-2-2H4z" />
+                                                <path d="M16 13a1 1 0 00-1-1h-3V9a1 1 0 10-2 0v3H7a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 001-1z" />
+                                            </svg>
                                             <span>Tải logo từ máy</span>
                                             <input
                                                 ref={fileInputRef}
@@ -409,18 +427,30 @@ const AdminCompanies = () => {
                                                     const preview = URL.createObjectURL(file);
                                                     // Cleanup old preview
                                                     if (editState.newLogoPreview) {
-                                                        try { URL.revokeObjectURL(editState.newLogoPreview); } catch { }
+                                                        try {
+                                                            URL.revokeObjectURL(editState.newLogoPreview);
+                                                        } catch { }
                                                     }
-                                                    setEditState((s) => ({ ...s, newLogoFile: file, newLogoPreview: preview }));
+                                                    setEditState((s) => ({
+                                                        ...s,
+                                                        newLogoFile: file,
+                                                        newLogoPreview: preview,
+                                                    }));
                                                     // reset input value to allow reselect same file
                                                     if (fileInputRef.current) fileInputRef.current.value = '';
                                                 }}
                                             />
                                         </label>
-                                        {editState.uploading && <div className="text-sm text-gray-500">Đang tải logo...</div>}
+                                        {editState.uploading && (
+                                            <div className="text-sm text-gray-500">Đang tải logo...</div>
+                                        )}
                                     </div>
                                 ) : selected.logo_url ? (
-                                    <img src={selected.logo_url} alt="logo" className="h-12 w-12 object-cover rounded border" />
+                                    <img
+                                        src={getAvatarUrl(selected.logo_url)}
+                                        alt="logo"
+                                        className="h-12 w-12 object-cover rounded border"
+                                    />
                                 ) : (
                                     <div className="text-gray-400">(không có)</div>
                                 )}
