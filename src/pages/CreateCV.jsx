@@ -18,8 +18,8 @@ const CreateCV = () => {
             Tạo thế giới CV hiện đại <br /> chỉ bằng một cú nhấp chuột
           </h1>
           <p className="text-lg md:text-xl text-gray-100 max-w-2xl leading-relaxed">
-            Với <span className="font-semibold">JoBook</span>, bạn có thể dễ dàng tạo CV đẹp mắt 
-            chỉ bằng vài bước đơn giản. Chọn mẫu, chỉnh sửa thông tin, và tải về ngay lập tức — 
+            Với <span className="font-semibold">JoBook</span>, bạn có thể dễ dàng tạo CV đẹp mắt
+            chỉ bằng vài bước đơn giản. Chọn mẫu, chỉnh sửa thông tin, và tải về ngay lập tức —
             tất cả đều miễn phí và tiện lợi.
           </p>
         </div>
@@ -28,10 +28,18 @@ const CreateCV = () => {
       </section>
 
       {/* Tiêu đề */}
-      <div className="flex justify-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 text-center tracking-wide">
+      {/* Tiêu đề */}
+      <div className="flex flex-col items-center mb-8 text-center">
+        <h2 className="text-3xl font-extrabold tracking-wide text-gray-800">
           🚀 Chọn mẫu CV hot trend để bắt đầu
         </h2>
+        <p className="mt-2 text-sm text-gray-600 italic">
+          ⚡ Hiện tại{" "}
+          <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">
+            Classic One
+          </span>{" "}
+          là mẫu hoàn chỉnh. Các mẫu khác đang được JoBook cập nhật và hoàn thiện.
+        </p>
       </div>
 
       {/* Danh sách mẫu */}
