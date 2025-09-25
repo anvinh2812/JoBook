@@ -69,7 +69,8 @@ const GenerateCV = () => {
         setIsGenerating(true);
 
         try {
-            const res = await fetch(`${__API_BASE_URL__}/gemini/generate-cv`, {
+            const baseUrl = import.meta.env.VITE_API_BASE_URL || ""; // ✅ chạy được cả local & server
+            const res = await fetch(`${baseUrl}/gemini/generate-cv`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -87,12 +88,17 @@ const GenerateCV = () => {
                 }),
             });
 
-            const raw = await res.text();
-            console.log("🧾 Raw API:", raw);
+            if (!res.ok) {
+                throw new Error(`AI API error: ${res.status}`);
+            }
 
-            const parsed = JSON.parse(raw);
+            const parsed = await res.json().catch(() => {
+                throw new Error("AI API trả về JSON không hợp lệ");
+            });
+
             const aiData = parsed?.content || {};
 
+            // ✅ phần transform giữ nguyên như bạn đã làm
             const transformed = {
                 fullName: aiData.fullName || "",
                 email: aiData.email || "",
@@ -104,7 +110,6 @@ const GenerateCV = () => {
                 gender: aiData.gender || "",
                 avatar: aiData.avatar || "",
                 website: aiData.website || "",
-
                 educationList: (aiData.educationList || []).map((e) => ({
                     time: e.time || `${e.startDate || ""} - ${e.endDate || ""}`.trim(),
                     school: e.school || e.institution || "",
@@ -112,36 +117,30 @@ const GenerateCV = () => {
                     result: e.result || "",
                     note: e.note || "",
                 })),
-
                 experienceList: (aiData.experienceList || []).map((exp) => ({
                     time: exp.time || `${exp.startDate || ""} - ${exp.endDate || ""}`.trim(),
                     company: exp.company || "",
                     position: exp.position || "",
                     details: exp.details || exp.description || "",
                 })),
-
                 activityList: (aiData.activityList || []).map((a) => ({
                     time: a.time || "",
                     org: a.name || a.org || "",
                     role: a.role || "",
                     details: a.description || a.details || "",
                 })),
-
                 certificatesList: (aiData.certificatesList || []).map((c) => ({
                     time: c.date || c.time || "",
                     name: c.name || "",
                 })),
-
                 awardsList: (aiData.awardsList || []).map((a) => ({
                     time: a.time || "",
                     title: a.title || "",
                 })),
-
                 skillsList: (aiData.skillsList || []).map((s) => ({
                     name: s.name || "",
                     description: s.description || "",
                 })),
-
                 projectsList: (aiData.projectsList || []).map((p) => ({
                     name: p.name || "",
                     description: p.description || "",
@@ -157,6 +156,7 @@ const GenerateCV = () => {
             console.log("✅ formData after set:", transformed);
         } catch (err) {
             console.error("❌ AI error:", err);
+            notify.error(err.message || "Không tạo được nội dung AI");
         } finally {
             setIsGenerating(false);
         }
@@ -208,13 +208,13 @@ const GenerateCV = () => {
                         fix("color", "#111827");
                         fix("borderColor", "#e5e7eb");
 
-                        		style.wordBreak = "break-word";
-                        		style.overflowWrap = "break-word";
-                        		style.whiteSpace = "pre-wrap";
-                        		// Prevent templates that apply wide letter/word spacing from
-                        		// producing spaced-out characters in extracted text.
-                        		style.letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? 'normal' : (style.letterSpacing || 'normal');
-                        		style.wordSpacing = cs.wordSpacing && cs.wordSpacing !== 'normal' ? 'normal' : (style.wordSpacing || 'normal');
+                        style.wordBreak = "break-word";
+                        style.overflowWrap = "break-word";
+                        style.whiteSpace = "pre-wrap";
+                        // Prevent templates that apply wide letter/word spacing from
+                        // producing spaced-out characters in extracted text.
+                        style.letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? 'normal' : (style.letterSpacing || 'normal');
+                        style.wordSpacing = cs.wordSpacing && cs.wordSpacing !== 'normal' ? 'normal' : (style.wordSpacing || 'normal');
                         style.lineHeight = cs.lineHeight || "1.5";
                         style.fontSize = cs.fontSize || "14px";
                     });
@@ -266,77 +266,77 @@ const GenerateCV = () => {
                 y += pageCanvas.height;
             }
 
-                        const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
-                        // Save the visual (image) PDF for the user
-                        pdf.save(fileName);
+            const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
+            // Save the visual (image) PDF for the user
+            pdf.save(fileName);
 
-                                    // Normalize plain text to remove extra spaces/letter spacing that come from
-                                    // the template rendering (avoids outputs like "A n g   V i n h").
-                                    const normalizePlainText = (text) => {
-                                        if (!text) return '';
-                                        // Normalize line endings and trim
-                                        let t = text.replace(/\r/g, '').trim();
+            // Normalize plain text to remove extra spaces/letter spacing that come from
+            // the template rendering (avoids outputs like "A n g   V i n h").
+            const normalizePlainText = (text) => {
+                if (!text) return '';
+                // Normalize line endings and trim
+                let t = text.replace(/\r/g, '').trim();
 
-                                        // Collapse multiple spaces into one (preserve newlines for readability)
-                                        t = t.split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n');
+                // Collapse multiple spaces into one (preserve newlines for readability)
+                t = t.split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n');
 
-                                        // Fix sequences of single-letter tokens (e.g. "A n g V i n h") into words.
-                                        // Heuristic: if there are consecutive single-character letter tokens, join them.
-                                        try {
-                                            const letterRe = /\p{L}/u;
-                                            t = t.split('\n').map(line => {
-                                                const tokens = line.split(' ');
-                                                const out = [];
-                                                let acc = [];
-                                                for (const tok of tokens) {
-                                                    if (tok.length === 1 && letterRe.test(tok)) {
-                                                        acc.push(tok);
-                                                    } else {
-                                                        if (acc.length > 0) {
-                                                            out.push(acc.join(''));
-                                                            acc = [];
-                                                        }
-                                                        out.push(tok);
-                                                    }
-                                                }
-                                                if (acc.length > 0) out.push(acc.join(''));
-                                                return out.join(' ');
-                                            }).join('\n');
-                                        } catch (e) {
-                                            // If Unicode property escapes not supported, fallback to simpler collapse
-                                            t = t.replace(/(\b\w\b\s?){2,}/g, s => s.replace(/\s/g, ''));
-                                        }
+                // Fix sequences of single-letter tokens (e.g. "A n g V i n h") into words.
+                // Heuristic: if there are consecutive single-character letter tokens, join them.
+                try {
+                    const letterRe = /\p{L}/u;
+                    t = t.split('\n').map(line => {
+                        const tokens = line.split(' ');
+                        const out = [];
+                        let acc = [];
+                        for (const tok of tokens) {
+                            if (tok.length === 1 && letterRe.test(tok)) {
+                                acc.push(tok);
+                            } else {
+                                if (acc.length > 0) {
+                                    out.push(acc.join(''));
+                                    acc = [];
+                                }
+                                out.push(tok);
+                            }
+                        }
+                        if (acc.length > 0) out.push(acc.join(''));
+                        return out.join(' ');
+                    }).join('\n');
+                } catch (e) {
+                    // If Unicode property escapes not supported, fallback to simpler collapse
+                    t = t.replace(/(\b\w\b\s?){2,}/g, s => s.replace(/\s/g, ''));
+                }
 
-                                        return t;
-                                    };
+                return t;
+            };
 
-                                    const normalizedText = normalizePlainText(plainText);
+            const normalizedText = normalizePlainText(plainText);
 
-                                    // Upload the visual PDF (so user gets the same visual layout) and send
-                                    // normalized plain text as `text` so the server saves a .txt sidecar.
-                                    try {
-                                        // Get PDF blob (visual)
-                                        let pdfBlob = pdf.output('blob');
-                                        // Ensure proper mimetype
-                                        try {
-                                            pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
-                                        } catch (e) {
-                                            // ignore, use existing blob
-                                        }
+            // Upload the visual PDF (so user gets the same visual layout) and send
+            // normalized plain text as `text` so the server saves a .txt sidecar.
+            try {
+                // Get PDF blob (visual)
+                let pdfBlob = pdf.output('blob');
+                // Ensure proper mimetype
+                try {
+                    pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
+                } catch (e) {
+                    // ignore, use existing blob
+                }
 
-                                        const formDataUpload = new FormData();
-                                        formDataUpload.append('cv', pdfBlob, fileName);
-                                        formDataUpload.append('text', normalizedText);
+                const formDataUpload = new FormData();
+                formDataUpload.append('cv', pdfBlob, fileName);
+                formDataUpload.append('text', normalizedText);
 
-                                        await cvsAPI.uploadCV(formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                        notify.success('Đã lưu CV vào hệ thống');
-                                        window.dispatchEvent(new Event('cv-updated'));
-                                    } catch (err) {
-                                        console.error('Upload error (visual PDF + text sidecar):', err);
-                                        console.error('Response data:', err?.response?.data);
-                                        const msg = err?.response?.data?.message || 'Lưu CV thất bại!';
-                                        notify.error(msg);
-                                    }
+                await cvsAPI.uploadCV(formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
+                notify.success('Đã lưu CV vào hệ thống');
+                window.dispatchEvent(new Event('cv-updated'));
+            } catch (err) {
+                console.error('Upload error (visual PDF + text sidecar):', err);
+                console.error('Response data:', err?.response?.data);
+                const msg = err?.response?.data?.message || 'Lưu CV thất bại!';
+                notify.error(msg);
+            }
         } catch (err) {
             console.error("❌ Export PDF error:", err);
         } finally {
