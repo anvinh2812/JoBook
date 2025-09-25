@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// import html2canvas from "html2canvas";
+// import jsPDF from "jspdf";
+
+import { pdf } from "@react-pdf/renderer";
+import ClassicOnePDF from "../pdf-templates/ClassicOnePDF"; // file mới bạn tạo cho template PDF
+
 import CVPreview from "../components/CVPreview"; // Hiển thị template CV
 import { cvsAPI } from "../services/api";
 import notify from "../utils/notify";
@@ -166,183 +170,220 @@ const GenerateCV = () => {
         console.log("📄 Dữ liệu đang render ra CV:", formData);
     }, [formData]);
 
+    // const handleExportPDF = async () => {
+    //     if (!cvRef.current) return;
+
+    //     setIsExporting(true);
+
+    //     // ⏳ Đợi 1 tick để React re-render với isExporting = true
+    //     await new Promise((resolve) => setTimeout(resolve, 100));
+
+    //     try {
+    //         // ✅ Clone node CV (lúc này đã là <div>, không còn <input>)
+    //         const exportNode = cvRef.current.cloneNode(true);
+
+    //         const wrapper = document.createElement("div");
+    //         wrapper.style.width = "794px"; // A4
+    //         wrapper.style.padding = "20px";
+    //         wrapper.style.background = "#fff";
+    //         wrapper.style.overflow = "visible";
+    //         wrapper.style.fontSize = "14px";
+    //         wrapper.style.lineHeight = "1.5";
+    //         wrapper.appendChild(exportNode);
+    //         document.body.appendChild(wrapper);
+
+    //         const canvas = await html2canvas(wrapper, {
+    //             scale: 2,
+    //             useCORS: true,
+    //             backgroundColor: "#fff",
+    //             onclone: (clonedDoc) => {
+    //                 const all = clonedDoc.querySelectorAll("*");
+    //                 all.forEach((el) => {
+    //                     const style = el.style;
+    //                     const cs = clonedDoc.defaultView.getComputedStyle(el);
+
+    //                     const fix = (prop, fallback) => {
+    //                         const v = cs[prop];
+    //                         if (v && v.includes("oklch")) {
+    //                             style[prop] = fallback;
+    //                         }
+    //                     };
+    //                     fix("backgroundColor", "#ffffff");
+    //                     fix("color", "#111827");
+    //                     fix("borderColor", "#e5e7eb");
+
+    //                     style.wordBreak = "break-word";
+    //                     style.overflowWrap = "break-word";
+    //                     style.whiteSpace = "pre-wrap";
+    //                     // Prevent templates that apply wide letter/word spacing from
+    //                     // producing spaced-out characters in extracted text.
+    //                     style.letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? 'normal' : (style.letterSpacing || 'normal');
+    //                     style.wordSpacing = cs.wordSpacing && cs.wordSpacing !== 'normal' ? 'normal' : (style.wordSpacing || 'normal');
+    //                     style.lineHeight = cs.lineHeight || "1.5";
+    //                     style.fontSize = cs.fontSize || "14px";
+    //                 });
+    //             },
+    //         });
+
+    //         // Capture plain-text representation so server (and AI) can read the content
+    //         // and save it as a .txt sidecar next to the PDF (server supports req.body.text)
+    //         const plainText = wrapper.innerText || '';
+
+    //         document.body.removeChild(wrapper);
+
+    //         // ✅ Xuất PDF chuẩn A4
+    //         const pdf = new jsPDF("p", "mm", "a4");
+    //         const pageWidth = pdf.internal.pageSize.getWidth();
+    //         const pageHeight = pdf.internal.pageSize.getHeight();
+
+    //         const imgWidth = pageWidth;
+    //         const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    //         let y = 0;
+    //         while (y < canvas.height) {
+    //             const pageCanvas = document.createElement("canvas");
+    //             pageCanvas.width = canvas.width;
+    //             pageCanvas.height = Math.min(
+    //                 canvas.height - y,
+    //                 (canvas.width * pageHeight) / pageWidth
+    //             );
+
+    //             const ctx = pageCanvas.getContext("2d");
+    //             ctx.drawImage(
+    //                 canvas,
+    //                 0,
+    //                 y,
+    //                 canvas.width,
+    //                 pageCanvas.height,
+    //                 0,
+    //                 0,
+    //                 canvas.width,
+    //                 pageCanvas.height
+    //             );
+
+    //             const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+    //             const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width;
+
+    //             if (y > 0) pdf.addPage();
+    //             pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
+
+    //             y += pageCanvas.height;
+    //         }
+
+    //         const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
+    //         // Save the visual (image) PDF for the user
+    //         pdf.save(fileName);
+
+    //         // Normalize plain text to remove extra spaces/letter spacing that come from
+    //         // the template rendering (avoids outputs like "A n g   V i n h").
+    //         const normalizePlainText = (text) => {
+    //             if (!text) return '';
+    //             // Normalize line endings and trim
+    //             let t = text.replace(/\r/g, '').trim();
+
+    //             // Collapse multiple spaces into one (preserve newlines for readability)
+    //             t = t.split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n');
+
+    //             // Fix sequences of single-letter tokens (e.g. "A n g V i n h") into words.
+    //             // Heuristic: if there are consecutive single-character letter tokens, join them.
+    //             try {
+    //                 const letterRe = /\p{L}/u;
+    //                 t = t.split('\n').map(line => {
+    //                     const tokens = line.split(' ');
+    //                     const out = [];
+    //                     let acc = [];
+    //                     for (const tok of tokens) {
+    //                         if (tok.length === 1 && letterRe.test(tok)) {
+    //                             acc.push(tok);
+    //                         } else {
+    //                             if (acc.length > 0) {
+    //                                 out.push(acc.join(''));
+    //                                 acc = [];
+    //                             }
+    //                             out.push(tok);
+    //                         }
+    //                     }
+    //                     if (acc.length > 0) out.push(acc.join(''));
+    //                     return out.join(' ');
+    //                 }).join('\n');
+    //             } catch (e) {
+    //                 // If Unicode property escapes not supported, fallback to simpler collapse
+    //                 t = t.replace(/(\b\w\b\s?){2,}/g, s => s.replace(/\s/g, ''));
+    //             }
+
+    //             return t;
+    //         };
+
+    //         const normalizedText = normalizePlainText(plainText);
+
+    //         // Upload the visual PDF (so user gets the same visual layout) and send
+    //         // normalized plain text as `text` so the server saves a .txt sidecar.
+    //         try {
+    //             // Get PDF blob (visual)
+    //             let pdfBlob = pdf.output('blob');
+    //             // Ensure proper mimetype
+    //             try {
+    //                 pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
+    //             } catch (e) {
+    //                 // ignore, use existing blob
+    //             }
+
+    //             const formDataUpload = new FormData();
+    //             formDataUpload.append('cv', pdfBlob, fileName);
+    //             formDataUpload.append('text', normalizedText);
+
+    //             await cvsAPI.uploadCV(formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
+    //             notify.success('Đã lưu CV vào hệ thống');
+    //             window.dispatchEvent(new Event('cv-updated'));
+    //         } catch (err) {
+    //             console.error('Upload error (visual PDF + text sidecar):', err);
+    //             console.error('Response data:', err?.response?.data);
+    //             const msg = err?.response?.data?.message || 'Lưu CV thất bại!';
+    //             notify.error(msg);
+    //         }
+    //     } catch (err) {
+    //         console.error("❌ Export PDF error:", err);
+    //     } finally {
+    //         setIsExporting(false); // reset lại preview
+    //     }
+    // };
     const handleExportPDF = async () => {
-        if (!cvRef.current) return;
-
         setIsExporting(true);
-
-        // ⏳ Đợi 1 tick để React re-render với isExporting = true
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
         try {
-            // ✅ Clone node CV (lúc này đã là <div>, không còn <input>)
-            const exportNode = cvRef.current.cloneNode(true);
-
-            const wrapper = document.createElement("div");
-            wrapper.style.width = "794px"; // A4
-            wrapper.style.padding = "20px";
-            wrapper.style.background = "#fff";
-            wrapper.style.overflow = "visible";
-            wrapper.style.fontSize = "14px";
-            wrapper.style.lineHeight = "1.5";
-            wrapper.appendChild(exportNode);
-            document.body.appendChild(wrapper);
-
-            const canvas = await html2canvas(wrapper, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#fff",
-                onclone: (clonedDoc) => {
-                    const all = clonedDoc.querySelectorAll("*");
-                    all.forEach((el) => {
-                        const style = el.style;
-                        const cs = clonedDoc.defaultView.getComputedStyle(el);
-
-                        const fix = (prop, fallback) => {
-                            const v = cs[prop];
-                            if (v && v.includes("oklch")) {
-                                style[prop] = fallback;
-                            }
-                        };
-                        fix("backgroundColor", "#ffffff");
-                        fix("color", "#111827");
-                        fix("borderColor", "#e5e7eb");
-
-                        style.wordBreak = "break-word";
-                        style.overflowWrap = "break-word";
-                        style.whiteSpace = "pre-wrap";
-                        // Prevent templates that apply wide letter/word spacing from
-                        // producing spaced-out characters in extracted text.
-                        style.letterSpacing = cs.letterSpacing && cs.letterSpacing !== 'normal' ? 'normal' : (style.letterSpacing || 'normal');
-                        style.wordSpacing = cs.wordSpacing && cs.wordSpacing !== 'normal' ? 'normal' : (style.wordSpacing || 'normal');
-                        style.lineHeight = cs.lineHeight || "1.5";
-                        style.fontSize = cs.fontSize || "14px";
-                    });
-                },
-            });
-
-            // Capture plain-text representation so server (and AI) can read the content
-            // and save it as a .txt sidecar next to the PDF (server supports req.body.text)
-            const plainText = wrapper.innerText || '';
-
-            document.body.removeChild(wrapper);
-
-            // ✅ Xuất PDF chuẩn A4
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-
-            const imgWidth = pageWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            let y = 0;
-            while (y < canvas.height) {
-                const pageCanvas = document.createElement("canvas");
-                pageCanvas.width = canvas.width;
-                pageCanvas.height = Math.min(
-                    canvas.height - y,
-                    (canvas.width * pageHeight) / pageWidth
-                );
-
-                const ctx = pageCanvas.getContext("2d");
-                ctx.drawImage(
-                    canvas,
-                    0,
-                    y,
-                    canvas.width,
-                    pageCanvas.height,
-                    0,
-                    0,
-                    canvas.width,
-                    pageCanvas.height
-                );
-
-                const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-                const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width;
-
-                if (y > 0) pdf.addPage();
-                pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
-
-                y += pageCanvas.height;
-            }
+            const doc = <ClassicOnePDF data={formData} />; // truyền dữ liệu vào template PDF
+            const blob = await pdf(doc).toBlob();
 
             const fileName = `${formData.fullName || "CV"} - ${formData.appliedPosition || "UngTuyen"}.pdf`;
-            // Save the visual (image) PDF for the user
-            pdf.save(fileName);
 
-            // Normalize plain text to remove extra spaces/letter spacing that come from
-            // the template rendering (avoids outputs like "A n g   V i n h").
-            const normalizePlainText = (text) => {
-                if (!text) return '';
-                // Normalize line endings and trim
-                let t = text.replace(/\r/g, '').trim();
+            // Tải về máy người dùng
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
 
-                // Collapse multiple spaces into one (preserve newlines for readability)
-                t = t.split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n');
+            // Upload server: gửi blob + text
+            const formDataUpload = new FormData();
+            formDataUpload.append("cv", blob, fileName);
 
-                // Fix sequences of single-letter tokens (e.g. "A n g V i n h") into words.
-                // Heuristic: if there are consecutive single-character letter tokens, join them.
-                try {
-                    const letterRe = /\p{L}/u;
-                    t = t.split('\n').map(line => {
-                        const tokens = line.split(' ');
-                        const out = [];
-                        let acc = [];
-                        for (const tok of tokens) {
-                            if (tok.length === 1 && letterRe.test(tok)) {
-                                acc.push(tok);
-                            } else {
-                                if (acc.length > 0) {
-                                    out.push(acc.join(''));
-                                    acc = [];
-                                }
-                                out.push(tok);
-                            }
-                        }
-                        if (acc.length > 0) out.push(acc.join(''));
-                        return out.join(' ');
-                    }).join('\n');
-                } catch (e) {
-                    // If Unicode property escapes not supported, fallback to simpler collapse
-                    t = t.replace(/(\b\w\b\s?){2,}/g, s => s.replace(/\s/g, ''));
-                }
+            // Lấy text thô từ formData (server vẫn lưu sidecar)
+            const plainText = Object.entries(formData)
+                .map(([k, v]) => (typeof v === "string" ? v : ""))
+                .filter(Boolean)
+                .join("\n");
 
-                return t;
-            };
+            formDataUpload.append("text", plainText);
 
-            const normalizedText = normalizePlainText(plainText);
-
-            // Upload the visual PDF (so user gets the same visual layout) and send
-            // normalized plain text as `text` so the server saves a .txt sidecar.
-            try {
-                // Get PDF blob (visual)
-                let pdfBlob = pdf.output('blob');
-                // Ensure proper mimetype
-                try {
-                    pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
-                } catch (e) {
-                    // ignore, use existing blob
-                }
-
-                const formDataUpload = new FormData();
-                formDataUpload.append('cv', pdfBlob, fileName);
-                formDataUpload.append('text', normalizedText);
-
-                await cvsAPI.uploadCV(formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
-                notify.success('Đã lưu CV vào hệ thống');
-                window.dispatchEvent(new Event('cv-updated'));
-            } catch (err) {
-                console.error('Upload error (visual PDF + text sidecar):', err);
-                console.error('Response data:', err?.response?.data);
-                const msg = err?.response?.data?.message || 'Lưu CV thất bại!';
-                notify.error(msg);
-            }
+            await cvsAPI.uploadCV(formDataUpload, { headers: { "Content-Type": "multipart/form-data" } });
+            notify.success("Đã lưu CV vào hệ thống");
+            window.dispatchEvent(new Event("cv-updated"));
         } catch (err) {
             console.error("❌ Export PDF error:", err);
+            notify.error("Lỗi khi xuất hoặc lưu CV");
         } finally {
-            setIsExporting(false); // reset lại preview
+            setIsExporting(false);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-6">
@@ -461,8 +502,11 @@ const GenerateCV = () => {
                                 onAddList={handleAddList}
                                 onAvatarChange={(file) => {
                                     if (file) {
-                                        const url = URL.createObjectURL(file);
-                                        setFormData((prev) => ({ ...prev, avatar: url }));
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setFormData((prev) => ({ ...prev, avatar: reader.result })); // Base64
+                                        };
+                                        reader.readAsDataURL(file);
                                     }
                                 }}
                             />
