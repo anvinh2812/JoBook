@@ -9,7 +9,6 @@ import ClassicOnePDF from "../pdf-templates/ClassicOnePDF"; // file mới bạn 
 import CVPreview from "../components/CVPreview"; // Hiển thị template CV
 import { cvsAPI } from "../services/api";
 import notify from "../utils/notify";
-import html2pdf from "html2pdf.js";
 
 const GenerateCV = () => {
     const location = useLocation();
@@ -73,7 +72,7 @@ const GenerateCV = () => {
         setIsGenerating(true);
 
         try {
-            const baseUrl = import.meta.env.VITE_API_BASE_URL || ""; // ✅ chạy được cả local & server
+            const baseUrl = import.meta.env.VITE_API_BASE_URL || ""; 
             const res = await fetch(`${baseUrl}/gemini/generate-cv`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

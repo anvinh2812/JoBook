@@ -44,7 +44,7 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                             src={data.avatar}
                             alt="avatar"
                             className="w-full h-full object-cover"
-                            crossOrigin="anonymous" // ✅ để html2canvas lấy được ảnh khi export
+                            crossOrigin="anonymous" 
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -64,8 +64,8 @@ const CVPreview = ({ data, onChange, onListChange, onAddList, onRemoveList, temp
                                 const file = e.target.files?.[0];
                                 if (file) {
                                     const url = URL.createObjectURL(file);
-                                    onAvatarChange?.(file); // ✅ Lưu file gốc
-                                    setFormData((prev) => ({ ...prev, avatar: url })); // ✅ Lưu URL để preview
+                                    onAvatarChange?.(file); 
+                                    setFormData((prev) => ({ ...prev, avatar: url }));
                                 }
                             }}
                         />
